@@ -24,20 +24,20 @@
 <meta property="og:url" content="https://rangdhanuduet.live/"/>
 <meta property="og:title" content="Rangdhanu DUET | Students' Welfare Association of Greater Rangpur"/>
 <meta property="og:description" content="The students' welfare association of Greater Rangpur at DUET, Gazipur — member and alumni directory, events, notices, executive committee and PDACC admission coaching."/>
-<meta property="og:image" content="https://rangdhanuduet.live/Images/Rangdhanu%20Logo.png"/>
+<meta property="og:image" content="https://rangdhanuduet.live/logo.png"/>
 <meta property="og:image:alt" content="Rangdhanu DUET crest"/>
 <meta property="og:locale" content="en_US"/>
 <meta property="og:locale:alternate" content="bn_BD"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="Rangdhanu DUET | Students' Welfare Association of Greater Rangpur"/>
 <meta name="twitter:description" content="The students' welfare association of Greater Rangpur at DUET, Gazipur — member and alumni directory, events, notices, executive committee and PDACC admission coaching."/>
-<meta name="twitter:image" content="https://rangdhanuduet.live/Images/Rangdhanu%20Logo.png"/>
+<meta name="twitter:image" content="https://rangdhanuduet.live/logo.png"/>
 
 <!-- Browser tab / bookmark / phone home-screen icon. Browsers cache a favicon
      hard, so ?v=1 is the switch to turn when the logo file is replaced. -->
-<link rel="icon" type="image/png" href="/Images/Rangdhanu%20Logo.png?v=1" sizes="any"/>
-<link rel="shortcut icon" href="/Images/Rangdhanu%20Logo.png?v=1"/>
-<link rel="apple-touch-icon" href="/Images/Rangdhanu%20Logo.png?v=1"/>
+<link rel="icon" type="image/png" href="/logo.png?v=2" sizes="any"/>
+<link rel="shortcut icon" href="/logo.png?v=2"/>
+<link rel="apple-touch-icon" href="/logo.png?v=2"/>
 
 <!-- Told plainly, for a search engine: what this organisation is called in
      both languages, where it is, and where else it lives online. Both names
@@ -59,8 +59,8 @@
         "Rangdhanu DUET Students' Welfare Association of Greater Rangpur"
       ],
       "url": "https://rangdhanuduet.live/",
-      "logo": "https://rangdhanuduet.live/Images/Rangdhanu%20Logo.png",
-      "image": "https://rangdhanuduet.live/Images/Rangdhanu%20Logo.png",
+      "logo": "https://rangdhanuduet.live/logo.png",
+      "image": "https://rangdhanuduet.live/logo.png",
       "description": "The students' welfare association of Greater Rangpur at Dhaka University of Engineering & Technology (DUET), Gazipur.",
       "sameAs": ["https://www.facebook.com/rangdhanu.duet.gazipur", "https://www.facebook.com/groups/1620129331581734"],
       "address": {
@@ -343,6 +343,28 @@
        Buttons move it, but the scrolling itself is the browser's own: that
        is what keeps the thumb swipe, the trackpad and the keyboard working
        without a line of JavaScript pretending to be a carousel. */
+    /* ---- the PDACC page's own little nav, crest and contact cards ---- */
+    .rd-pd-navbtn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem .9rem;
+      border-radius:1rem;border:1px solid #e2e8f0;background:#fff;color:#475569;
+      font-size:11px;font-weight:800;cursor:pointer;transition:all .18s ease;white-space:nowrap;}
+    .rd-pd-navbtn:hover{border-color:#a5b4fc;color:#4338ca;background:#eef2ff;}
+    .rd-pd-navbtn.is-fb{border-color:#bfdbfe;color:#1d4ed8;background:#eff6ff;}
+    .rd-pd-navbtn.is-fb:hover{background:#dbeafe;}
+    .rd-pd-crest{width:2.5rem;height:2.5rem;border-radius:.9rem;border:1px solid #e2e8f0;
+      background:#fff;overflow:hidden;display:inline-flex;align-items:center;
+      justify-content:center;flex:0 0 auto;}
+    .rd-pd-crest.is-big{width:4.5rem;height:4.5rem;border-radius:1.4rem;}
+    .rd-pd-crest img{width:100%;height:100%;object-fit:contain;padding:.15rem;}
+    .rd-pd-contact{display:flex;align-items:center;gap:.75rem;padding:1rem 1.15rem;
+      border-radius:1.25rem;border:1px solid #e2e8f0;background:#fff;color:#334155;
+      text-align:left;cursor:pointer;width:100%;transition:all .18s ease;
+      box-shadow:0 1px 2px rgba(15,23,42,.04);}
+    .rd-pd-contact:hover{border-color:#a5b4fc;color:#3730a3;transform:translateY(-1px);
+      box-shadow:0 12px 30px -18px rgba(15,23,42,.45);}
+    .rd-pd-contact strong{display:block;font-size:13px;font-weight:800;}
+    .rd-pd-contact em{display:block;font-style:normal;font-size:11px;font-weight:700;
+      opacity:.7;word-break:break-word;}
+    .rd-pd-contact.is-fb{border-color:#bfdbfe;background:#eff6ff;color:#1d4ed8;}
     .rd-rail-wrap{position:relative;}
     .rd-rail{display:flex;gap:1.25rem;overflow-x:auto;scroll-snap-type:x mandatory;
       scroll-behavior:smooth;padding:.25rem .25rem 1rem;-webkit-overflow-scrolling:touch;
@@ -423,7 +445,7 @@
     <!-- Brand -->
     <div class="flex items-center gap-3 sm:gap-3.5 group cursor-pointer shrink-0" onclick="switchPage('home')">
       <div class="brand-logo">
-        <img alt="Rangdhanu DUET Logo" src="Images/Rangdhanu Logo.png" data-rd-img="Images/Rangdhanu Logo.png"/>
+        <img alt="Rangdhanu DUET Logo" src="logo.png" fetchpriority="high" decoding="async"/>
       </div>
       <div class="brand-word">
         <span class="brand-name font-display">RANGDHANU <span class="brand-duet">DUET</span></span>
@@ -660,10 +682,25 @@
   <div class="page-view" id="page-prokoushali">
     <section class="py-14 md:py-20 bg-[#f8fafc] border-t border-slate-200 min-h-[75vh]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- The page's own little nav. The crest on the left, the jump
+             buttons in the middle, and the one outward link on the right. -->
+        <nav id="pdacc-nav" class="mb-7 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur shadow-sm px-3 sm:px-5 py-3 flex flex-wrap items-center gap-2 sm:gap-3">
+          <span class="flex items-center gap-2.5 min-w-0 mr-auto">
+            <span class="rd-pd-crest"><img id="pdacc-nav-logo" src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+            <span class="min-w-0">
+              <strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PDACC</strong>
+              <span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার</span>
+            </span>
+          </span>
+          <button type="button" onclick="pdaccJump('pdacc-updates-box')" class="rd-pd-navbtn"><i data-lucide="newspaper" class="w-3.5 h-3.5"></i> Latest update</button>
+          <button type="button" onclick="pdaccAbout()" class="rd-pd-navbtn"><i data-lucide="info" class="w-3.5 h-3.5"></i> About</button>
+          <button type="button" onclick="pdaccJump('pdacc-leadership')" class="rd-pd-navbtn"><i data-lucide="quote" class="w-3.5 h-3.5"></i> Director Message</button>
+          <a href="https://www.facebook.com/pdaccduet" target="_blank" rel="noopener" class="rd-pd-navbtn is-fb"><i data-lucide="facebook" class="w-3.5 h-3.5"></i> Facebook</a>
+        </nav>
         <!-- The PDACC bar. Its pictures live in the RANGDHANU PDACC folder on
              Drive and are controlled from the very same admin tab as the home
-             one. While that folder is still empty the home pictures stand in,
-             so this is never an empty black box. -->
+             one. The two bars are separate on purpose: a home picture never
+             stands in here. An empty folder shows the crest instead. -->
         <div class="relative w-full aspect-[16/10] sm:aspect-[21/9] md:h-[460px] rounded-[28px] overflow-hidden border border-slate-200 shadow-[0_24px_70px_-28px_rgba(15,23,42,.35)] bg-slate-900 group mb-12">
           <div id="pdacc-slides" class="absolute inset-0 z-10"></div>
           <div id="pdacc-skeleton" class="absolute inset-0 z-10 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 animate-pulse"></div>
@@ -675,7 +712,7 @@
             <p class="text-white/80 text-[9px] sm:text-[11px] font-extrabold uppercase" style="letter-spacing:.34em">Welcome to</p>
             <h2 class="text-white font-extrabold tracking-tight leading-[1.08] mt-2 text-[1.35rem] sm:text-4xl md:text-5xl">PDACC</h2>
             <p class="text-white/90 font-semibold mt-2.5 max-w-2xl leading-snug text-[10px] sm:text-sm md:text-base">Prokaushali DUET Admission Coaching Centre</p>
-            <p class="text-white/70 font-bold mt-1.5 max-w-2xl leading-snug text-[10px] sm:text-xs md:text-sm">প্রকৌশলী ডুয়েট ভর্তি কোচিং সেন্টার</p>
+            <p class="text-white/70 font-bold mt-1.5 max-w-2xl leading-snug text-[10px] sm:text-xs md:text-sm">প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার</p>
             <div class="mt-3 sm:mt-4 flex flex-wrap items-center gap-2">
               <button type="button" onclick="pdaccForAdmission()" class="pointer-events-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/95 hover:bg-white text-slate-900 text-[10px] sm:text-xs font-extrabold shadow-lg">For admission <i class="w-3.5 h-3.5" data-lucide="arrow-right"></i></button>
               <button type="button" onclick="pdaccAbout()" class="pointer-events-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/25 backdrop-blur-md text-white text-[10px] sm:text-xs font-extrabold">About <i class="w-3.5 h-3.5" data-lucide="arrow-down"></i></button>
@@ -685,10 +722,36 @@
           <button aria-label="Next PDACC slide" class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 hover:bg-white text-slate-800 hover:text-slate-950 shadow-lg flex items-center justify-center z-20" onclick="nextPdaccSlide()"><i class="w-5 h-5" data-lucide="chevron-right"></i></button>
           <div id="pdacc-dots" class="absolute bottom-5 right-5 flex items-center gap-1.5 z-20 bg-slate-950/55 backdrop-blur-md px-3 py-2 rounded-full border border-white/15"></div>
         </div>
+        <!-- The notice line. Hidden altogether while the admin has no line
+             showing, so an empty strip never sits on the page. -->
+        <div id="pdacc-ticker-wrap" class="hidden mb-9 rounded-2xl border border-indigo-200 bg-indigo-50 overflow-hidden shadow-sm">
+          <div class="flex items-stretch">
+            <span class="shrink-0 inline-flex items-center gap-1.5 px-3 sm:px-4 bg-indigo-600 text-white text-[11px] font-extrabold uppercase tracking-widest"><i data-lucide="megaphone" class="w-3.5 h-3.5"></i><span class="hidden sm:inline">Notice</span></span>
+            <div class="rd-marquee flex-1 px-3" tabindex="0" aria-label="PDACC notice line"><div class="rd-marquee-track" id="pdacc-ticker"></div></div>
+          </div>
+        </div>
+
+        <!-- Latest update. The cards slide sideways; the eighth is the last
+             one on the rail and the rest live on the View all page. -->
+        <div id="pdacc-updates-box" class="mb-12 scroll-mt-28">
+          <div class="flex flex-wrap items-end gap-3 mb-6">
+            <div class="min-w-0">
+              <span class="inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold uppercase tracking-widest"><i class="w-3.5 h-3.5" data-lucide="newspaper"></i> Latest update</span>
+              <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 font-display tracking-tight">News from the coaching centre</h2>
+            </div>
+            <button type="button" id="pdacc-updates-all" onclick="openPdaccUpdates()" class="hidden ml-auto items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 text-[11px] font-extrabold cursor-pointer">View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></button>
+          </div>
+          <div class="rd-rail-wrap">
+            <button type="button" id="pdacc-upd-prev" onclick="pdaccUpdSlide(-1)" class="rd-rail-btn rd-rail-prev" aria-label="Previous updates" aria-controls="pdacc-updates"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+            <div class="rd-rail" id="pdacc-updates" tabindex="0" role="group" aria-label="PDACC updates"></div>
+            <button type="button" id="pdacc-upd-next" onclick="pdaccUpdSlide(1)" class="rd-rail-btn rd-rail-next" aria-label="Next updates" aria-controls="pdacc-updates"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+          </div>
+        </div>
+
         <!-- The About button on the bar scrolls to this block; there is no
              second copy of the description anywhere. -->
         <div id="pdacc-about" class="max-w-4xl mx-auto text-center mb-12 scroll-mt-28">
-          <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-extrabold uppercase"><i class="w-4 h-4" data-lucide="book-open"></i> A RANGDHANU Initiative</span>
+          <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-extrabold uppercase"><img src="pdacc-logo.png" alt="" decoding="async" onerror="rdPdLogoFallback(this)" class="w-4 h-4 object-contain rounded-[5px]"> A RANGDHANU Initiative</span>
           <p class="mt-3 text-[12px] sm:text-sm font-bold text-slate-500">রংধনুর একটি অঙ্গ সংগঠন</p>
           <h2 class="text-4xl sm:text-5xl font-extrabold text-slate-950 mt-5 tracking-tight">Prokaushali <span class="text-indigo-600">DUET Admission Coaching Centre</span></h2>
           <p class="text-slate-600 text-base sm:text-lg mt-5 leading-8 max-w-3xl mx-auto">DUET-এ পড়ার স্বপ্ন পূরণে ডিপ্লোমা প্রকৌশলীদের বিশ্বস্ত সঙ্গী। অভিজ্ঞ ডুয়েটিয়ানদের সঠিক গাইডলাইন, সুপরিকল্পিত স্টাডি ম্যাটেরিয়াল এবং নিয়মিত অনুশীলনের মাধ্যমে আপনার ভর্তি প্রস্তুতি হোক আরও শাণিত।</p>
@@ -728,7 +791,8 @@
         </div>
         <div id="pdacc-leadership" class="mt-12 hidden">
           <div class="max-w-4xl mx-auto text-center">
-            <span class="text-indigo-700 text-xs font-extrabold section-kicker uppercase">Leadership</span>
+            <span class="rd-pd-crest is-big mx-auto mb-4 shadow-sm"><img src="pdacc-logo.png" alt="PDACC crest" loading="lazy" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+            <span class="block text-indigo-700 text-xs font-extrabold section-kicker uppercase">Leadership</span>
             <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 mt-3">Message from the Director</h3>
             <p class="text-slate-600 mt-3 leading-7 text-sm sm:text-base">Words from the Director of our latest PDACC Executive Committee.</p>
           </div>
@@ -739,10 +803,36 @@
             </button>
           </div>
         </div>
+        <!-- Facebook, the Director's own number and the seat booking, in one
+             strip. Each button appears only once there is somebody behind it,
+             so a visitor is never handed a dead button. -->
+        <div id="pdacc-contacts" class="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
     </section>
   </div>
   
+  <!-- ================= SUB-PAGE: PDACC UPDATES ================= -->
+  <div class="page-view" id="page-pdacc-updates">
+    <div class="subpage-bar">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
+        <button type="button" onclick="goBackFromSubPage('pdacc-updates')" class="subpage-back"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+        <span class="text-sm font-bold text-slate-500 truncate min-w-0">PDACC</span>
+      </div>
+    </div>
+    <section class="py-10 sm:py-14 bg-[#f8fafc] min-h-[75vh]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-9">
+          <div class="flex justify-center mb-4"><span class="rd-pd-crest is-big shadow-sm"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span></div>
+          <span class="inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold uppercase tracking-widest"><i class="w-3.5 h-3.5" data-lucide="newspaper"></i> Latest update</span>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 font-display tracking-tight">Every update</h2>
+          <p class="text-slate-600 text-sm mt-2 leading-relaxed">প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার — every notice and every piece of news published so far, fifteen to a page.</p>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6" id="pdacc-updates-list"></div>
+        <nav id="pdacc-updates-pager" class="mt-9 flex flex-wrap items-center justify-center gap-2" aria-label="PDACC update pagination"></nav>
+      </div>
+    </section>
+  </div>
+
   <!-- ================= PAGE: EXECUTIVE COMMITTEE ================= -->
   <div class="page-view" id="page-committee">
     <section class="py-14 bg-slate-50 border-t border-slate-200 min-h-[70vh]">
@@ -1401,7 +1491,7 @@ Do not modify social links or structure without permission.
     <div class="space-y-4">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 rounded-lg bg-slate-800 p-1 flex items-center justify-center border border-slate-700 overflow-hidden">
-          <img alt="Rangdhanu Logo" class="w-full h-full object-contain" src="Images/Rangdhanu Logo.png" data-rd-img="Images/Rangdhanu Logo.png"/>
+          <img alt="Rangdhanu Logo" class="w-full h-full object-contain" src="logo.png" decoding="async"/>
         </div>
         <span class="text-white font-bold text-base tracking-wide">RANGDHANU DUET</span>
       </div>
@@ -1537,7 +1627,8 @@ Do not modify social links or structure without permission.
       'photo':        { parent: 'home',   needsData: true  },
       'notice-file':  { parent: 'noticeboard', needsData: true  },
       'committee-new': { parent: 'committee', needsData: false },
-      'ec-message':   { parent: 'committee', needsData: true  }
+      'ec-message':   { parent: 'committee', needsData: true  },
+      'pdacc-updates': { parent: 'prokoushali', needsData: true  }
     };
     const rdSubReturn = {};
     const rdSubFrom = {};
@@ -1585,7 +1676,9 @@ Do not modify social links or structure without permission.
           loadExecutiveCommittee();
           renderPdaccSlides();
           pdaccHeroStartCycle();
+          loadPdacc();
         }
+        if (pageId === 'pdacc-updates') loadPdacc();
         if (pageId === 'admin') adminEnterPage();
       } catch (err) { console.error('page loader failed:', err); }
     }
@@ -1669,8 +1762,38 @@ Do not modify social links or structure without permission.
     }
 
     /* Named wrappers, so a news card's markup needs no nested quotes. */
-    function rdNewsFallback(img) { rdPhotoFallback(img, 'Images/Rangdhanu Logo.png'); }
-    function rdNewsLogoFallback(img) { rdImgFallback(img, 'Images/Rangdhanu Logo.png'); }
+    function rdNewsFallback(img) { rdPhotoFallback(img, 'logo.png'); }
+    function rdNewsLogoFallback(img) { rdImgFallback(img, 'logo.png'); }
+
+    /* The PDACC page's own two pictures and its one outward link. */
+    const RD_PDACC_LOGO = 'pdacc-logo.png';
+    const RD_RANGDHANU_LOGO = 'logo.png';
+    const RD_PDACC_FB = 'https://www.facebook.com/pdaccduet';
+
+    /* The crest, in three steps that can never call each other in a circle:
+       the Drive thumbnail host, then the crest that ships with the site, then
+       the Rangdhanu logo. The step is counted on the element itself, so the
+       chain always ends. */
+    function rdPdLogoFallback(img) {
+      if (!img) return;
+      const step = +(img.dataset.rdPdStep || 0);
+      img.dataset.rdPdStep = String(step + 1);
+      const now = String(img.src || '');
+      if (step === 0) {
+        const m = /(?:lh3\.googleusercontent\.com\/d\/|[?&]id=|\/d\/)([A-Za-z0-9_-]{20,})/.exec(now);
+        if (m) { img.src = 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w1200'; return; }
+      }
+      const frame = img.parentElement;
+      if (frame && frame.classList && frame.classList.contains &&
+          frame.classList.contains('rd-news-thumb')) frame.classList.add('is-logo');
+      if (img.removeAttribute) img.removeAttribute('data-rd-img');
+      if (step <= 1 && now.indexOf(RD_PDACC_LOGO) === -1) { img.src = RD_PDACC_LOGO; return; }
+      if (step <= 2 && now.indexOf(RD_RANGDHANU_LOGO) === -1) { img.src = RD_RANGDHANU_LOGO; return; }
+      img.style.display = 'none';
+    }
+
+    /* Same chain, named for the update cards so their markup stays quote-free. */
+    function rdPdCardFallback(img) { rdPdLogoFallback(img); }
 
     /* ---------- The home slideshow feed --------------------------------
        The Slideshow sheet leads only when it holds rows. An empty sheet, a
@@ -2063,11 +2186,11 @@ Do not modify social links or structure without permission.
       { kicker: 'Welcome to',
         title:  'PDACC',
         sub:    'Prokaushali DUET Admission Coaching Centre',
-        sub2:   'প্রকৌশলী ডুয়েট ভর্তি কোচিং সেন্টার' },
+        sub2:   'প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার' },
       { kicker: 'স্বাগতম',
-        title:  'পিড্যাক',
-        sub:    'প্রকৌশলী ডুয়েট ভর্তি কোচিং সেন্টার',
-        sub2:   'Prokaushali DUET Admission Coaching Centre' }
+        title:  'প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার',
+        sub:    'Prokaushali DUET Admission Coaching Centre',
+        sub2:   'রংধনুর একটি অঙ্গ সংগঠন' }
     ];
     let rdPdHeroIdx = 0, rdPdHeroTimer = null;
 
@@ -2088,26 +2211,43 @@ Do not modify social links or structure without permission.
       }
     }
 
-    /* The PDACC folder on Drive leads; while it is still empty the home
-       pictures stand in with PDACC wording, so the bar is never an empty
-       black box on a page a visitor has just opened. */
+    /* The PDACC bar is the RANGDHANU PDACC folder on Drive and nothing else.
+       It never borrows a home picture -- the two bars are separate on purpose.
+       An empty folder shows the crest, so the bar is still not a black box. */
     function pdaccCoverList() {
       const sheet = (RD_SL.pdacc || []).filter(s => s && s.url);
       if (sheet.length) {
         return sheet.map((s, i) => {
           const pool = RD_PDACC_SLIDES[i % RD_PDACC_SLIDES.length];
           return {
-            src: s.url, local: s.fallbackUrl || '',
+            src: s.url, local: s.fallbackUrl || RD_PDACC_LOGO,
             alt: s.caption || pool.title,
             badge: s.badge || pool.badge,
             title: s.caption || ''
           };
         });
       }
-      return rdCoverList().map((s, i) => {
-        const pool = RD_PDACC_SLIDES[i % RD_PDACC_SLIDES.length];
-        return { src: s.src, local: s.local, alt: pool.title, badge: pool.badge, title: pool.title };
-      });
+      return [{
+        src: RD_PDACC_LOGO, local: RD_PDACC_LOGO, crest: true,
+        alt: 'Prokaushali DUET Admission Coaching Centre', badge: 'PDACC',
+        title: 'প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার'
+      }];
+    }
+
+    /* The empty state: the crest on the dark panel, with the same caption
+       parts as a real slide so the page still looks finished. */
+    function pdaccCrestSlide(s) {
+      return '<div class="pdacc-slide absolute inset-0 opacity-100 scale-100 z-10 flex items-center justify-center">' +
+        '<img src="' + escapeHtml(s.src) + '" alt="' +
+          escapeHtml(s.alt || '') + '" decoding="async" onerror="rdPdLogoFallback(this)" ' +
+          'class="w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 object-contain rounded-3xl bg-white/95 p-3 shadow-2xl">' +
+        '<div class="rd-cap absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-7 z-30">' +
+          '<span class="rd-cap-badge inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white text-[8px] sm:text-[10px] font-bold">' +
+            escapeHtml(s.badge || 'PDACC') + '</span>' +
+          '<span class="rd-cap-line"></span>' +
+          '<h2 class="rd-cap-title text-[11px] sm:text-sm md:text-base font-bold text-white/95 mt-2 leading-snug max-w-2xl">' +
+            escapeHtml(s.title || '') + '</h2>' +
+        '</div></div>';
     }
 
     function renderPdaccSlides() {
@@ -2117,6 +2257,15 @@ Do not modify social links or structure without permission.
       rdPdSlides = pdaccCoverList();
       const skel = document.getElementById('pdacc-skeleton');
       if (skel) skel.remove();
+
+      if (rdPdSlides.length === 1 && rdPdSlides[0].crest) {
+        wrap.innerHTML = pdaccCrestSlide(rdPdSlides[0]);
+        if (dots) { dots.innerHTML = ''; dots.style.display = 'none'; }
+        rdPdIdx = 0;
+        if (rdPdTimer) clearInterval(rdPdTimer);
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
 
       wrap.innerHTML = rdPdSlides.map((s, i) => `
         <div class="pdacc-slide absolute inset-0 transition-all duration-1000 ease-out ${i === 0 ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 pointer-events-none z-0'}">
@@ -2198,7 +2347,9 @@ Do not modify social links or structure without permission.
       box.innerHTML =
         '<p class="text-white/80 text-[9px] sm:text-[11px] font-extrabold uppercase" style="letter-spacing:.34em">' +
           escapeHtml(v.kicker) + '</p>' +
-        '<h2 class="text-white font-extrabold tracking-tight leading-[1.08] mt-2 text-[1.35rem] sm:text-4xl md:text-5xl">' +
+        '<h2 class="text-white font-extrabold tracking-tight leading-[1.08] mt-2 ' +
+          (String(v.title).length <= 12 ? 'text-[1.35rem] sm:text-4xl md:text-5xl'
+                                       : 'text-[1.05rem] sm:text-2xl md:text-3xl') + '">' +
           escapeHtml(v.title) + '</h2>' +
         '<p class="text-white/90 font-semibold mt-2.5 max-w-2xl leading-snug text-[10px] sm:text-sm md:text-base">' +
           escapeHtml(v.sub) + '</p>' +
@@ -3213,6 +3364,7 @@ Do not modify social links or structure without permission.
     }
 
     function renderPdaccDirector() {
+      renderPdaccContacts();
       const sec = document.getElementById('pdacc-leadership');
       const card = document.getElementById('pdacc-director-card');
       const label = document.getElementById('pdacc-committee-btn-label');
@@ -3226,6 +3378,54 @@ Do not modify social links or structure without permission.
         ? 'View ' + session + ' committee'
         : 'View last session committee';
       lucide.createIcons();
+    }
+
+    /* The Senior Residential Director of the newest PDACC session only --
+       seat booking is this session's business, not a past one's. */
+    function ecSeniorResidentialDirector() {
+      const c = ecFindCommittee(RD_PDACC_COMMITTEE);
+      if (!c || !c.sessions || !c.sessions.length) return null;
+      const s = c.sessions[0];
+      const m = (s.members || []).find(x => {
+        const p = String(x && x.position || '').toLowerCase().replace(/\s+/g, ' ').trim();
+        return p.indexOf('director') !== -1 && /(senior|sr\.?)/.test(p) && p.indexOf('resident') !== -1;
+      });
+      return m ? { member: m, session: s.session } : null;
+    }
+
+    /* Facebook is always there. A phone number and a seat-booking profile only
+       appear once the committee sheet actually carries them -- a dead tel:
+       link or a profile page with nobody on it is worse than no button. */
+    function renderPdaccContacts() {
+      const box = document.getElementById('pdacc-contacts');
+      if (!box) return;
+      const parts = [];
+      parts.push(
+        '<a href="' + RD_PDACC_FB + '" target="_blank" rel="noopener" class="rd-pd-contact is-fb">' +
+          '<i data-lucide="facebook" class="w-5 h-5 shrink-0"></i>' +
+          '<span><strong>Facebook page</strong><em>facebook.com/pdaccduet</em></span>' +
+          '<i data-lucide="external-link" class="w-4 h-4 shrink-0 ml-auto opacity-70"></i>' +
+        '</a>');
+      const dir = ecLatestDirector();
+      const phone = dir ? String(dir.member.mobile || '').trim() : '';
+      if (phone) {
+        parts.push(
+          '<a href="tel:' + escapeHtml(phone.replace(/[^0-9+]/g, '')) + '" class="rd-pd-contact">' +
+            '<i data-lucide="phone-call" class="w-5 h-5 shrink-0 text-emerald-600"></i>' +
+            '<span><strong>Call</strong><em>' + escapeHtml(phone) + '</em></span>' +
+          '</a>');
+      }
+      const res = ecSeniorResidentialDirector();
+      if (res) {
+        parts.push(
+          '<button type="button" onclick="openEcMessage(\'' +
+            escapeHtml(String(res.member.entryId || '')) + '\', \'prokoushali\')" class="rd-pd-contact">' +
+            '<i data-lucide="bed-double" class="w-5 h-5 shrink-0 text-indigo-600"></i>' +
+            '<span><strong>For seat booking</strong><em>' + escapeHtml(res.member.fullName || '') + '</em></span>' +
+            '<i data-lucide="chevron-right" class="w-4 h-4 shrink-0 ml-auto opacity-70"></i>' +
+          '</button>');
+      }
+      box.innerHTML = parts.join('');
     }
 
     function pdaccViewLastCommittee() {
@@ -4257,8 +4457,7 @@ f.reset();
       const thumb = img
         ? '<div class="rd-news-thumb">' + tag + '<img src="' + escapeHtml(img) + '" alt="' + escapeHtml(heading) +
           '" loading="lazy" decoding="async" onerror="rdNewsFallback(this)"></div>'
-        : '<div class="rd-news-thumb is-logo">' + tag + '<img src="' + escapeHtml(rdImageUrl('Images/Rangdhanu Logo.png')) +
-          '" data-rd-img="Images/Rangdhanu Logo.png" alt="Rangdhanu" loading="lazy" decoding="async" onerror="rdNewsLogoFallback(this)"></div>';
+        : '<div class="rd-news-thumb is-logo">' + tag + '<img src="logo.png" alt="Rangdhanu" loading="lazy" decoding="async" onerror="rdNewsLogoFallback(this)"></div>';
       const caption = String(p.caption || '').trim();
       return '<article class="rd-news-card">' +
         '<a href="' + escapeHtml(p.link) + '" target="_blank" rel="noopener" class="block" aria-label="Open the post">' +
@@ -4335,6 +4534,183 @@ f.reset();
       next.disabled = box.scrollLeft >= room - 4;
     }
 
+    /* ================= THE PDACC PAGE FEED ============================
+       One call fills both the notice line and the Latest update rail. Like the
+       notice board, a failure leaves the page quiet rather than shouting at a
+       visitor: the backend answers success:true with empty lists.          */
+    const RD_PD_RAIL_MAX = 8;
+    const RD_PD_PER_PAGE = 15;
+    let RD_PD = { state: 'idle', ticker: [], updates: [], page: 1 };
+
+    async function loadPdacc(force) {
+      if (RD_PD.state === 'loading') return;
+      if (RD_PD.state === 'ready' && !force) { renderPdacc(); return; }
+      RD_PD.state = 'loading';
+      renderPdacc();
+      const j = await apiGet('pdacc').catch(err => { console.warn('[rd] pdacc:', err); return {}; });
+      RD_PD.ticker = Array.isArray(j.ticker) ? j.ticker : [];
+      RD_PD.updates = Array.isArray(j.updates) ? j.updates : [];
+      RD_PD.page = 1;
+      RD_PD.state = 'ready';
+      renderPdacc();
+    }
+
+    function renderPdacc() {
+      renderPdaccTicker();
+      renderPdaccUpdates();
+      renderPdaccUpdatesPage();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderPdaccTicker() {
+      const wrap = document.getElementById('pdacc-ticker-wrap');
+      const track = document.getElementById('pdacc-ticker');
+      if (!wrap || !track) return;
+      const lines = RD_PD.ticker.filter(t => String(t && t.text || '').trim());
+      wrap.classList.toggle('hidden', lines.length === 0);
+      if (!lines.length) { track.innerHTML = ''; return; }
+      /* Printed twice, so the line never leaves a visible gap between the
+         last notice and the first one coming round again. */
+      const one = lines.map(t =>
+        '<span class="inline-flex items-center gap-2 text-[13px] font-bold text-indigo-900">' +
+        '<i data-lucide="dot" class="w-4 h-4 text-indigo-500"></i>' + escapeHtml(t.text) + '</span>').join('');
+      track.innerHTML = one + (lines.length < 4 ? one : '');
+    }
+
+    /* An update with no picture of its own carries the crest. */
+    function pdaccUpdThumb(u) {
+      const img = String(u.image || '').trim();
+      if (img) {
+        return '<div class="rd-news-thumb"><img src="' + escapeHtml(img) + '" alt="' +
+          escapeHtml(u.title || '') + '" loading="lazy" decoding="async" onerror="rdPdCardFallback(this)"></div>';
+      }
+      return '<div class="rd-news-thumb is-logo"><img src="' + escapeHtml(RD_PDACC_LOGO) +
+        '" alt="PDACC crest" loading="lazy" ' +
+        'decoding="async" onerror="rdPdCardFallback(this)"></div>';
+    }
+
+    function pdaccUpdateCard(u) {
+      const link = String(u.link || '').trim();
+      const a = 'href="' + escapeHtml(link) + '" target="_blank" rel="noopener"';
+      const head = link ? '<a ' + a + ' class="block">' + pdaccUpdThumb(u) + '</a>' : pdaccUpdThumb(u);
+      const title = link
+        ? '<a ' + a + ' class="rd-news-title text-sm sm:text-[15px] rd-clamp3">' + escapeHtml(u.title || '') + '</a>'
+        : '<h3 class="rd-news-title text-sm sm:text-[15px] rd-clamp3">' + escapeHtml(u.title || '') + '</h3>';
+      const more = link
+        ? '<a ' + a + ' class="inline-flex items-center gap-0.5 text-[11px] font-extrabold uppercase tracking-wide text-indigo-600 hover:text-indigo-800">Read more <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>'
+        : '';
+      return '<article class="rd-news-card">' + head +
+        '<div class="p-4 sm:p-5">' + title +
+          (String(u.description || '').trim()
+            ? '<p class="mt-2 text-xs text-slate-500 font-semibold leading-relaxed rd-clamp3">' + escapeHtml(u.description) + '</p>'
+            : '') +
+        '</div>' +
+        '<div class="rd-news-foot">' +
+          '<span class="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-slate-500">' +
+            '<i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>' +
+            escapeHtml(rdNiceDate(u.postedDate)) + '</span>' + more +
+        '</div>' +
+      '</article>';
+    }
+
+    function renderPdaccUpdates() {
+      const box = document.getElementById('pdacc-updates');
+      const all = document.getElementById('pdacc-updates-all');
+      if (!box) return;
+      if (RD_PD.state === 'loading') { box.innerHTML = rdBoardSkeleton(3); pdaccUpdArrows(); return; }
+      if (!RD_PD.updates.length) {
+        box.innerHTML = rdBoardEmpty('newspaper', 'No update has been published yet.');
+        if (all) all.classList.add('hidden');
+        pdaccUpdArrows();
+        return;
+      }
+      box.innerHTML = RD_PD.updates.slice(0, RD_PD_RAIL_MAX).map(pdaccUpdateCard).join('');
+      /* More than the rail holds is what the View all button is for. */
+      if (all) all.classList.toggle('hidden', RD_PD.updates.length <= RD_PD_RAIL_MAX);
+      if (!box.dataset.rdRail) {
+        box.dataset.rdRail = '1';
+        if (box.addEventListener) box.addEventListener('scroll', pdaccUpdArrows, { passive: true });
+      }
+      box.scrollLeft = 0;
+      pdaccUpdArrows();
+    }
+
+    /* One press = one card, gap included, measured from the card on screen. */
+    function pdaccRailStep(box) {
+      const card = box.firstElementChild;
+      const w = (card && card.getBoundingClientRect) ? card.getBoundingClientRect().width : 0;
+      return Math.max(200, Math.round((w || (box.clientWidth || 900) / 3) + 20));
+    }
+
+    function pdaccUpdSlide(dir) {
+      const box = document.getElementById('pdacc-updates');
+      if (!box) return;
+      const step = pdaccRailStep(box) * (dir < 0 ? -1 : 1);
+      if (typeof box.scrollBy === 'function') box.scrollBy({ left: step, behavior: 'smooth' });
+      else box.scrollLeft = box.scrollLeft + step;
+      pdaccUpdArrows();
+    }
+
+    function pdaccUpdArrows() {
+      const box = document.getElementById('pdacc-updates');
+      const prev = document.getElementById('pdacc-upd-prev');
+      const next = document.getElementById('pdacc-upd-next');
+      if (!box || !prev || !next) return;
+      const many = RD_PD.state === 'ready' && RD_PD.updates.length > 1;
+      prev.style.display = many ? '' : 'none';
+      next.style.display = many ? '' : 'none';
+      const room = Math.max(0, (box.scrollWidth || 0) - (box.clientWidth || 0));
+      prev.disabled = box.scrollLeft <= 4;
+      next.disabled = box.scrollLeft >= room - 4;
+    }
+
+    /* View all: every update, fifteen to a page, on a page of its own. */
+    function openPdaccUpdates() {
+      RD_PD.page = 1;
+      openSubPage('pdacc-updates', 'prokoushali');
+      renderPdaccUpdatesPage();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderPdaccUpdatesPage() {
+      const box = document.getElementById('pdacc-updates-list');
+      const pager = document.getElementById('pdacc-updates-pager');
+      if (!box) return;
+      if (RD_PD.state === 'loading') {
+        box.innerHTML = rdBoardSkeleton(6);
+        if (pager) pager.innerHTML = '';
+        return;
+      }
+      if (!RD_PD.updates.length) {
+        box.innerHTML = rdBoardEmpty('newspaper', 'No update has been published yet.');
+        if (pager) pager.innerHTML = '';
+        return;
+      }
+      const last = rdPageCount(RD_PD.updates.length, RD_PD_PER_PAGE);
+      if (RD_PD.page > last) RD_PD.page = last;
+      const from = (RD_PD.page - 1) * RD_PD_PER_PAGE;
+      box.innerHTML = RD_PD.updates.slice(from, from + RD_PD_PER_PAGE).map(pdaccUpdateCard).join('');
+      rdRenderPager('pdacc-updates-pager', RD_PD.page, last, 'gotoPdaccUpdatePage', 'Update');
+    }
+
+    function gotoPdaccUpdatePage(p) {
+      const last = rdPageCount(RD_PD.updates.length, RD_PD_PER_PAGE);
+      RD_PD.page = Math.min(Math.max(1, p), last);
+      renderPdaccUpdatesPage();
+      if (window.lucide) lucide.createIcons();
+      const el = document.getElementById('pdacc-updates-list');
+      if (el && el.getBoundingClientRect) {
+        window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 120), behavior: 'smooth' });
+      }
+    }
+
+    /* A jump button on the little nav scrolls; it never opens a page. */
+    function pdaccJump(id) {
+      const box = document.getElementById(id);
+      if (!box || !box.scrollIntoView) return;
+      box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     /* ================= ADMIN DASHBOARD ===============================
        Three record types, one renderer. Everything the admin can press here
        maps onto an API that already existed; authentication stays with the
@@ -4348,6 +4724,7 @@ f.reset();
       { key: 'notices',       label: 'Notices',                 icon: 'megaphone',    action: 'getadminnotices',     custom: true },
       { key: 'social',        label: 'Social Media Corner',     icon: 'share-2',      action: 'getadminsocialposts', custom: true },
       { key: 'slides',        label: 'Slideshows',              icon: 'images',       action: 'getadminslides',      custom: true },
+      { key: 'pdacc',         label: 'PDACC Page',              icon: 'graduation-cap', action: 'getadminpdacc',     custom: true },
       { key: 'summary',       label: 'Members Summary',         icon: 'bar-chart-3',  action: '',                    custom: true }
     ];
     const RD_ADMIN_STATUSES = ['PENDING', 'DUPLICATE', 'APPROVED', 'REJECTED', 'ALL'];
@@ -4365,6 +4742,7 @@ f.reset();
     let RD_ADMIN = { tab: 'registrations', status: 'PENDING', state: 'idle', gate: 'locked',
                      error: '', admin: '', rows: {}, busy: '', noteOpen: '',
                      nbEdit: '', scEdit: '', evEdit: '', slEdit: '', slPlace: 'home',
+                     pdKind: 'LINE', pdEdit: '',
                      askWhat: '', askId: '' };
 
     function adminTabMeta(key) {
@@ -4851,7 +5229,7 @@ f.reset();
 
       const res = await apiGet(adminTabMeta(tab).action, {});
       const rows = Array.isArray(res.rows) ? res.rows : [];
-      return rows.map(r => Object.assign({}, r, { id: String(r.noticeId || r.postId || r.slideId || '').trim() }))
+      return rows.map(r => Object.assign({}, r, { id: String(r.noticeId || r.postId || r.slideId || r.lineId || r.updateId || '').trim() }))
                  .filter(r => r.id);
     }
 
@@ -4859,6 +5237,7 @@ f.reset();
       if (tab === 'notices') return adminNoticesHtml();
       if (tab === 'social') return adminSocialHtml();
       if (tab === 'slides') return adminSlidesHtml();
+      if (tab === 'pdacc') return adminPdaccHtml();
       return adminSummaryHtml();
     }
 
@@ -5536,6 +5915,369 @@ f.reset();
           ? rows.map(adminSocialItem).join('')
           : adminInfoBox('share-2', 'The corner is empty', 'Paste a Facebook or news link above and it appears on the Notice page.', 'empty')) +
       '</div>';
+    }
+
+    /* ---------- PDACC Page tab ----------------------------------------
+       Two lists live in one tab because they belong to one page: the notice
+       line that scrolls across the top, and the "Latest update" cards. A
+       switch at the top decides which of the two the form is for, so the
+       panel never shows two forms at once and nothing can be saved into the
+       wrong list by accident. */
+    const RD_PD_KINDS_UI = [
+      { key: 'LINE',   label: 'Notice line',   icon: 'megaphone' },
+      { key: 'UPDATE', label: 'Latest update', icon: 'newspaper' }
+    ];
+
+    function adminPdKind() { return RD_ADMIN.pdKind === 'UPDATE' ? 'UPDATE' : 'LINE'; }
+
+    function adminPdKindMeta(kind) {
+      return RD_PD_KINDS_UI.find(k => k.key === kind) || RD_PD_KINDS_UI[0];
+    }
+
+    function adminPdRowsOf(kind) {
+      return (RD_ADMIN.rows.pdacc || []).filter(r => String(r.kind || '') === kind);
+    }
+
+    function adminPdRow(id) {
+      return (RD_ADMIN.rows.pdacc || []).find(r => r.id === id) || null;
+    }
+
+    /* Switching the kind drops whatever was half-edited, on purpose: an
+       update's title has nowhere to go in a one-line notice. */
+    function adminPdaccKind(kind) {
+      RD_ADMIN.pdKind = kind === 'UPDATE' ? 'UPDATE' : 'LINE';
+      RD_ADMIN.pdEdit = '';
+      renderAdmin();
+    }
+
+    function adminPdaccNew() { RD_ADMIN.pdEdit = ''; renderAdmin(); }
+
+    function adminPdaccEdit(id) {
+      const row = adminPdRow(id);
+      if (!row) return;
+      RD_ADMIN.pdKind = String(row.kind || '') === 'UPDATE' ? 'UPDATE' : 'LINE';
+      RD_ADMIN.pdEdit = id;
+      renderAdmin();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function adminPdKindSwitch() {
+      const now = adminPdKind();
+      return '<div class="flex flex-wrap gap-2 mb-4">' +
+        RD_PD_KINDS_UI.map(k =>
+          '<button type="button" onclick="adminPdaccKind(\'' + k.key + '\')" ' +
+            'class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-xs font-extrabold border cursor-pointer ' +
+            (k.key === now
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-transparent text-white'
+              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50') + '">' +
+            '<i data-lucide="' + k.icon + '" class="w-3.5 h-3.5"></i> ' + k.label +
+            '<span class="ml-1 opacity-70">(' + adminPdRowsOf(k.key).length + ')</span>' +
+          '</button>').join('') +
+      '</div>';
+    }
+
+    /* The scrolling line. One field and one switch -- anything longer than a
+       sentence belongs in an update card, not on a moving ticker. */
+    function adminPdLineForm() {
+      const editing = RD_ADMIN.pdEdit ? adminPdRow(RD_ADMIN.pdEdit) : null;
+      const row = editing && String(editing.kind || '') === 'LINE' ? editing : null;
+      const shown = row ? row.show !== 'NO' : true;
+      const inner =
+        '<div class="mt-5"><label class="form-label" for="pd-text">The line *</label>' +
+          '<input id="pd-text" class="form-input" maxlength="300" ' +
+            'placeholder="Admission form collection starts on 1 September." value="' +
+            escapeHtml(row ? row.text : '') + '"></div>' +
+        '<label class="mt-4 flex items-center gap-2.5 text-xs font-extrabold text-slate-600 cursor-pointer">' +
+          '<input id="pd-show" type="checkbox" class="w-4 h-4 accent-blue-600"' +
+          (shown ? ' checked' : '') + '> Show this on the PDACC page</label>' +
+        '<div class="mt-5 flex flex-wrap gap-2">' +
+          '<button id="pd-save" type="button" onclick="adminPdLineSave()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-extrabold cursor-pointer">' +
+            '<i data-lucide="save" class="w-4 h-4"></i> ' + (row ? 'Save the changes' : 'Add the line') + '</button>' +
+          (row
+            ? '<button type="button" onclick="adminPdaccNew()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-bold cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i> Cancel</button>'
+            : '') +
+        '</div>';
+      return adminPanelShell('megaphone', row ? 'Editing ' + row.id : 'Add a notice line',
+        'This scrolls across the top of the PDACC page. Keep it to one sentence; a line nobody can finish reading is a line nobody reads.',
+        inner);
+    }
+
+    /* An update card: link, title, description, picture. Only the title is
+       required -- a notice with nothing to link to is still worth posting, and
+       without a picture the card carries the PDACC crest. */
+    function adminPdUpdateForm() {
+      const editing = RD_ADMIN.pdEdit ? adminPdRow(RD_ADMIN.pdEdit) : null;
+      const row = editing && String(editing.kind || '') === 'UPDATE' ? editing : null;
+      const shown = row ? row.show !== 'NO' : true;
+      const inner =
+        '<div class="mt-5"><label class="form-label" for="pd-title">Title *</label>' +
+          '<input id="pd-title" class="form-input" maxlength="200" ' +
+            'placeholder="Admission coaching, 2026 batch" value="' +
+            escapeHtml(row ? row.title : '') + '"></div>' +
+        '<div class="mt-4 grid sm:grid-cols-2 gap-4">' +
+          '<div><label class="form-label" for="pd-link">Link (optional)</label>' +
+            '<input id="pd-link" class="form-input" inputmode="url" placeholder="https://..." value="' +
+              escapeHtml(row ? row.link : '') + '"></div>' +
+          '<div><label class="form-label" for="pd-image">Picture (optional)</label>' +
+            '<input id="pd-image" type="file" accept="image/*" class="form-input"></div>' +
+        '</div>' +
+        '<div class="mt-4"><label class="form-label" for="pd-desc">Description (optional)</label>' +
+          '<textarea id="pd-desc" rows="3" maxlength="1500" class="form-input" placeholder="A few lines about this update.">' +
+            escapeHtml(row ? row.description : '') + '</textarea></div>' +
+        (row && String(row.image || '').trim()
+          ? '<p class="mt-2 text-[11px] font-semibold text-slate-500">A picture is already on this update. Choosing a new one replaces it; leaving the box empty keeps it.</p>'
+          : '') +
+        '<label class="mt-4 flex items-center gap-2.5 text-xs font-extrabold text-slate-600 cursor-pointer">' +
+          '<input id="pd-ushow" type="checkbox" class="w-4 h-4 accent-blue-600"' +
+          (shown ? ' checked' : '') + '> Show this in Latest update</label>' +
+        '<div class="mt-5 flex flex-wrap gap-2">' +
+          '<button id="pd-usave" type="button" onclick="adminPdUpdateSave()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-extrabold cursor-pointer">' +
+            '<i data-lucide="save" class="w-4 h-4"></i> ' + (row ? 'Save the changes' : 'Add the update') + '</button>' +
+          (row
+            ? '<button type="button" onclick="adminPdaccNew()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-bold cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i> Cancel</button>'
+            : '') +
+        '</div>';
+      return adminPanelShell('newspaper', row ? 'Editing ' + row.id : 'Add a Latest update',
+        'Eight of these slide sideways on the PDACC page; the rest wait behind View all, fifteen to a page. The picture is compressed here before it is sent.',
+        inner);
+    }
+
+    function adminPdBadges(r, on) {
+      return '<div class="flex flex-wrap items-center gap-2">' +
+        '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-extrabold ' +
+          (String(r.kind || '') === 'UPDATE'
+            ? 'bg-violet-50 border-violet-200 text-violet-700'
+            : 'bg-amber-50 border-amber-200 text-amber-700') + '">' +
+          '<i data-lucide="' + adminPdKindMeta(r.kind).icon + '" class="w-3 h-3"></i>' +
+          adminPdKindMeta(r.kind).label + '</span>' +
+        '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-extrabold ' +
+          (on ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500') + '">' +
+          '<i data-lucide="' + (on ? 'eye' : 'eye-off') + '" class="w-3 h-3"></i>' + (on ? 'Showing' : 'Hidden') + '</span>' +
+        '<span class="text-[11px] font-mono font-bold text-slate-400">' + escapeHtml(r.id) + '</span>' +
+        '<span class="ml-auto text-[11px] font-extrabold text-slate-400">' + escapeHtml(rdNiceDate(r.postedDate)) + '</span>' +
+      '</div>';
+    }
+
+    function adminPdLineItem(r) {
+      const busy = RD_ADMIN.busy === r.id;
+      const on = r.show !== 'NO';
+      return '<article class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">' +
+        adminPdBadges(r, on) +
+        '<p class="mt-2.5 font-extrabold text-slate-900 break-words">' + escapeHtml(r.text || '(empty)') + '</p>' +
+        '<div class="mt-4 flex flex-wrap gap-2">' +
+          adminMiniBtn('Edit', 'pencil', 'bg-white border-blue-200 text-blue-700 hover:bg-blue-50',
+            "adminPdaccEdit('" + r.id + "')", busy) +
+          adminMiniBtn(on ? 'Hide' : 'Show', on ? 'eye-off' : 'eye',
+            on ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+               : 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700',
+            "adminPdLineShow('" + r.id + "'," + (on ? 'false' : 'true') + ")", busy) +
+          adminMiniBtn('Delete', 'trash-2', 'bg-white border-rose-200 text-rose-700 hover:bg-rose-50',
+            "adminAsk('pdDel','" + r.id + "')", busy) +
+        '</div>' +
+        (adminAskArmed('pdDel', r.id)
+          ? adminConfirmStrip('Remove ' + r.id + ' from the PDACC page?',
+              'Yes, remove it', "adminPdLineDelete('" + r.id + "')")
+          : '') +
+      '</article>';
+    }
+
+    function adminPdUpdateItem(r) {
+      const busy = RD_ADMIN.busy === r.id;
+      const on = r.show !== 'NO';
+      const pic = String(r.image || '').trim();
+      return '<article class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">' +
+        adminPdBadges(r, on) +
+        '<div class="mt-3 flex gap-4">' +
+          '<div class="w-20 h-20 rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden flex-none flex items-center justify-center">' +
+            '<img src="' + escapeHtml(pic || RD_PDACC_LOGO) + '" alt="" loading="lazy" decoding="async" ' +
+              'onerror="rdPdCardFallback(this)" class="w-full h-full object-' + (pic ? 'cover' : 'contain p-2') + '">' +
+          '</div>' +
+          '<div class="min-w-0">' +
+            '<h4 class="font-extrabold text-slate-900 break-words">' + escapeHtml(r.title || '(no title)') + '</h4>' +
+            (String(r.description || '').trim()
+              ? '<p class="mt-1.5 text-xs font-semibold text-slate-600 leading-relaxed break-words">' + escapeHtml(r.description) + '</p>'
+              : '') +
+            (String(r.link || '').trim()
+              ? '<p class="mt-2 text-[11px] font-semibold text-blue-600 break-all">' + escapeHtml(r.link) + '</p>'
+              : '<p class="mt-2 text-[11px] font-semibold text-slate-400">No link on this one.</p>') +
+          '</div>' +
+        '</div>' +
+        '<div class="mt-4 flex flex-wrap gap-2">' +
+          adminMiniBtn('Edit', 'pencil', 'bg-white border-blue-200 text-blue-700 hover:bg-blue-50',
+            "adminPdaccEdit('" + r.id + "')", busy) +
+          adminMiniBtn(on ? 'Hide' : 'Show', on ? 'eye-off' : 'eye',
+            on ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+               : 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700',
+            "adminPdUpdateShow('" + r.id + "'," + (on ? 'false' : 'true') + ")", busy) +
+          (String(r.link || '').trim()
+            ? '<a href="' + escapeHtml(r.link) + '" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold border bg-white border-slate-200 text-slate-600 hover:bg-slate-50"><i data-lucide="external-link" class="w-3.5 h-3.5"></i> Open the link</a>'
+            : '') +
+          adminMiniBtn('Delete', 'trash-2', 'bg-white border-rose-200 text-rose-700 hover:bg-rose-50',
+            "adminAsk('pdUDel','" + r.id + "')", busy) +
+        '</div>' +
+        (adminAskArmed('pdUDel', r.id)
+          ? adminConfirmStrip('Delete ' + r.id + ' for good? The uploaded picture goes with it.',
+              'Yes, delete it', "adminPdUpdateDelete('" + r.id + "')")
+          : '') +
+      '</article>';
+    }
+
+    function adminPdaccHtml() {
+      const kind = adminPdKind();
+      const rows = adminPdRowsOf(kind);
+      return '<div class="space-y-4">' + adminPdKindSwitch() +
+        (kind === 'UPDATE' ? adminPdUpdateForm() : adminPdLineForm()) +
+        (rows.length
+          ? rows.map(kind === 'UPDATE' ? adminPdUpdateItem : adminPdLineItem).join('')
+          : adminInfoBox(adminPdKindMeta(kind).icon,
+              kind === 'UPDATE' ? 'No update yet' : 'No notice line yet',
+              kind === 'UPDATE'
+                ? 'Whatever you add above appears in Latest update on the PDACC page.'
+                : 'Whatever you add above scrolls across the top of the PDACC page.',
+              'empty')) +
+      '</div>';
+    }
+
+    /* RD_PD.state is dropped back to 'idle' after every write, so the next
+       visit to the PDACC page fetches the feed again instead of showing what
+       the admin has just changed away from. */
+    async function adminPdLineSave() {
+      const el = document.getElementById('pd-text');
+      if (!el || RD_ADMIN.busy) return;
+      const text = String(el.value || '').trim();
+      const show = !!(document.getElementById('pd-show') || {}).checked;
+      const editing = RD_ADMIN.pdEdit;
+
+      if (!text) {
+        showToast('Please write the notice line.', 'error', 'The line is empty', { backTo: 'admin' });
+        return;
+      }
+
+      RD_ADMIN.busy = editing || 'new';
+      const btn = document.getElementById('pd-save');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+      try {
+        const r = await apiPost('savepdaccline',
+          { data: { lineId: editing || '', text: text, show: show ? 'YES' : 'NO' } });
+        RD_ADMIN.pdEdit = '';
+        RD_ADMIN.busy = '';
+        RD_PD.state = 'idle';
+        showToast(r.message || 'The line is saved.', 'success', 'Line saved', { backTo: 'admin' });
+        loadAdminDashboard(true);
+      } catch (err) {
+        RD_ADMIN.busy = '';
+        showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
+        renderAdmin();
+      }
+    }
+
+    async function adminPdLineShow(id, on) {
+      if (!adminPdRow(id) || RD_ADMIN.busy) return;
+      RD_ADMIN.busy = id;
+      renderAdmin();
+      try {
+        const r = await apiPost('setpdacclineshow', { lineId: id, show: on ? 'YES' : 'NO' });
+        const row = adminPdRow(id);
+        if (row) row.show = on ? 'YES' : 'NO';
+        RD_PD.state = 'idle';
+        showToast(r.message || 'Saved.', 'success', 'Saved', { backTo: 'admin' });
+      } catch (err) {
+        showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
+      }
+      RD_ADMIN.busy = '';
+      renderAdmin();
+    }
+
+    async function adminPdLineDelete(id) {
+      if (!adminPdRow(id) || RD_ADMIN.busy) return;
+      RD_ADMIN.busy = id;
+      renderAdmin();
+      try {
+        const r = await apiPost('deletepdaccline', { lineId: id });
+        RD_ADMIN.rows.pdacc = (RD_ADMIN.rows.pdacc || []).filter(x => x.id !== id);
+        RD_ADMIN.askWhat = ''; RD_ADMIN.askId = '';
+        if (RD_ADMIN.pdEdit === id) RD_ADMIN.pdEdit = '';
+        RD_PD.state = 'idle';
+        showToast(r.message || 'The line is removed.', 'success', 'Removed', { backTo: 'admin' });
+      } catch (err) {
+        showToast(friendlyError(err).msg, 'error', 'Could not remove', { backTo: 'admin' });
+      }
+      RD_ADMIN.busy = '';
+      renderAdmin();
+    }
+
+    async function adminPdUpdateSave() {
+      const el = document.getElementById('pd-title');
+      if (!el || RD_ADMIN.busy) return;
+      const title = String(el.value || '').trim();
+      const description = String((document.getElementById('pd-desc') || {}).value || '').trim();
+      const link = String((document.getElementById('pd-link') || {}).value || '').trim();
+      const show = !!(document.getElementById('pd-ushow') || {}).checked;
+      const image = ((document.getElementById('pd-image') || {}).files || [])[0] || null;
+      const editing = RD_ADMIN.pdEdit;
+
+      if (!title) {
+        showToast('Please write the title of this update.', 'error', 'A title is needed', { backTo: 'admin' });
+        return;
+      }
+      if (link && !/^https?:\/\/\S+$/i.test(link)) {
+        showToast('Please paste the full link, starting with https://', 'error', 'The link is not complete', { backTo: 'admin' });
+        return;
+      }
+
+      RD_ADMIN.busy = editing || 'new';
+      const btn = document.getElementById('pd-usave');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+      try {
+        const data = { updateId: editing || '', title: title, description: description,
+                       link: link, show: show ? 'YES' : 'NO' };
+        if (image) data.image = await filePayload(image, 1600);
+        const r = await apiPost('savepdaccupdate', { data: data });
+        RD_ADMIN.pdEdit = '';
+        RD_ADMIN.busy = '';
+        RD_PD.state = 'idle';
+        showToast(r.message || 'The update is saved.', 'success', 'Update saved', { backTo: 'admin' });
+        loadAdminDashboard(true);
+      } catch (err) {
+        RD_ADMIN.busy = '';
+        showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
+        renderAdmin();
+      }
+    }
+
+    async function adminPdUpdateShow(id, on) {
+      if (!adminPdRow(id) || RD_ADMIN.busy) return;
+      RD_ADMIN.busy = id;
+      renderAdmin();
+      try {
+        const r = await apiPost('setpdaccupdateshow', { updateId: id, show: on ? 'YES' : 'NO' });
+        const row = adminPdRow(id);
+        if (row) row.show = on ? 'YES' : 'NO';
+        RD_PD.state = 'idle';
+        showToast(r.message || 'Saved.', 'success', 'Saved', { backTo: 'admin' });
+      } catch (err) {
+        showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
+      }
+      RD_ADMIN.busy = '';
+      renderAdmin();
+    }
+
+    async function adminPdUpdateDelete(id) {
+      if (!adminPdRow(id) || RD_ADMIN.busy) return;
+      RD_ADMIN.busy = id;
+      renderAdmin();
+      try {
+        const r = await apiPost('deletepdaccupdate', { updateId: id });
+        RD_ADMIN.rows.pdacc = (RD_ADMIN.rows.pdacc || []).filter(x => x.id !== id);
+        RD_ADMIN.askWhat = ''; RD_ADMIN.askId = '';
+        if (RD_ADMIN.pdEdit === id) RD_ADMIN.pdEdit = '';
+        RD_PD.state = 'idle';
+        showToast(r.message || 'The update is removed.', 'success', 'Removed', { backTo: 'admin' });
+      } catch (err) {
+        showToast(friendlyError(err).msg, 'error', 'Could not remove', { backTo: 'admin' });
+      }
+      RD_ADMIN.busy = '';
+      renderAdmin();
     }
 
     /* ---------- Members Summary tab -----------------------------------
