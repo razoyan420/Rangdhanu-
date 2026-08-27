@@ -128,13 +128,31 @@
 <!-- Fonts -->
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet"/>
-<link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet"/>
+<!-- A weight *range* (400..800) is served as a single variable font file per
+     family, so every weight the site uses still resolves while the browser
+     downloads one file instead of five.  Kalpurush is not requested here:
+     the inline <style> below already declares it from jsdelivr, and the
+     fonts.maateen.me stylesheet that used to sit on this line was the same
+     font from a second, slower host. -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400..800&family=Plus+Jakarta+Sans:wght@400..800&family=Space+Grotesk:wght@600..700&display=swap" rel="stylesheet"/>
+
+<!-- Start the DNS + TLS handshakes for the hosts the first screen needs
+     while this HTML is still being parsed, instead of one after another
+     when each request finally goes out. -->
+<link href="https://cdn.tailwindcss.com" rel="preconnect"/>
+<link href="https://unpkg.com" rel="preconnect"/>
+<link href="https://script.google.com" rel="preconnect"/>
+<link href="https://lh3.googleusercontent.com" rel="preconnect" crossorigin=""/>
+<link href="https://cdn.jsdelivr.net" rel="dns-prefetch"/>
 
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- Lucide Icons CDN -->
-<script src="https://unpkg.com/lucide@latest"></script>
+<!-- Lucide Icons CDN.  Deferred: no code touches `lucide` at the top level
+     (every call is inside a function, guarded by `if (window.lucide)`, or
+     in the DOMContentLoaded handler), and a deferred script always runs
+     before DOMContentLoaded fires.  Tailwind above stays blocking on
+     purpose -- `tailwind.config` needs its global synchronously. -->
+<script src="https://unpkg.com/lucide@latest" defer></script>
 
 <script>
     tailwind.config = {
@@ -278,6 +296,17 @@
     .rd-pd-anim>*:nth-child(3){animation-delay:.34s}
     .rd-pd-anim>*:nth-child(4){animation-delay:.50s}
     .rd-pd-anim>*:nth-child(5){animation-delay:.64s}
+    /* The hero crossfade.  The markup asks for duration-1000 ease-out, and
+       ease-out spends most of a fade in its first moments -- so the outgoing
+       picture disappeared early and the step felt like a cut.  A longer,
+       symmetric curve makes the two pictures cross in the middle instead.
+       Written here rather than as arbitrary Tailwind classes so the prebuilt
+       stylesheet does not have to carry two more one-off utilities. */
+    .cover-slide, .pdacc-slide {
+      transition-property: opacity, transform !important;
+      transition-duration: 1600ms !important;
+      transition-timing-function: cubic-bezier(.4, 0, .2, 1) !important;
+    }
     #pdacc-hero-copy>*{text-shadow:0 2px 10px rgba(2,6,23,.55), 0 1px 2px rgba(2,6,23,.45);}
     #pdacc-hero-copy button{text-shadow:none;}
     #pdacc-hero-copy{min-height:12.5rem;}
@@ -1708,6 +1737,9 @@ Do not modify social links or structure without permission.
       window.scrollTo({ top: 0, behavior: 'smooth' });
       try {
         if (pageId === 'events') loadPublicEvents();
+        /* The directory is a whole page of its own; fetching it during boot
+           only slowed down the home screen, which never shows it. */
+        if (pageId === 'alumni') loadPublicAlumni();
         if (pageId === 'noticeboard') loadNoticeBoard();
         if (pageId === 'committee') loadExecutiveCommittee();
         /* The PDACC page shows the Director's message, so it needs the
@@ -2161,6 +2193,36 @@ Do not modify social links or structure without permission.
       { file: 'IMG (84).JPG', alt: 'রংধনু ডুয়েটের স্মরণীয় মুহূর্ত', badge: 'OUR STORY', title: 'যেথায় থাকুক যে যেখানে, রংধনু আছে মনে প্রাণে' }
     ];
     const RD_SLIDE_MS = 6500;
+
+    /* ---------- how long the bundled first frame keeps the screen ----------
+       slide-home.jpg / slide-pdacc.jpg are in the repository, so they paint
+       almost immediately -- while the Drive photo for the same slide takes a
+       second or two.  Until this window closes, slide 0 *is* the bundled
+       photo: its Drive URL is parked in RD_COVER_HELD / RD_PDACC_HELD and
+       written into the same image element later, once slide 0 is off screen, so the
+       visitor never sees the swap.  7 s against a 6.5 s slide means the first
+       frame holds for the whole first lap. */
+    const RD_FIRST_HOLD_MS = 7000;
+    /* The first step of the visit waits a little longer than the rest, so the
+       bundled frame is genuinely seen and the Drive photos behind it are all
+       in by the time the bar moves.  Every later step uses RD_SLIDE_MS. */
+    const RD_FIRST_SLIDE_MS = 7000;
+    let rdCoverStepped = false, rdPdStepped = false;
+    const RD_BOOT_AT = Date.now();
+    function rdFirstHoldOn() { return (Date.now() - RD_BOOT_AT) < RD_FIRST_HOLD_MS; }
+    let RD_COVER_HELD = '', RD_PDACC_HELD = '';
+
+    /* Put the parked Drive URL into slide 0's image element. Called only when
+       is not the one being shown, so there is nothing to see. */
+    function rdReleaseHeld(wrapId, held) {
+      if (!held || rdFirstHoldOn()) return held;
+      const wrap = document.getElementById(wrapId);
+      const img = wrap && wrap.querySelector('img.slide-img');
+      if (!img) return held;
+      img.src = held;
+      if (img.setAttribute) img.setAttribute('data-rd-img', held);
+      return '';
+    }
     let rdSlides = [], rdSlideIdx = 0, rdSlideTimer = null;
 
     /* Drive photos may be named `03 - বাংলা শিরোনাম.jpg`; the part after " - "
@@ -2177,8 +2239,13 @@ Do not modify social links or structure without permission.
       if (sheet.length) {
         return sheet.map((s, i) => {
           const pool = RD_HOME_SLIDES[i % RD_HOME_SLIDES.length];
+          /* Slide 0 during the hold: show the bundled photo, park the Drive
+             URL so it can be slipped in later without a flicker. */
+          const hold = (i === 0 && rdFirstHoldOn());
+          if (hold) RD_COVER_HELD = s.url;
           return {
-            src: s.url, local: s.fallbackUrl || (i === 0 ? RD_COVER_FIRST : ''),
+            src: hold ? RD_COVER_FIRST : s.url,
+            local: s.fallbackUrl || (i === 0 ? RD_COVER_FIRST : ''),
             alt: s.caption || pool.alt,
             badge: s.badge || pool.badge,
             title: s.caption || ''
@@ -2194,8 +2261,11 @@ Do not modify social links or structure without permission.
       }
       return drive.map((im, i) => {
         const pool = RD_HOME_SLIDES[i % RD_HOME_SLIDES.length];
+        const hold = (i === 0 && rdFirstHoldOn());
+        if (hold) RD_COVER_HELD = im.url;
         return {
-          src: im.url, local: im.fallbackUrl,
+          src: hold ? RD_COVER_FIRST : im.url,
+          local: im.fallbackUrl || (i === 0 ? RD_COVER_FIRST : ''),
           alt: im.caption || pool.alt,
           badge: pool.badge,
           title: im.caption || pool.title
@@ -2283,6 +2353,11 @@ Do not modify social links or structure without permission.
         dots.style.display = rdSlides.length > 1 ? '' : 'none';
       }
       rdSlideIdx = 0;
+      /* One slide means the autoplay never runs, so setCoverSlide() would
+         never come back for the parked URL. Hand it over on a timer instead. */
+      if (rdSlides.length < 2 && RD_COVER_HELD) {
+        setTimeout(function () { RD_COVER_HELD = rdReleaseHeld('cover-slides', RD_COVER_HELD); }, RD_FIRST_HOLD_MS + 250);
+      }
       startCoverAutoplay();
     }
 
@@ -2290,6 +2365,9 @@ Do not modify social links or structure without permission.
       const items = document.querySelectorAll('#cover-slides .cover-slide');
       if (!items.length) return;
       rdSlideIdx = ((i % items.length) + items.length) % items.length;
+      /* Slide 0 has just left the screen, so this is the moment to give it the
+         Drive photo that was parked while the bundled frame held the bar. */
+      if (rdSlideIdx !== 0) RD_COVER_HELD = rdReleaseHeld('cover-slides', RD_COVER_HELD);
       items.forEach((el, n) => {
         const on = n === rdSlideIdx;
         el.classList.toggle('opacity-100', on);
@@ -2317,22 +2395,21 @@ Do not modify social links or structure without permission.
     function prevCoverSlide() { setCoverSlide(rdSlideIdx - 1); }
 
     function startCoverAutoplay() {
-      if (rdSlideTimer) clearInterval(rdSlideTimer);
+      if (rdSlideTimer) { clearTimeout(rdSlideTimer); clearInterval(rdSlideTimer); }
+      rdSlideTimer = null;
       if (rdSlides.length < 2) return;
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      rdSlideTimer = setInterval(() => {
+      /* A chain of one-shot timers, not one repeating interval: that is what
+         lets the opening picture keep the bar longer than the others. */
+      const wait = (!rdCoverStepped && rdSlideIdx === 0) ? RD_FIRST_SLIDE_MS : RD_SLIDE_MS;
+      rdSlideTimer = setTimeout(function () {
+        rdSlideTimer = null;
+        rdCoverStepped = true;
         const items = document.querySelectorAll('#cover-slides .cover-slide');
         if (!items.length) return;
-        rdSlideIdx = (rdSlideIdx + 1) % items.length;
-        setCoverSlideSilently(rdSlideIdx);
-      }, RD_SLIDE_MS);
-    }
-    /* same visual step, without resetting the timer it is running inside */
-    function setCoverSlideSilently(i) {
-      const t = rdSlideTimer; rdSlideTimer = null;
-      setCoverSlide(i);
-      if (rdSlideTimer) clearInterval(rdSlideTimer);
-      rdSlideTimer = t;
+        /* setCoverSlide() arms the next step itself, so the chain continues. */
+        setCoverSlide((rdSlideIdx + 1) % items.length);
+      }, wait);
     }
 
     /* ---------------------------------------------------------------
@@ -2386,16 +2463,21 @@ Do not modify social links or structure without permission.
       if (sheet.length) {
         return sheet.map((s, i) => {
           const pool = RD_PDACC_SLIDES[i % RD_PDACC_SLIDES.length];
+          const hold = (i === 0 && rdFirstHoldOn());
+          if (hold) RD_PDACC_HELD = s.url;
           return {
-            src: s.url, local: s.fallbackUrl || (i === 0 ? RD_PDACC_FIRST : RD_PDACC_LOGO),
+            src: hold ? RD_PDACC_FIRST : s.url,
+            local: s.fallbackUrl || RD_PDACC_FIRST,
             alt: s.caption || pool.title,
             badge: s.badge || pool.badge,
             title: s.caption || ''
           };
         });
       }
+      /* `crest: true` only means "there is no Drive picture"; renderPdaccSlides()
+         draws the poster and the caption for it, no image element at all. */
       return [{
-        src: RD_PDACC_LOGO, local: RD_PDACC_LOGO, crest: true,
+        src: RD_PDACC_FIRST, local: RD_PDACC_FIRST, crest: true,
         alt: 'Prokaushali DUET Admission Coaching Centre', badge: 'PDACC',
         title: 'প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার'
       }];
@@ -2404,14 +2486,14 @@ Do not modify social links or structure without permission.
     /* The empty state: the crest on the dark panel, with the same caption
        parts as a real slide so the page still looks finished. */
     function pdaccCrestSlide(s) {
-      /* The poster photo now shows through behind the crest, so the caption
-         needs the same dark wash a real slide has -- white on a photograph is
-         not readable on its own. */
-      return '<div class="pdacc-slide absolute inset-0 opacity-100 scale-100 z-10 flex items-center justify-center">' +
+      /* Nothing to show from Drive yet.  This used to draw pdacc-logo.png as a
+         white plaque in the middle of the bar; the logo is no longer wanted on
+         the hero, so the bar is simply the bundled slide-pdacc.jpg poster
+         underneath, with the dark wash a real slide has -- white lettering is
+         not readable on a bare photograph -- and the same caption.  The crest
+         still sits in the PDACC nav bar above and on the update cards. */
+      return '<div class="pdacc-slide absolute inset-0 opacity-100 scale-100 z-10">' +
         '<div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-slate-950/20"></div>' +
-        '<img src="' + escapeHtml(s.src) + '" alt="' +
-          escapeHtml(s.alt || '') + '" decoding="async" onerror="rdPdLogoFallback(this)" ' +
-          'class="relative z-20 w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 object-contain rounded-3xl bg-white/95 p-3 shadow-2xl">' +
         '<div class="rd-cap absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-7 z-30">' +
           '<span class="rd-cap-badge inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white text-[8px] sm:text-[10px] font-bold">' +
             escapeHtml(s.badge || 'PDACC') + '</span>' +
@@ -2459,6 +2541,9 @@ Do not modify social links or structure without permission.
         dots.style.display = rdPdSlides.length > 1 ? '' : 'none';
       }
       rdPdIdx = 0;
+      if (rdPdSlides.length < 2 && RD_PDACC_HELD) {
+        setTimeout(function () { RD_PDACC_HELD = rdReleaseHeld('pdacc-slides', RD_PDACC_HELD); }, RD_FIRST_HOLD_MS + 250);
+      }
       startPdaccAutoplay();
     }
 
@@ -2466,6 +2551,7 @@ Do not modify social links or structure without permission.
       const items = document.querySelectorAll('#pdacc-slides .pdacc-slide');
       if (!items.length) return;
       rdPdIdx = ((i % items.length) + items.length) % items.length;
+      if (rdPdIdx !== 0) RD_PDACC_HELD = rdReleaseHeld('pdacc-slides', RD_PDACC_HELD);
       items.forEach((el, n) => {
         const on = n === rdPdIdx;
         el.classList.toggle('opacity-100', on);
@@ -2491,22 +2577,18 @@ Do not modify social links or structure without permission.
     function prevPdaccSlide() { setPdaccSlide(rdPdIdx - 1); }
 
     function startPdaccAutoplay() {
-      if (rdPdTimer) clearInterval(rdPdTimer);
+      if (rdPdTimer) { clearTimeout(rdPdTimer); clearInterval(rdPdTimer); }
+      rdPdTimer = null;
       if (rdPdSlides.length < 2) return;
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      rdPdTimer = setInterval(() => {
+      const wait = (!rdPdStepped && rdPdIdx === 0) ? RD_FIRST_SLIDE_MS : RD_SLIDE_MS;
+      rdPdTimer = setTimeout(function () {
+        rdPdTimer = null;
+        rdPdStepped = true;
         const items = document.querySelectorAll('#pdacc-slides .pdacc-slide');
         if (!items.length) return;
-        rdPdIdx = (rdPdIdx + 1) % items.length;
-        setPdaccSlideSilently(rdPdIdx);
-      }, RD_SLIDE_MS);
-    }
-    /* same visual step, without resetting the timer it is running inside */
-    function setPdaccSlideSilently(i) {
-      const t = rdPdTimer; rdPdTimer = null;
-      setPdaccSlide(i);
-      if (rdPdTimer) clearInterval(rdPdTimer);
-      rdPdTimer = t;
+        setPdaccSlide((rdPdIdx + 1) % items.length);
+      }, wait);
     }
 
     function pdaccHeroRender() {
@@ -2584,8 +2666,10 @@ Do not modify social links or structure without permission.
       rdFillSeriesSelects();
       loadExecutiveCommittee();
       renderCgpa();
-      loadPublicAlumni();
-      loadPublicEvents();
+      /* loadPublicAlumni() and loadPublicEvents() used to run here.  The home
+         page renders neither feed, so those were two Apps Script round trips
+         -- each with a 302 hop -- taken before the first screen was done.
+         switchPage() now fetches each one as its page is opened. */
     });
 
     /* The album model: Drive sub-folders win, the built-in list is the
