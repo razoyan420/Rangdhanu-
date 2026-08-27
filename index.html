@@ -1829,42 +1829,87 @@ Do not modify social links or structure without permission.
       renderPdaccSlides();
     }
 
+    /* ---- the last good answer is remembered for this browser tab ---------
+       Apps Script takes a moment to answer even when its own cache is warm,
+       and a reload throws everything the page knew away -- which is why the
+       pictures and the text arrive late. So each public feed keeps its last
+       answer in sessionStorage: the page paints from that copy at once, then
+       the fresh answer quietly replaces it (stale-while-revalidate).
+
+       Only things every visitor can already read go in here -- never an
+       admin list, never a token. It is sessionStorage, not localStorage, so
+       it dies with the tab and a new visit still starts from the server. */
+    const RD_FEED_TTL = 10 * 60 * 1000;
+
+    function rdFeedRecall(key) {
+      try {
+        const raw = sessionStorage.getItem('rd_feed_' + key);
+        if (!raw) return null;
+        const box = JSON.parse(raw);
+        if (!box || !box.at || Date.now() - box.at > RD_FEED_TTL) return null;
+        return box.data || null;
+      } catch (e) { return null; }
+    }
+
+    function rdFeedRemember(key, data) {
+      try {
+        sessionStorage.setItem('rd_feed_' + key,
+          JSON.stringify({ at: Date.now(), data: data }));
+      } catch (e) { /* private mode, or the quota is full: no harm done */ }
+    }
+
+    /* An admin has just changed something, so the remembered copy in this
+       tab is out of date and must go -- otherwise the admin reloads and
+       sees the old list staring back. */
+    function rdFeedForget(key) {
+      try { sessionStorage.removeItem('rd_feed_' + key); } catch (e) {}
+    }
+
     async function loadDriveImages() {
+      /* Paint from the remembered listing first, so the pictures are there
+         before the network has said anything. */
+      const warm = rdFeedRecall('drive');
+      if (warm && !RD_DRIVE.ready) { rdDriveAdopt(warm); RD_DRIVE.ready = true; applyDriveImages(); }
       try {
         const res = await fetch(RD_DRIVE_API + '&_=' + Date.now(), { cache: 'no-store' });
         const j = await res.json();
         if (!j || j.success !== true) throw new Error(j && j.message ? j.message : 'Drive listing failed.');
-        RD_DRIVE.folders = j.folders || {};
-        RD_DRIVE.groups = j.groups || {};
-        RD_DRIVE.trailer = j.trailer || null;
-        RD_DRIVE.byBase = {};
-        Object.keys(RD_DRIVE.folders).forEach(k => {
-          (RD_DRIVE.folders[k] || []).forEach(im => {
-            im.folder = k;
-            if (im && im.base && !RD_DRIVE.byBase[im.base]) RD_DRIVE.byBase[im.base] = im;
-          });
-        });
-        /* Sub-folder images are looked up by base name too, so an existing
-           data-rd-img="Images/Reunion Photo/02.jpg" finds Drive's 02.jpg even
-           when it now sits inside an album sub-folder. */
-        Object.keys(RD_DRIVE.groups).forEach(k => {
-          (RD_DRIVE.groups[k] || []).forEach(g => {
-            (g.images || []).forEach(im => {
-              im.folder = k; im.group = g.name;
-              if (im && im.base && !RD_DRIVE.byBase[im.base]) RD_DRIVE.byBase[im.base] = im;
-            });
-          });
-        });
+        rdDriveAdopt(j);
+        rdFeedRemember('drive', { folders: j.folders || {}, groups: j.groups || {}, trailer: j.trailer || null });
       } catch (err) {
         /* No Drive yet, or offline: the local files stay in use. Not an error
            the visitor should ever see. */
         RD_DRIVE.error = String(err && err.message ? err.message : err);
-        RD_DRIVE.groups = {};
-        RD_DRIVE.trailer = null;
+        if (!warm) { RD_DRIVE.groups = {}; RD_DRIVE.trailer = null; }
         console.warn('[rd] drive images unavailable:', RD_DRIVE.error);
       }
       RD_DRIVE.ready = true;
       applyDriveImages();
+    }
+
+    /* Fold one listing -- fresh or remembered -- into RD_DRIVE. */
+    function rdDriveAdopt(j) {
+      RD_DRIVE.folders = j.folders || {};
+      RD_DRIVE.groups = j.groups || {};
+      RD_DRIVE.trailer = j.trailer || null;
+      RD_DRIVE.byBase = {};
+      Object.keys(RD_DRIVE.folders).forEach(k => {
+        (RD_DRIVE.folders[k] || []).forEach(im => {
+          im.folder = k;
+          if (im && im.base && !RD_DRIVE.byBase[im.base]) RD_DRIVE.byBase[im.base] = im;
+        });
+      });
+      /* Sub-folder images are looked up by base name too, so an existing
+         data-rd-img="Images/Reunion Photo/02.jpg" finds Drive's 02.jpg even
+         when it now sits inside an album sub-folder. */
+      Object.keys(RD_DRIVE.groups).forEach(k => {
+        (RD_DRIVE.groups[k] || []).forEach(g => {
+          (g.images || []).forEach(im => {
+            im.folder = k; im.group = g.name;
+            if (im && im.base && !RD_DRIVE.byBase[im.base]) RD_DRIVE.byBase[im.base] = im;
+          });
+        });
+      });
     }
 
     /* Swap every element carrying data-rd-img="Images/..." for its Drive copy. */
@@ -2570,11 +2615,10 @@ Do not modify social links or structure without permission.
     }
 
     /* ALUMNI API & RENDER */
-    async function loadPublicAlumni() {
-      try {
-        const res = await fetch(ALUMNI_API_URL + '&_=' + Date.now(), { cache: 'no-store' });
-        const data = await res.json();
-        alumniData = data.data.map((m, i) => ({
+    /* One shape for the remembered rows and the fresh ones, so a warm list and
+       a just-fetched list can never drift apart. */
+    function rdAlumniShape(rows) {
+      return (Array.isArray(rows) ? rows : []).map((m, i) => ({
           id: m['Member ID'] || (i + 1), memberId: String(m['Member ID']||'').trim(), name: String(m['Full Name (English)']||'').trim(),
           phone: String(m['Mobile Number']||'').trim(), wa: String(m['WhatsApp Number']||m['Mobile Number']||'').trim(),
           email: String(m['Email']||'').trim(), address: String(m['Permanent Address']||'').trim(),
@@ -2584,10 +2628,32 @@ Do not modify social links or structure without permission.
           desig: String(m['Current Designation']||'').trim(), loc: String(m['Work Location (Division / Country)']||'').trim(),
           former_pos: String(m['Former Position at Rangdhanu / PDACC']||'').trim(), image: String(m['Passport Size Image']||'').trim(),
           status: String(m['viewStatus']||'').trim()
-        }));
+      }));
+    }
+
+    async function loadPublicAlumni() {
+      /* A reload used to show an empty directory while the sheet was read.  The
+         last answer of this tab is drawn first instead, then quietly replaced
+         when the fresh one lands. */
+      const warm = rdFeedRecall('alumni');
+      if (warm && !alumniData.length) {
+        alumniData = rdAlumniShape(warm);
         populateAlumniSeriesFilter();
         renderAlumni(alumniData);
-      } catch (e) { console.error(e); }
+      }
+      try {
+        const res = await fetch(ALUMNI_API_URL + '&_=' + Date.now(), { cache: 'no-store' });
+        const data = await res.json();
+        const rows = Array.isArray(data.data) ? data.data : [];
+        alumniData = rdAlumniShape(rows);
+        rdFeedRemember('alumni', rows);
+        populateAlumniSeriesFilter();
+        renderAlumni(alumniData);
+      } catch (e) {
+        /* A failed refresh must not wipe a directory that is already on screen. */
+        console.warn('[rd] alumni list unavailable:', e && e.message ? e.message : e);
+        if (!alumniData.length) console.error(e);
+      }
     }
     
     function populateAlumniSeriesFilter(){
@@ -3053,12 +3119,21 @@ Do not modify social links or structure without permission.
     async function loadExecutiveCommittee(force) {
       if (RD_EC.state === 'loading') return;
       if (RD_EC.state === 'ready' && !force) { renderExecutiveCommittee(); return; }
-      RD_EC.state = 'loading';
+      const warm = rdFeedRecall('committee');
+      if (warm && !RD_EC.data.length) {
+        /* Something real on screen beats a spinner, so the remembered committee
+           is adopted before the request goes out. */
+        RD_EC.data = warm;
+        RD_EC.state = 'ready';
+      } else {
+        RD_EC.state = 'loading';
+      }
       RD_EC.error = '';
       renderExecutiveCommittee();
       try {
         const res = await apiGet('executivecommittee');
         RD_EC.data = Array.isArray(res.data) ? res.data : [];
+        rdFeedRemember('committee', RD_EC.data);
         RD_EC.state = 'ready';
         /* Land on the first committee that actually has members. */
         if (!ecFindCommittee(RD_EC.committee)) {
@@ -3067,8 +3142,13 @@ Do not modify social links or structure without permission.
           RD_EC.session = '';
         }
       } catch (err) {
-        RD_EC.state = 'error';
-        RD_EC.error = friendlyError(err).msg;
+        if (RD_EC.data.length) {
+          RD_EC.state = 'ready';
+          console.warn('[rd] committee refresh failed:', err && err.message ? err.message : err);
+        } else {
+          RD_EC.state = 'error';
+          RD_EC.error = friendlyError(err).msg;
+        }
       }
       renderExecutiveCommittee();
       renderHomeLeaderMessages();
@@ -3950,19 +4030,14 @@ Do not modify social links or structure without permission.
     }
 
     window.publicEvents = [];
-    
-    async function loadPublicEvents() {
+
+    /* Draws the grid from a list of dynamic events.  Called twice: once with the
+       remembered list so a reload has something on screen immediately, once with
+       the fresh list from the network. */
+    function rdEventsPaint(dynamicEvs) {
       const g = document.getElementById('public-events-grid'), st = document.getElementById('public-events-status');
-      if (!g) return;
-      st.innerHTML = '<span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg"><i data-lucide="loader-circle" class="w-3.5 h-3.5 inline animate-spin"></i> Loading...</span>';
-      lucide.createIcons();
-      
-      try {
-        const q = new URLSearchParams({action: 'events', _: Date.now()});
-        const r = await fetch(API_BASE_URL + '?' + q.toString());
-        const json = await r.json();
-        const dynamicEvs = Array.isArray(json.data) ? json.data : [];
-        
+      if (!g || !st) return;
+      dynamicEvs = Array.isArray(dynamicEvs) ? dynamicEvs : [];
         window.publicEvents = [...staticEvents, ...dynamicEvs];
         st.innerHTML = `<span class="text-xs font-bold text-slate-500 bg-slate-100 inline-block px-3 py-1 rounded-lg">${dynamicEvs.length} events from the website</span>`;
         
@@ -3993,9 +4068,31 @@ Do not modify social links or structure without permission.
           `;
         }).join('');
         lucide.createIcons();
+    }
+
+    async function loadPublicEvents() {
+      const g = document.getElementById('public-events-grid'), st = document.getElementById('public-events-status');
+      if (!g) return;
+      const warm = rdFeedRecall('events');
+      if (warm && !window.publicEvents.length) {
+        rdEventsPaint(warm);
+      } else if (!window.publicEvents.length) {
+        st.innerHTML = '<span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg"><i data-lucide="loader-circle" class="w-3.5 h-3.5 inline animate-spin"></i> Loading...</span>';
+        lucide.createIcons();
+      }
+      try {
+        const q = new URLSearchParams({action: 'events', _: Date.now()});
+        const r = await fetch(API_BASE_URL + '?' + q.toString());
+        const json = await r.json();
+        const dynamicEvs = Array.isArray(json.data) ? json.data : [];
+        rdFeedRemember('events', dynamicEvs);
+        rdEventsPaint(dynamicEvs);
+        
       } catch (err) {
-        st.innerHTML = '<span class="text-xs text-rose-600 font-semibold bg-rose-50 px-3 py-1 rounded-lg">Events could not be loaded</span>';
-        console.error(err);
+        if (!window.publicEvents.length) {
+          st.innerHTML = '<span class="text-xs text-rose-600 font-semibold bg-rose-50 px-3 py-1 rounded-lg">Events could not be loaded</span>';
+        }
+        console.warn('[rd] events unavailable:', err && err.message ? err.message : err);
       }
     }
 
@@ -4267,9 +4364,22 @@ f.reset();
     async function loadNoticeBoard(force) {
       if (RD_NB.state === 'loading') return;
       if (RD_NB.state === 'ready' && !force) { renderNoticeBoard(); return; }
-      RD_NB.state = 'loading';
-      RD_SC.state = 'loading';
-      renderNoticeBoard();
+      /* The remembered copy is shown at once; the fresh one lands a moment
+         later, so the board never opens as a blank skeleton twice. */
+      const warm = rdFeedRecall('notices');
+      if (warm) {
+        RD_NB.ticker = warm.ticker || [];
+        RD_NB.notices = warm.notices || [];
+        RD_SC.posts = warm.posts || [];
+        RD_NB.page = 1;
+        RD_NB.state = 'ready';
+        RD_SC.state = 'ready';
+        renderNoticeBoard();
+      } else {
+        RD_NB.state = 'loading';
+        RD_SC.state = 'loading';
+        renderNoticeBoard();
+      }
       const [nb, sc] = await Promise.all([
         apiGet('notices').catch(err => { console.warn('[rd] notices:', err); return {}; }),
         apiGet('socialposts').catch(err => { console.warn('[rd] social:', err); return {}; })
@@ -4280,6 +4390,8 @@ f.reset();
       RD_NB.page = 1;
       RD_NB.state = 'ready';
       RD_SC.state = 'ready';
+      rdFeedRemember('notices',
+        { ticker: RD_NB.ticker, notices: RD_NB.notices, posts: RD_SC.posts });
       renderNoticeBoard();
     }
 
@@ -4545,13 +4657,23 @@ f.reset();
     async function loadPdacc(force) {
       if (RD_PD.state === 'loading') return;
       if (RD_PD.state === 'ready' && !force) { renderPdacc(); return; }
-      RD_PD.state = 'loading';
-      renderPdacc();
+      const warm = rdFeedRecall('pdacc');
+      if (warm) {
+        RD_PD.ticker = warm.ticker || [];
+        RD_PD.updates = warm.updates || [];
+        RD_PD.page = 1;
+        RD_PD.state = 'ready';
+        renderPdacc();
+      } else {
+        RD_PD.state = 'loading';
+        renderPdacc();
+      }
       const j = await apiGet('pdacc').catch(err => { console.warn('[rd] pdacc:', err); return {}; });
       RD_PD.ticker = Array.isArray(j.ticker) ? j.ticker : [];
       RD_PD.updates = Array.isArray(j.updates) ? j.updates : [];
       RD_PD.page = 1;
       RD_PD.state = 'ready';
+      rdFeedRemember('pdacc', { ticker: RD_PD.ticker, updates: RD_PD.updates });
       renderPdacc();
     }
 
@@ -5653,6 +5775,7 @@ f.reset();
         RD_ADMIN.nbEdit = '';
         RD_ADMIN.busy = '';
         RD_NB.state = 'idle';
+        rdFeedForget('notices');
         showToast(r.message || 'The notice is saved.', 'success', 'Notice saved', { backTo: 'admin' });
         loadAdminDashboard(true);
       } catch (err) {
@@ -5671,6 +5794,7 @@ f.reset();
         const r = await apiPost('setnoticeshow', { noticeId: id, show: on ? 'YES' : 'NO' });
         row.show = on ? 'YES' : 'NO';
         RD_NB.state = 'idle';
+        rdFeedForget('notices');
         showToast(r.message || 'Saved.', 'success', 'Saved', { backTo: 'admin' });
       } catch (err) {
         showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
@@ -5691,6 +5815,7 @@ f.reset();
         RD_ADMIN.askWhat = ''; RD_ADMIN.askId = '';
         if (RD_ADMIN.nbEdit === id) RD_ADMIN.nbEdit = '';
         RD_NB.state = 'idle';
+        rdFeedForget('notices');
         showToast(r.message || 'The notice is removed.', 'success', 'Removed', { backTo: 'admin' });
       } catch (err) {
         showToast(friendlyError(err).msg, 'error', 'Could not remove', { backTo: 'admin' });
@@ -5816,7 +5941,9 @@ f.reset();
         RD_ADMIN.scEdit = '';
         RD_ADMIN.busy = '';
         RD_SC.state = 'idle';
+        rdFeedForget('notices');
         RD_NB.state = 'idle';
+        rdFeedForget('notices');
         showToast(r.message || 'The post is saved.', 'success', 'Post saved', { backTo: 'admin' });
         loadAdminDashboard(true);
       } catch (err) {
@@ -5835,6 +5962,7 @@ f.reset();
         const r = await apiPost('setsocialpostshow', { postId: id, show: on ? 'YES' : 'NO' });
         row.show = on ? 'YES' : 'NO';
         RD_SC.state = 'idle';
+        rdFeedForget('notices');
         showToast(r.message || 'Saved.', 'success', 'Saved', { backTo: 'admin' });
       } catch (err) {
         showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
@@ -5854,6 +5982,7 @@ f.reset();
         RD_ADMIN.askWhat = ''; RD_ADMIN.askId = '';
         if (RD_ADMIN.scEdit === id) RD_ADMIN.scEdit = '';
         RD_SC.state = 'idle';
+        rdFeedForget('notices');
         showToast(r.message || 'The post is removed.', 'success', 'Removed', { backTo: 'admin' });
       } catch (err) {
         showToast(friendlyError(err).msg, 'error', 'Could not remove', { backTo: 'admin' });
@@ -6143,7 +6272,12 @@ f.reset();
        the admin has just changed away from. */
     async function adminPdLineSave() {
       const el = document.getElementById('pd-text');
-      if (!el || RD_ADMIN.busy) return;
+      if (!el) return;
+      if (RD_ADMIN.busy) {
+        showToast('Another change is still being saved. Please wait a moment, or reload the admin page.',
+          'error', 'One at a time', { backTo: 'admin' });
+        return;
+      }
       const text = String(el.value || '').trim();
       const show = !!(document.getElementById('pd-show') || {}).checked;
       const editing = RD_ADMIN.pdEdit;
@@ -6162,9 +6296,11 @@ f.reset();
         RD_ADMIN.pdEdit = '';
         RD_ADMIN.busy = '';
         RD_PD.state = 'idle';
+        rdFeedForget('pdacc');
         showToast(r.message || 'The line is saved.', 'success', 'Line saved', { backTo: 'admin' });
         loadAdminDashboard(true);
       } catch (err) {
+        console.warn('[rd] savepdaccline:', err);
         RD_ADMIN.busy = '';
         showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
         renderAdmin();
@@ -6180,6 +6316,7 @@ f.reset();
         const row = adminPdRow(id);
         if (row) row.show = on ? 'YES' : 'NO';
         RD_PD.state = 'idle';
+        rdFeedForget('pdacc');
         showToast(r.message || 'Saved.', 'success', 'Saved', { backTo: 'admin' });
       } catch (err) {
         showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
@@ -6198,6 +6335,7 @@ f.reset();
         RD_ADMIN.askWhat = ''; RD_ADMIN.askId = '';
         if (RD_ADMIN.pdEdit === id) RD_ADMIN.pdEdit = '';
         RD_PD.state = 'idle';
+        rdFeedForget('pdacc');
         showToast(r.message || 'The line is removed.', 'success', 'Removed', { backTo: 'admin' });
       } catch (err) {
         showToast(friendlyError(err).msg, 'error', 'Could not remove', { backTo: 'admin' });
@@ -6208,7 +6346,15 @@ f.reset();
 
     async function adminPdUpdateSave() {
       const el = document.getElementById('pd-title');
-      if (!el || RD_ADMIN.busy) return;
+      if (!el) return;
+      /* A silent return here used to look like a dead button: if an earlier
+         save had left RD_ADMIN.busy set, nothing at all happened on click.
+         Now the reason is said out loud instead. */
+      if (RD_ADMIN.busy) {
+        showToast('Another change is still being saved. Please wait a moment, or reload the admin page.',
+          'error', 'One at a time', { backTo: 'admin' });
+        return;
+      }
       const title = String(el.value || '').trim();
       const description = String((document.getElementById('pd-desc') || {}).value || '').trim();
       const link = String((document.getElementById('pd-link') || {}).value || '').trim();
@@ -6231,14 +6377,27 @@ f.reset();
       try {
         const data = { updateId: editing || '', title: title, description: description,
                        link: link, show: show ? 'YES' : 'NO' };
-        if (image) data.image = await filePayload(image, 1600);
+        if (image) {
+          /* The picture is its own step, so a picture problem says so rather
+             than hiding behind a general "could not save". */
+          if (btn) btn.textContent = 'Preparing the picture…';
+          try {
+            data.image = await filePayload(image, 1600);
+          } catch (imgErr) {
+            console.warn('[rd] pdacc picture:', imgErr);
+            throw new Error('The picture could not be prepared. Please try another picture, or add the update without one.');
+          }
+          if (btn) btn.textContent = 'Saving…';
+        }
         const r = await apiPost('savepdaccupdate', { data: data });
         RD_ADMIN.pdEdit = '';
         RD_ADMIN.busy = '';
         RD_PD.state = 'idle';
+        rdFeedForget('pdacc');
         showToast(r.message || 'The update is saved.', 'success', 'Update saved', { backTo: 'admin' });
         loadAdminDashboard(true);
       } catch (err) {
+        console.warn('[rd] savepdaccupdate:', err);
         RD_ADMIN.busy = '';
         showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
         renderAdmin();
@@ -6254,6 +6413,7 @@ f.reset();
         const row = adminPdRow(id);
         if (row) row.show = on ? 'YES' : 'NO';
         RD_PD.state = 'idle';
+        rdFeedForget('pdacc');
         showToast(r.message || 'Saved.', 'success', 'Saved', { backTo: 'admin' });
       } catch (err) {
         showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
@@ -6272,6 +6432,7 @@ f.reset();
         RD_ADMIN.askWhat = ''; RD_ADMIN.askId = '';
         if (RD_ADMIN.pdEdit === id) RD_ADMIN.pdEdit = '';
         RD_PD.state = 'idle';
+        rdFeedForget('pdacc');
         showToast(r.message || 'The update is removed.', 'success', 'Removed', { backTo: 'admin' });
       } catch (err) {
         showToast(friendlyError(err).msg, 'error', 'Could not remove', { backTo: 'admin' });
@@ -6534,6 +6695,10 @@ f.reset();
       renderAdmin();
       try {
         await adminActionCall(row.kind, what, id, note || '');
+        /* The public pages must not keep showing the row that just changed. */
+        rdFeedForget('alumni');
+        rdFeedForget('events');
+        rdFeedForget('committee');
         row.status = what === 'approve' ? 'APPROVED' : 'REJECTED';
         if (note) row.note = note;
         RD_ADMIN.noteOpen = '';
