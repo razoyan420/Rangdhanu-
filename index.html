@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Registration</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>মেম্বার রেজিস্ট্রেশন</h2>
+        <form id="regForm">
+            <div class="input-group">
+                <label for="name">আপনার নাম</label>
+                <input type="text" id="name" placeholder="যেমন: রোমান" required>
+            </div>
+            <div class="input-group">
+                <label for="phone">ফোন নম্বর</label>
+                <input type="tel" id="phone" placeholder="01XXXXXXXXX" required>
+            </div>
+            <div class="input-group">
+                <label for="image">ছবি আপলোড করুন (স্বয়ংক্রিয়ভাবে ছোট হবে)</label>
+                <input type="file" id="image" accept="image/*" required>
+            </div>
+            <button type="submit" id="submitBtn">সাবমিট করুন</button>
+        </form>
+        <div id="statusMessage"></div>
+    </div>
+
+    <!-- Firebase ও আমাদের মেইন স্ক্রিপ্ট -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
