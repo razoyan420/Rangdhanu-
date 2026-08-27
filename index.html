@@ -38,6 +38,38 @@
 <link rel="icon" type="image/png" href="/logo.png?v=2" sizes="any"/>
 <link rel="shortcut icon" href="/logo.png?v=2"/>
 <link rel="apple-touch-icon" href="/logo.png?v=2"/>
+<!-- The first slide ships with the site so the hero is never an empty grey
+     box.  Preloaded here, it is already on its way while the page parses;
+     Drive photos cannot do this because they answer with a redirect and are
+     only asked for after JavaScript runs. -->
+<link rel="preload" as="image" href="/slide-home.jpg" fetchpriority="high"/>
+
+<!-- Which page a reload should land on, decided while the page is still being
+     parsed.  The real picker runs at DOMContentLoaded, and that waits for the
+     Tailwind and Lucide CDN scripts, so #page-home -- the one marked "active"
+     in the markup -- used to be painted for a moment before the page you were
+     actually on appeared.  This script cannot fix that by touching the markup,
+     because none of the page elements exist yet; it writes a single CSS rule,
+     which the browser applies the instant they are parsed.  The rule is thrown
+     away once the real picker has run, so ordinary navigation is untouched.
+     LANDS_ON mirrors the needsData entries of RD_SUBPAGES -- those pages are
+     filled in at runtime, so a reload lands on their parent instead of
+     flashing an empty page.  test_notice.js asserts the two agree. -->
+<script>
+(function () {
+  try {
+    var id = (location.hash || '').replace('#', '').trim();
+    if (!id || id === 'home' || !/^[a-z0-9-]+$/.test(id)) return;
+    var LANDS_ON = {"notice":"home","event-detail":"events","profile":"alumni","photo":"home","notice-file":"noticeboard","ec-message":"committee","pdacc-updates":"prokoushali"};
+    var target = LANDS_ON[id] || id;
+    if (target === 'home') return;
+    var s = document.createElement('style');
+    s.id = 'rd-boot-page';
+    s.textContent = '#page-home{display:none!important}#page-' + target + '{display:block!important}';
+    document.head.appendChild(s);
+  } catch (e) {}
+})();
+</script>
 
 <!-- Told plainly, for a search engine: what this organisation is called in
      both languages, where it is, and where else it lives online. Both names
@@ -511,7 +543,12 @@
              added, reordered or deleted in Drive with no code change at all.
              If Drive is unreachable the local Images/Home/* set is used. -->
         <div id="cover-slides" class="absolute inset-0 z-10"></div>
-        <div id="cover-skeleton" class="absolute inset-0 z-10 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 animate-pulse"></div>
+        <!-- The poster is painted from the HTML, so something real is on
+             screen before a single request is made.  It stays underneath the
+             slides for good, which also makes it the backdrop if a Drive
+             picture ever fails to load. -->
+        <div id="cover-poster" class="absolute inset-0 z-[1] bg-slate-900 bg-cover bg-center" style="background-image:url('slide-home.jpg')"></div>
+        <div id="cover-skeleton" class="absolute inset-0 z-0 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 animate-pulse"></div>
         <div class="rd-hero-veil absolute inset-0 z-20 pointer-events-none"></div>
         <div id="rd-hero-copy" class="rd-hero-anim absolute inset-x-0 top-0 z-20 px-5 sm:px-9 md:px-12 pt-6 sm:pt-9 md:pt-12 pointer-events-none">
           <!-- rdHeroRender() swaps this block between the English and the Bengali
@@ -666,7 +703,7 @@
         <!-- Reunion trailer. Rendered by renderReunionTrailer() from the Drive
              manifest, so it stays completely hidden until a video is actually
              shared in Drive. Nothing here needs editing to publish it. -->
-        <div id="reunion-trailer" class="hidden max-w-5xl mx-auto mb-12"></div>
+        <div id="reunion-trailer" class="hidden max-w-5xl mx-auto mb-8"></div>
 
         <div class="bg-white p-4 sm:p-5 rounded-2xl max-w-5xl mx-auto mb-8 border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm">
           <div class="flex items-center gap-2.5 text-slate-700 font-semibold"><div class="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-200"><i class="w-4 h-4" data-lucide="images"></i></div><span>অ্যালবামে মোট ছবি: <strong class="text-slate-900 text-sm font-bold">৩১ টি হাই-রেজোলিউশন ফটো</strong></span></div>
@@ -680,11 +717,11 @@
 
   <!-- ================= PAGE 4: PROKOUSHALI ================= -->
   <div class="page-view" id="page-prokoushali">
-    <section class="py-14 md:py-20 bg-[#f8fafc] border-t border-slate-200 min-h-[75vh]">
+    <section class="pt-5 md:pt-6 pb-14 md:pb-20 bg-[#f8fafc] border-t border-slate-200 min-h-[75vh]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- The page's own little nav. The crest on the left, the jump
              buttons in the middle, and the one outward link on the right. -->
-        <nav id="pdacc-nav" class="mb-7 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur shadow-sm px-3 sm:px-5 py-3 flex flex-wrap items-center gap-2 sm:gap-3">
+        <nav id="pdacc-nav" class="mb-5 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur shadow-sm px-3 sm:px-5 py-3 flex flex-wrap items-center gap-2 sm:gap-3">
           <span class="flex items-center gap-2.5 min-w-0 mr-auto">
             <span class="rd-pd-crest"><img id="pdacc-nav-logo" src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
             <span class="min-w-0">
@@ -703,7 +740,10 @@
              stands in here. An empty folder shows the crest instead. -->
         <div class="relative w-full aspect-[16/10] sm:aspect-[21/9] md:h-[460px] rounded-[28px] overflow-hidden border border-slate-200 shadow-[0_24px_70px_-28px_rgba(15,23,42,.35)] bg-slate-900 group mb-12">
           <div id="pdacc-slides" class="absolute inset-0 z-10"></div>
-          <div id="pdacc-skeleton" class="absolute inset-0 z-10 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 animate-pulse"></div>
+          <!-- PDACC keeps its own poster file; the two bars never share a
+               picture, which is the rule for this page. -->
+          <div id="pdacc-poster" class="absolute inset-0 z-[1] bg-slate-900 bg-cover bg-center" style="background-image:url('slide-pdacc.jpg')"></div>
+          <div id="pdacc-skeleton" class="absolute inset-0 z-0 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 animate-pulse"></div>
           <div class="rd-hero-veil absolute inset-0 z-20 pointer-events-none"></div>
           <div id="pdacc-hero-copy" class="rd-pd-anim absolute inset-x-0 top-0 z-20 px-5 sm:px-9 md:px-12 pt-6 sm:pt-9 md:pt-12 pointer-events-none">
             <!-- pdaccHeroRender() swaps this block between the English and the
@@ -1802,6 +1842,12 @@ Do not modify social links or structure without permission.
        pictures bundled with the site -- exactly what happened before this feed
        existed. So pasting the backend file changes nothing on the home page
        until an admin actually adds a slide. */
+    /* The two photos that ship with the site.  They are the poster layers in
+       the markup above and the fallback for the first slide below, so the name
+       is written once here and nowhere else. */
+    const RD_COVER_FIRST = 'slide-home.jpg';
+    const RD_PDACC_FIRST = 'slide-pdacc.jpg';
+
     const RD_SLIDE_API = API_BASE_URL + '?action=slideshow';
     const RD_SL = { ready: false, slides: [], pdacc: [], error: '' };
 
@@ -1970,57 +2016,133 @@ Do not modify social links or structure without permission.
     }
 
     /* ================= REUNION TRAILER (Google Drive) ===================
-       The whole block is hidden unless Drive_Images.gs reports a video. The
-       Drive player is only inserted after a click, so the reunion page does
-       not pay for a video iframe that most visitors never start. */
-    function renderReunionTrailer() {
+       Two states, one card.  At rest it is a thumbnail beside a short
+       description -- about 240 px tall instead of the 650 px a full-width 16:9
+       stage used to take for a video most visitors never start.  Pressing play
+       turns the same card into that big stage; "smaller" brings it back.
+
+       The whole block stays hidden unless Drive_Images.gs reports a video, and
+       the Drive player is still only inserted after a click, so the reunion
+       page never pays for an iframe nobody asked for. */
+    let RD_TRAILER_OPEN = false;
+
+    /* The words beside the thumbnail.  Apps Script can override any of them
+       (t.title / t.subtitle / t.description); these are what shows otherwise,
+       so the space freed up by shrinking the video is never left blank. */
+    const RD_TRAILER_TEXT = {
+      title: 'পুনর্মিলনী ২০২৪ — ট্রেলার',
+      meta: '০১ মার্চ ২০২৪ • ডুয়েট ক্যাম্পাস',
+      desc: 'উদ্বোধনী র্‍যালি থেকে মঞ্চের শেষ মুহূর্ত — পুনর্মিলনীর পুরো দিনটা এক ঝলকে। ক্যাম্পাসের আড্ডা, অডিটোরিয়ামের সংবর্ধনা আর পুরো Rangdhanu Family-র একসাথে দাঁড়ানোর মুহূর্তগুলো রয়েছে এই ছোট ভিডিওতে। প্লে না করলে ভিডিওটি লোডই হয় না, তাই পেজ ধীর হয় না।'
+    };
+
+    function renderReunionTrailer(expanded) {
       const box = document.getElementById('reunion-trailer');
       if (!box) return;
       const t = RD_DRIVE.trailer;
-      if (!t || !t.ready || !t.fileId) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+      if (!t || !t.ready || !t.fileId) {
+        RD_TRAILER_OPEN = false;
+        box.classList.add('hidden');
+        box.innerHTML = '';
+        return;
+      }
+      /* Called with no argument by the Drive loader: keep whatever state the
+         visitor is already in, so a background refresh cannot stop the video. */
+      if (expanded === undefined) expanded = RD_TRAILER_OPEN;
+      RD_TRAILER_OPEN = !!expanded;
 
-      const title = t.title || 'পুনর্মিলনী ২০২৪ — ট্রেলার';
+      const title = t.title || RD_TRAILER_TEXT.title;
+      const sub = t.subtitle || RD_TRAILER_TEXT.meta;
+      const desc = t.description || RD_TRAILER_TEXT.desc;
       box.classList.remove('hidden');
-      box.innerHTML = `
+      box.innerHTML = RD_TRAILER_OPEN
+        ? rdTrailerBig(t, title, sub)
+        : rdTrailerCard(t, title, sub, desc);
+      if (window.lucide) lucide.createIcons();
+    }
+
+    /* Resting state: picture on the left, words on the right. On a phone the
+       grid collapses, so the thumbnail sits above the description. */
+    function rdTrailerCard(t, title, sub, desc) {
+      return `
+        <div class="bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
+          <div class="grid md:grid-cols-[minmax(0,42%)_1fr]">
+            <button type="button" onclick="rdPlayTrailer()" aria-label="ট্রেলার চালু করুন"
+              class="group relative block w-full overflow-hidden bg-slate-950 aspect-video">
+              <img src="${escapeHtml(t.poster || '')}" alt="${escapeHtml(title)}" loading="lazy" decoding="async"
+                onerror="rdPhotoFallback(this)"
+                class="absolute inset-0 w-full h-full object-cover opacity-75 transition-transform duration-700 group-hover:scale-105">
+              <span class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-slate-950/10"></span>
+              <span class="absolute inset-0 flex items-center justify-center">
+                <span class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-xl transition-transform duration-300 group-hover:scale-110">
+                  <i class="w-7 h-7" data-lucide="play"></i>
+                </span>
+              </span>
+              <span class="absolute left-3 bottom-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/70 border border-white/15 text-white text-[11px] font-bold tracking-wide">
+                <i class="w-3 h-3" data-lucide="clapperboard"></i> ভিডিও
+              </span>
+            </button>
+            <div class="p-5 sm:p-6 flex flex-col gap-3 min-w-0">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="p-2 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white shadow-md shrink-0"><i class="w-4 h-4" data-lucide="clapperboard"></i></div>
+                <div class="min-w-0">
+                  <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate">${escapeHtml(title)}</h3>
+                  <span class="text-xs text-slate-500 font-medium">${escapeHtml(sub)}</span>
+                </div>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">${escapeHtml(desc)}</p>
+              <div class="mt-auto flex flex-wrap items-center gap-2 pt-1">
+                <button type="button" onclick="rdPlayTrailer()"
+                  class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold transition-colors min-h-[44px]">
+                  <i class="w-4 h-4" data-lucide="play"></i> এখানেই দেখুন
+                </button>
+                <a href="${escapeHtml(t.openUrl || '#')}" target="_blank" rel="noopener"
+                  class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-bold transition-colors min-h-[44px]">
+                  <i class="w-3.5 h-3.5" data-lucide="external-link"></i> Drive-এ দেখুন
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    /* Watching state: the full-width 16:9 stage this block used to be all the
+       time.  #trailer-stage is filled in by rdPlayTrailer(). */
+    function rdTrailerBig(t, title, sub) {
+      return `
         <div class="bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
           <div class="flex flex-wrap items-center gap-3 px-5 sm:px-7 py-4 border-b border-slate-100">
             <div class="p-2.5 rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white shadow-md shrink-0"><i class="w-5 h-5" data-lucide="clapperboard"></i></div>
             <div class="min-w-0">
               <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate">${escapeHtml(title)}</h3>
-              <span class="text-xs text-slate-500 font-medium">${escapeHtml(t.subtitle || '')}</span>
+              <span class="text-xs text-slate-500 font-medium">${escapeHtml(sub)}</span>
             </div>
-            <a href="${escapeHtml(t.openUrl || '#')}" target="_blank" rel="noopener"
-              class="ml-auto inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-bold transition-colors min-h-[44px]">
-              <i class="w-3.5 h-3.5" data-lucide="external-link"></i> Drive-এ দেখুন
-            </a>
+            <div class="ml-auto flex items-center gap-2">
+              <a href="${escapeHtml(t.openUrl || '#')}" target="_blank" rel="noopener"
+                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-bold transition-colors min-h-[44px]">
+                <i class="w-3.5 h-3.5" data-lucide="external-link"></i> Drive-এ দেখুন
+              </a>
+              <button type="button" onclick="rdCloseTrailer()"
+                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors min-h-[44px]">
+                <i class="w-3.5 h-3.5" data-lucide="minimize-2"></i> ছোট করুন
+              </button>
+            </div>
           </div>
-          <div id="trailer-stage" class="relative w-full bg-slate-950" style="padding-bottom:56.25%;">
-            <button type="button" onclick="rdPlayTrailer()" aria-label="ট্রেলার চালু করুন"
-              class="group absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden">
-              <img src="${escapeHtml(t.poster || '')}" alt="${escapeHtml(title)}" loading="lazy" decoding="async"
-                onerror="rdPhotoFallback(this)"
-                class="absolute inset-0 w-full h-full object-cover opacity-70 transition-transform duration-700 group-hover:scale-105">
-              <span class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-slate-950/10"></span>
-              <span class="relative z-10 flex flex-col items-center gap-3 text-white">
-                <span class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-xl transition-transform duration-300 group-hover:scale-110">
-                  <i class="w-8 h-8 sm:w-9 sm:h-9" data-lucide="play"></i>
-                </span>
-                <span class="text-xs sm:text-sm font-bold tracking-wide">ট্রেলার দেখুন</span>
-              </span>
-            </button>
-          </div>
+          <div id="trailer-stage" class="relative w-full bg-slate-950" style="padding-bottom:56.25%;"></div>
         </div>`;
-      if (window.lucide) lucide.createIcons();
     }
 
     function rdPlayTrailer() {
       const t = RD_DRIVE.trailer;
+      if (!t || !t.ready) return;
+      renderReunionTrailer(true);
       const stage = document.getElementById('trailer-stage');
-      if (!t || !t.ready || !stage) return;
+      if (!stage) return;
       stage.innerHTML = `<iframe src="${escapeHtml(t.embedUrl)}" title="${escapeHtml(t.title || 'Reunion trailer')}"
         class="absolute inset-0 w-full h-full" frameborder="0" allow="autoplay; encrypted-media; fullscreen"
         allowfullscreen loading="lazy"></iframe>`;
     }
+
+    function rdCloseTrailer() { renderReunionTrailer(false); }
 
     /* ================= COVER SLIDESHOW ==================================
        Was completely broken: the arrows and the dots called setCoverSlide(),
@@ -2056,7 +2178,7 @@ Do not modify social links or structure without permission.
         return sheet.map((s, i) => {
           const pool = RD_HOME_SLIDES[i % RD_HOME_SLIDES.length];
           return {
-            src: s.url, local: s.fallbackUrl || '',
+            src: s.url, local: s.fallbackUrl || (i === 0 ? RD_COVER_FIRST : ''),
             alt: s.caption || pool.alt,
             badge: s.badge || pool.badge,
             title: s.caption || ''
@@ -2265,7 +2387,7 @@ Do not modify social links or structure without permission.
         return sheet.map((s, i) => {
           const pool = RD_PDACC_SLIDES[i % RD_PDACC_SLIDES.length];
           return {
-            src: s.url, local: s.fallbackUrl || RD_PDACC_LOGO,
+            src: s.url, local: s.fallbackUrl || (i === 0 ? RD_PDACC_FIRST : RD_PDACC_LOGO),
             alt: s.caption || pool.title,
             badge: s.badge || pool.badge,
             title: s.caption || ''
@@ -2282,10 +2404,14 @@ Do not modify social links or structure without permission.
     /* The empty state: the crest on the dark panel, with the same caption
        parts as a real slide so the page still looks finished. */
     function pdaccCrestSlide(s) {
+      /* The poster photo now shows through behind the crest, so the caption
+         needs the same dark wash a real slide has -- white on a photograph is
+         not readable on its own. */
       return '<div class="pdacc-slide absolute inset-0 opacity-100 scale-100 z-10 flex items-center justify-center">' +
+        '<div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-slate-950/20"></div>' +
         '<img src="' + escapeHtml(s.src) + '" alt="' +
           escapeHtml(s.alt || '') + '" decoding="async" onerror="rdPdLogoFallback(this)" ' +
-          'class="w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 object-contain rounded-3xl bg-white/95 p-3 shadow-2xl">' +
+          'class="relative z-20 w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 object-contain rounded-3xl bg-white/95 p-3 shadow-2xl">' +
         '<div class="rd-cap absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-7 z-30">' +
           '<span class="rd-cap-badge inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white text-[8px] sm:text-[10px] font-bold">' +
             escapeHtml(s.badge || 'PDACC') + '</span>' +
@@ -2443,6 +2569,10 @@ Do not modify social links or structure without permission.
       const startPage = getPageFromLocation(false);
       history.replaceState({page: startPage}, '', window.location.pathname + (startPage==='home'?'':`#${startPage}`));
       switchPage(startPage, false);
+      /* The head script's stop-gap rule has done its job; drop it so it cannot
+         override an ordinary page change later on. */
+      var boot = document.getElementById('rd-boot-page');
+      if (boot && boot.parentNode) boot.parentNode.removeChild(boot);
       renderCoverSlides();
       rdHeroStartCycle();
       renderPdaccSlides();
