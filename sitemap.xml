@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The whole site is one document with hash routes (#alumni, #prokoushali and
+     so on). A hash fragment is not a separate page to a crawler, so listing
+     them here would be noise. One honest entry. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://rangdhanuduet.live/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
