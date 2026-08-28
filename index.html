@@ -199,7 +199,7 @@
     </div>
     <!-- Right side -->
     <div class="flex items-center gap-3 shrink-0">
-      <button class="hidden sm:inline-flex nav-cta" onclick="switchPage('register')">
+      <button class="hidden lg:inline-flex nav-cta" onclick="switchPage('register')">
         Membership Application
       </button>
       <button id="mobile-menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu" class="xl:hidden p-3 rounded-2xl bg-sky-50 border border-sky-200 text-slate-700 hover:bg-sky-100 cursor-pointer" onclick="toggleMobileMenu()">
@@ -223,7 +223,7 @@
     </div>
   </nav>
   <!-- Mobile menu -->
-  <div class="hidden xl:hidden absolute right-3 top-full mt-2 w-64 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white border border-sky-200 p-3 space-y-1 font-semibold text-sm shadow-2xl ring-1 ring-slate-900/5" id="mobile-menu">
+  <div class="hidden xl:hidden absolute left-0 right-0 top-full w-full bg-white border-t border-sky-200 px-4 sm:px-6 lg:px-8 pt-3 pb-4 space-y-1 font-semibold text-base shadow-2xl" id="mobile-menu">
     <button class="mobile-nav-item" data-page="home" onclick="switchPage('home')">Home</button>
     <button class="mobile-nav-item" data-page="reunion" onclick="switchPage('reunion')">Rangdhanu Reunion</button>
     <button class="mobile-nav-item" data-page="alumni" onclick="switchPage('alumni')">Alumni &amp; Member</button>
@@ -280,7 +280,8 @@
     </section>
 
     <!-- Leadership: sits right under the cover, filled from the newest
-         approved committee session. Two messages, one on each side. -->
+         approved committee session. One message at a time -- the deck turns
+         itself over every 4 s (RD_LEADER_MS) and can be dragged sideways. -->
     <section class="hidden pt-10 pb-12 md:pt-12 md:pb-16 bg-white" id="home-leadership">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl mx-auto text-center mb-8">
@@ -288,7 +289,10 @@
           <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-950 mt-3">Message from the President</h2>
           <p class="text-slate-600 mt-3 leading-7 text-sm sm:text-base">Words from the Presidents of our latest Executive Committees.</p>
         </div>
-        <div class="grid md:grid-cols-2 gap-6 items-start" id="home-leader-msgs"></div>
+        <div class="leader-deck" id="home-leader-deck">
+          <div class="leader-track" id="home-leader-msgs"></div>
+        </div>
+        <div class="leader-dots" id="home-leader-dots"></div>
       </div>
     </section>
 
@@ -299,7 +303,7 @@
         <div class="max-w-4xl mx-auto text-center">
           <span class="reveal inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold section-kicker uppercase">Students Welfare Association of Greater Rangpur</span>
           <h1 class="reveal reveal-delay-1 mt-6 text-4xl sm:text-5xl md:text-5xl font-extrabold tracking-tight text-slate-950 leading-[1.12]">যেথায় থাকুক যে যেখানে,<br/><span class="bg-gradient-to-r from-blue-700 via-indigo-600 to-sky-500 bg-clip-text text-transparent">রংধনু আছে মনে প্রাণে</span></h1>
-          <p class="reveal reveal-delay-2 mt-7 text-base sm:text-lg md:text-xl leading-8 text-slate-600 max-w-3xl mx-auto">বৃহত্তর রংপুরের শিক্ষার্থীদের ঐক্য, পারস্পরিক সহযোগিতা, শিক্ষা, নেতৃত্ব ও কল্যাণকে কেন্দ্র করে গড়ে ওঠা একটি সক্রিয় ছাত্রসমাজ।</p>
+          <p class="reveal reveal-delay-2 mt-7 text-base sm:text-lg md:text-xl leading-8 text-slate-600 max-w-3xl mx-auto">বৃহত্তর রংপুরের শিক্ষার্থীদের নিজেদের সংগঠন। ডুয়েটে পড়তে আসা থেকে পাস করে বেরিয়ে যাওয়া পর্যন্ত পুরো পথটাই একসঙ্গে।</p>
           <div class="reveal reveal-delay-3 flex flex-wrap justify-center gap-3 mt-9">
             <button class="px-6 py-3.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-white text-sm font-bold shadow-lg" onclick="goHomeSection('about-rangdhanu')">রংধনু সম্পর্কে জানুন <i class="w-4 h-4 inline ml-1" data-lucide="arrow-down"></i></button>
             <button class="px-6 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 text-sm font-bold border border-slate-300 shadow-sm" onclick="switchPage('prokoushali')">PDACC সম্পর্কে জানুন <i class="w-4 h-4 inline ml-1" data-lucide="arrow-right"></i></button>
@@ -314,13 +318,13 @@
         <div class="grid lg:grid-cols-12 gap-10 items-start">
           <div class="lg:col-span-7">
             <span class="text-blue-700 text-xs font-extrabold section-kicker uppercase">About RANGDHANU</span>
-            <h2 class="text-3xl sm:text-5xl font-extrabold text-slate-950 mt-3 tracking-tight">একটি সংগঠন, একটি পরিবার, একটি দীর্ঘমেয়াদি বন্ধন</h2>
-            <p class="mt-6 text-slate-600 leading-8 text-base sm:text-lg">রংধনু বৃহত্তর রংপুরের শিক্ষার্থীদের নিয়ে গড়ে ওঠা একটি স্বেচ্ছাসেবী ও কল্যাণমূলক সংগঠন। ঐক্য, পারস্পরিক সহযোগিতা, নেতৃত্ব, শিক্ষা ও সামাজিক দায়িত্ববোধের মূল্যবোধকে ধারণ করে রংধনু শিক্ষার্থীদের ব্যক্তিগত ও সামষ্টিক বিকাশে কাজ করে।</p>
-            <p class="mt-4 text-slate-600 leading-8 text-base sm:text-lg">শিক্ষা ও ভর্তি সহায়তা থেকে শুরু করে ক্রীড়া, নবীনবরণ, বিদায়, শিক্ষা সফর, ইফতার, পিঠা উৎসব, পিকনিক এবং বিভিন্ন সামাজিক ও সাংস্কৃতিক কার্যক্রমের মাধ্যমে সংগঠনটি সদস্যদের মধ্যে একটি শক্তিশালী কমিউনিটি তৈরি করে।</p>
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-slate-950 mt-3 tracking-tight">রংধনু কী, কাদের নিয়ে</h2>
+            <p class="mt-6 text-slate-600 leading-8 text-base sm:text-lg">রংপুর বিভাগের যারা ডুয়েটে পড়তে এসেছে, তাদের নিয়েই রংধনু। নতুন কেউ ভর্তি হলে তার পাশে দাঁড়ানো, কারও বিপদে এগিয়ে যাওয়া, আর সারা বছর একসঙ্গে লেগে থাকা — কাজটা এটুকুই।</p>
+            <p class="mt-4 text-slate-600 leading-8 text-base sm:text-lg">ভর্তি প্রস্তুতিতে সাহায্য, খেলাধুলা, নবীনবরণ, বিদায় অনুষ্ঠান, শিক্ষা সফর, ইফতার, পিঠা উৎসব আর পিকনিক — বছরজুড়ে এসবের ভেতর দিয়েই সবার সঙ্গে সবার চেনা হয়ে যায়।</p>
           </div>
           <div class="lg:col-span-5 grid sm:grid-cols-2 lg:grid-cols-1 gap-4">
-            <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center mb-4"><i class="w-5 h-5" data-lucide="users"></i></div><h3 class="font-extrabold text-slate-900 text-lg">আমাদের কমিউনিটি</h3><p class="text-sm text-slate-600 mt-2 leading-6">বৃহত্তর রংপুরের শিক্ষার্থী, বর্তমান সদস্য ও সাবেক সদস্যদের মধ্যে সংযোগ ও সহযোগিতার একটি দীর্ঘস্থায়ী নেটওয়ার্ক।</p></div>
-            <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center mb-4"><i class="w-5 h-5" data-lucide="network"></i></div><h3 class="font-extrabold text-slate-900 text-lg">আমাদের পরবর্তী লক্ষ্য</h3><p class="text-sm text-slate-600 mt-2 leading-6">শিক্ষার্থী কার্যক্রমের পাশাপাশি Alumni Network ও দীর্ঘমেয়াদি সাংগঠনিক কাঠামোর মাধ্যমে সম্পর্ককে আরও শক্তিশালী করা।</p></div>
+            <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center mb-4"><i class="w-5 h-5" data-lucide="users"></i></div><h3 class="font-extrabold text-slate-900 text-lg">আমাদের কমিউনিটি</h3><p class="text-sm text-slate-600 mt-2 leading-6">বৃহত্তর রংপুরের বর্তমান শিক্ষার্থী আর পাস করে যাওয়া বড় ভাই-বোনেরা — সবাই এক জায়গায়।</p></div>
+            <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center mb-4"><i class="w-5 h-5" data-lucide="network"></i></div><h3 class="font-extrabold text-slate-900 text-lg">আমাদের পরবর্তী লক্ষ্য</h3><p class="text-sm text-slate-600 mt-2 leading-6">শিক্ষার্থীদের কাজের পাশাপাশি Alumni Network দাঁড় করানো, যাতে পাস করে গেলেও যোগাযোগ ছিঁড়ে না যায়।</p></div>
           </div>
         </div>
       </div>
@@ -330,8 +334,8 @@
     <section class="py-16 md:py-24 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid lg:grid-cols-2 gap-6">
-          <article class="rounded-3xl bg-slate-950 text-white p-7 sm:p-10 relative overflow-hidden shadow-xl"><div class="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-blue-600/20 blur-2xl"></div><span class="text-blue-300 text-xs font-extrabold section-kicker uppercase">Our Vision</span><h3 class="text-2xl sm:text-3xl font-extrabold mt-3">আমাদের ভিশন</h3><p class="mt-5 text-slate-300 leading-8">ঐক্য, সহযোগিতা ও নেতৃত্বের মাধ্যমে একটি শক্তিশালী, মানবিক ও সংযুক্ত শিক্ষার্থী সমাজ গড়ে তোলা, যেখানে প্রতিটি সদস্য শিক্ষা, দক্ষতা, নেতৃত্ব ও সামাজিক মূল্যবোধের বিকাশের মাধ্যমে নিজেকে এবং সমাজকে এগিয়ে নিতে পারে।</p></article>
-          <article class="rd-tile rounded-3xl bg-slate-50 border border-slate-200 p-7 sm:p-10 shadow-sm"><span class="text-indigo-700 text-xs font-extrabold section-kicker uppercase">Our Mission</span><h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 mt-3">আমাদের মিশন</h3><ul class="mt-5 space-y-3 text-slate-600 leading-7 text-sm sm:text-base"><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span>শিক্ষা, ভর্তি প্রস্তুতি ও প্রয়োজনীয় সহায়তার সুযোগ তৈরি করা।</span></li><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span>পারস্পরিক সহযোগিতা, ভ্রাতৃত্ব ও সামাজিক বন্ধনকে শক্তিশালী করা।</span></li><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span>নেতৃত্ব, দক্ষতা ও সাংগঠনিক সক্ষমতা বিকাশের সুযোগ তৈরি করা।</span></li><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span>সামাজিক, সাংস্কৃতিক, ক্রীড়া ও কল্যাণমূলক কার্যক্রমের মাধ্যমে ইতিবাচক কমিউনিটি গড়ে তোলা।</span></li><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span>বর্তমান ও সাবেক সদস্যদের মধ্যে একটি শক্তিশালী দীর্ঘস্থায়ী নেটওয়ার্ক তৈরি করা।</span></li></ul></article>
+          <article class="rounded-3xl bg-slate-950 text-white p-7 sm:p-10 relative overflow-hidden shadow-xl"><div class="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-blue-600/20 blur-2xl"></div><span class="text-blue-300 text-xs font-extrabold section-kicker uppercase">Our Vision</span><h3 class="text-2xl sm:text-3xl font-extrabold mt-3">আমাদের ভিশন</h3><p class="mt-5 text-slate-300 leading-8">রংপুরের কোনো শিক্ষার্থী যেন ডুয়েটে এসে একা না থাকে, আর পাস করে বেরিয়ে গেলেও যেন সম্পর্কটা থেকে যায় — আমরা এটাই চাই।</p></article>
+          <article class="rd-tile rounded-3xl bg-slate-50 border border-slate-200 p-7 sm:p-10 shadow-sm"><span class="text-indigo-700 text-xs font-extrabold section-kicker uppercase">Our Mission</span><h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 mt-3">আমাদের মিশন</h3><ul class="mt-5 space-y-3 text-slate-600 leading-7 text-sm sm:text-base"><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span>ভর্তি প্রস্তুতি আর পড়াশোনায় যার যা দরকার, তার ব্যবস্থা করা।</span></li><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span>নতুন-পুরনো সবার মধ্যে চেনাজানা আর সাহায্যের সম্পর্ক রাখা।</span></li><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span>সংগঠন চালাতে গিয়ে সদস্যরা নিজেরাই নেতৃত্ব আর কাজ শিখুক, সেই সুযোগ দেওয়া।</span></li><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span>খেলাধুলা, সাংস্কৃতিক আর সামাজিক আয়োজনের মধ্যে দিয়ে সবাইকে এক জায়গায় রাখা।</span></li><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span>পাস করে যাওয়া সদস্যদের সঙ্গে যোগাযোগ ধরে রাখা।</span></li></ul></article>
         </div>
       </div>
     </section>
@@ -339,9 +343,9 @@
     <!-- Activities -->
     <section class="scroll-mt-28 py-16 md:py-24 bg-[#f8fafc] border-y border-slate-200/70" id="activities">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="max-w-2xl mb-10"><span class="text-blue-700 text-xs font-extrabold section-kicker uppercase">What We Do</span><h2 class="text-3xl sm:text-5xl font-extrabold text-slate-950 mt-3">আমাদের কার্যক্রম</h2><p class="text-slate-600 mt-4 leading-7">শিক্ষা থেকে সামাজিক বন্ধন—রংধনুর কার্যক্রমের মূল লক্ষ্য সদস্যদের পাশে থাকা এবং একটি সক্রিয় কমিউনিটি তৈরি করা।</p></div>
+        <div class="max-w-2xl mb-10"><span class="text-blue-700 text-xs font-extrabold section-kicker uppercase">What We Do</span><h2 class="text-3xl sm:text-5xl font-extrabold text-slate-950 mt-3">আমাদের কার্যক্রম</h2><p class="text-slate-600 mt-4 leading-7">পড়াশোনা থেকে খেলাধুলা — সারা বছর যা যা করা হয়, সবই সদস্যদের পাশে থাকার জন্য।</p></div>
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="card-pro rounded-2xl p-6" tabindex="0"><div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="graduation-cap"></i></div><h3 class="font-extrabold text-slate-900 mt-5">শিক্ষা ও ভর্তি সহায়তা</h3><p class="text-sm text-slate-600 mt-2 leading-6">শিক্ষার্থীদের উচ্চশিক্ষা ও DUET ভর্তি প্রস্তুতিতে সহযোগিতামূলক উদ্যোগ।</p></div>
+          <div class="card-pro rounded-2xl p-6" tabindex="0"><div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="graduation-cap"></i></div><h3 class="font-extrabold text-slate-900 mt-5">শিক্ষা ও ভর্তি সহায়তা</h3><p class="text-sm text-slate-600 mt-2 leading-6">ডুয়েট ভর্তি পরীক্ষা আর উচ্চশিক্ষার প্রস্তুতিতে হাতে-কলমে সাহায্য।</p></div>
           <div class="card-pro rounded-2xl p-6" tabindex="0"><div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="trophy"></i></div><h3 class="font-extrabold text-slate-900 mt-5">ক্রীড়া ও বিনোদন</h3><p class="text-sm text-slate-600 mt-2 leading-6">Sports tournament, tour, picnic ও সদস্যদের জন্য বিভিন্ন মিলনমেলা।</p></div>
           <div class="card-pro rounded-2xl p-6" tabindex="0"><div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="party-popper"></i></div><h3 class="font-extrabold text-slate-900 mt-5">সামাজিক ও সাংস্কৃতিক আয়োজন</h3><p class="text-sm text-slate-600 mt-2 leading-6">Fresher reception, farewell, Iftar Mahfil, Pitha Festival ও সাংস্কৃতিক আয়োজন।</p></div>
           <div class="card-pro rounded-2xl p-6" tabindex="0"><div class="w-11 h-11 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="heart-handshake"></i></div><h3 class="font-extrabold text-slate-900 mt-5">কল্যাণ ও নেটওয়ার্কিং</h3><p class="text-sm text-slate-600 mt-2 leading-6">পারস্পরিক সহায়তা, Blood Support এবং বর্তমান ও সাবেক সদস্যদের সংযোগ।</p></div>
@@ -352,17 +356,17 @@
     <!-- Initiatives -->
     <section class="py-16 md:py-24 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-5 mb-10"><div><span class="text-indigo-700 text-xs font-extrabold section-kicker uppercase">Our Initiatives</span><h2 class="text-3xl sm:text-5xl font-extrabold text-slate-950 mt-3">রংধনুর উদ্যোগ</h2></div><p class="text-slate-600 max-w-xl leading-7">RANGDHANU-এর কার্যক্রমকে আরও কার্যকর করতে বিভিন্ন উদ্যোগ ও সহযোগী প্ল্যাটফর্ম গড়ে তোলার ধারাবাহিক প্রচেষ্টা।</p></div>
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-5 mb-10"><div><span class="text-indigo-700 text-xs font-extrabold section-kicker uppercase">Our Initiatives</span><h2 class="text-3xl sm:text-5xl font-extrabold text-slate-950 mt-3">রংধনুর উদ্যোগ</h2></div><p class="text-slate-600 max-w-xl leading-7">রংধনু থেকে আলাদা করে দাঁড় করানো দুটো কাজ — একটা ভর্তি কোচিং, আরেকটা অ্যালামনাই।</p></div>
         <div class="grid lg:grid-cols-2 gap-6">
-          <button class="text-left rounded-3xl bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 p-7 sm:p-9 hover:border-indigo-300 hover:shadow-xl transition-all duration-300 group" onclick="switchPage('prokoushali')"><div class="flex items-start justify-between gap-5"><div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md"><i class="w-6 h-6" data-lucide="book-open"></i></div><i class="w-5 h-5 text-indigo-600 group-hover:translate-x-1 group-hover:-translate-y-1 transition" data-lucide="arrow-up-right"></i></div><h3 class="text-2xl font-extrabold text-slate-950 mt-6">Prokaushali DUET Admission Coaching Centre</h3><p class="mt-3 pl-4 border-l-[3px] border-indigo-300 text-slate-600 leading-8 text-[15px]">ডুয়েট ভর্তিযুদ্ধে ডিপ্লোমা প্রকৌশলীদের পাশে থাকতে 'রংধনু' পরিবারের এক অনন্য উদ্যোগ। অভিজ্ঞদের দিকনির্দেশনা, সুপরিকল্পিত রুটিন ও সার্বক্ষণিক সহযোগিতার মাধ্যমে স্বপ্ন ছুঁয়ে দেখার একটি নির্ভরযোগ্য প্ল্যাটফর্ম।</p><span class="inline-flex items-center gap-2 mt-6 text-indigo-700 font-bold text-sm">উদ্যোগটি দেখুন <i class="w-4 h-4" data-lucide="arrow-right"></i></span></button>
-          <button class="text-left rounded-3xl bg-gradient-to-br from-blue-50 to-white border border-blue-100 p-7 sm:p-9 hover:border-blue-300 hover:shadow-xl transition-all duration-300 group" onclick="switchPage('alumni')"><div class="flex items-start justify-between gap-5"><div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md"><i class="w-6 h-6" data-lucide="network"></i></div><i class="w-5 h-5 text-blue-600 group-hover:translate-x-1 group-hover:-translate-y-1 transition" data-lucide="arrow-up-right"></i></div><h3 class="text-2xl font-extrabold text-slate-950 mt-6">RANGDHANU DUET Alumni Association</h3><p class="text-slate-600 mt-3 leading-7">বর্তমান ও সাবেক সদস্যদের মধ্যে দীর্ঘস্থায়ী যোগাযোগ, অভিজ্ঞতা বিনিময় এবং একটি সংগঠিত alumni network গড়ে তোলার উদ্যোগ।</p><span class="inline-flex items-center gap-2 mt-6 text-blue-700 font-bold text-sm">অ্যালামনাই ডিরেক্টরি দেখুন <i class="w-4 h-4" data-lucide="arrow-right"></i></span></button>
+          <button class="text-left rounded-3xl bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 p-7 sm:p-9 hover:border-indigo-300 hover:shadow-xl transition-all duration-300 group" onclick="switchPage('prokoushali')"><div class="flex items-start justify-between gap-5"><div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md"><i class="w-6 h-6" data-lucide="book-open"></i></div><i class="w-5 h-5 text-indigo-600 group-hover:translate-x-1 group-hover:-translate-y-1 transition" data-lucide="arrow-up-right"></i></div><h3 class="text-2xl font-extrabold text-slate-950 mt-6">Prokaushali DUET Admission Coaching Centre</h3><p class="mt-3 pl-4 border-l-[3px] border-indigo-300 text-slate-600 leading-8 text-[15px]">ডুয়েট ভর্তি পরীক্ষার জন্য রংধনুর নিজের কোচিং। যারা আগে এই পরীক্ষা দিয়ে ডুয়েটে পড়ছে তারাই পড়ায় — রুটিন, প্রশ্ন সমাধান আর মডেল টেস্ট নিয়ে।</p><span class="inline-flex items-center gap-2 mt-6 text-indigo-700 font-bold text-sm">উদ্যোগটি দেখুন <i class="w-4 h-4" data-lucide="arrow-right"></i></span></button>
+          <button class="text-left rounded-3xl bg-gradient-to-br from-blue-50 to-white border border-blue-100 p-7 sm:p-9 hover:border-blue-300 hover:shadow-xl transition-all duration-300 group" onclick="switchPage('alumni')"><div class="flex items-start justify-between gap-5"><div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md"><i class="w-6 h-6" data-lucide="network"></i></div><i class="w-5 h-5 text-blue-600 group-hover:translate-x-1 group-hover:-translate-y-1 transition" data-lucide="arrow-up-right"></i></div><h3 class="text-2xl font-extrabold text-slate-950 mt-6">RANGDHANU DUET Alumni Association</h3><p class="text-slate-600 mt-3 leading-7">পাস করে যাওয়া আর বর্তমান সদস্যদের এক জায়গায় রাখা, যাতে চাকরি আর পড়াশোনার খোঁজখবর সহজে হাতবদল হয়।</p><span class="inline-flex items-center gap-2 mt-6 text-blue-700 font-bold text-sm">অ্যালামনাই ডিরেক্টরি দেখুন <i class="w-4 h-4" data-lucide="arrow-right"></i></span></button>
         </div>
       </div>
     </section>
 
     <!-- Closing CTA -->
     <section class="py-16 md:py-20 bg-white border-t border-slate-100">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"><div class="rounded-3xl bg-gradient-to-r from-blue-700 to-indigo-700 p-8 sm:p-12 text-center text-white shadow-2xl"><span class="text-blue-100 text-xs font-bold section-kicker uppercase">Stay Connected</span><h2 class="text-3xl sm:text-4xl font-extrabold mt-3">রংধনুর সঙ্গে যুক্ত থাকুন</h2><p class="text-blue-100 max-w-2xl mx-auto mt-4 leading-7">বর্তমান সদস্য, সাবেক সদস্য কিংবা বৃহত্তর রংপুরের শিক্ষার্থী—আপনার অংশগ্রহণই এই কমিউনিটিকে আরও শক্তিশালী করে।</p><div class="flex flex-wrap justify-center gap-3 mt-7"><button class="px-6 py-3.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 shadow-sm" onclick="switchPage('register')">Membership Application</button><button class="px-6 py-3.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-sm hover:bg-white/15" onclick="switchPage('events')">আমাদের কার্যক্রম দেখুন</button></div></div></div>
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"><div class="rounded-3xl bg-gradient-to-r from-blue-700 to-indigo-700 p-8 sm:p-12 text-center text-white shadow-2xl"><span class="text-blue-100 text-xs font-bold section-kicker uppercase">Stay Connected</span><h2 class="text-3xl sm:text-4xl font-extrabold mt-3">রংধনুর সঙ্গে যুক্ত থাকুন</h2><p class="text-blue-100 max-w-2xl mx-auto mt-4 leading-7">রংপুরের শিক্ষার্থী, বর্তমান সদস্য বা সাবেক — যেই হোন, নাম লিখিয়ে রাখুন।</p><div class="flex flex-wrap justify-center gap-3 mt-7"><button class="px-6 py-3.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 shadow-sm" onclick="switchPage('register')">Membership Application</button><button class="px-6 py-3.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-sm hover:bg-white/15" onclick="switchPage('events')">আমাদের কার্যক্রম দেখুন</button></div></div></div>
     </section>
   </div>
 
@@ -508,22 +512,22 @@
           <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-extrabold uppercase"><img src="pdacc-logo.png" alt="" decoding="async" onerror="rdPdLogoFallback(this)" class="w-4 h-4 object-contain rounded-[5px]"> A RANGDHANU Initiative</span>
           <p class="mt-3 text-[12px] sm:text-sm font-bold text-slate-500">রংধনুর একটি অঙ্গ সংগঠন</p>
           <h2 class="text-4xl sm:text-5xl font-extrabold text-slate-950 mt-5 tracking-tight">Prokaushali <span class="text-indigo-600">DUET Admission Coaching Centre</span></h2>
-          <p class="text-slate-600 text-base sm:text-lg mt-5 leading-8 max-w-3xl mx-auto">DUET-এ পড়ার স্বপ্ন পূরণে ডিপ্লোমা প্রকৌশলীদের বিশ্বস্ত সঙ্গী। অভিজ্ঞ ডুয়েটিয়ানদের সঠিক গাইডলাইন, সুপরিকল্পিত স্টাডি ম্যাটেরিয়াল এবং নিয়মিত অনুশীলনের মাধ্যমে আপনার ভর্তি প্রস্তুতি হোক আরও শাণিত।</p>
+          <p class="text-slate-600 text-base sm:text-lg mt-5 leading-8 max-w-3xl mx-auto">ডুয়েট ভর্তি পরীক্ষার প্রস্তুতির জন্য রংধনুর কোচিং। যারা নিজেরা এই পরীক্ষা দিয়ে ডুয়েটে পড়ছে তারাই গাইড করে, সঙ্গে স্টাডি ম্যাটেরিয়াল আর নিয়মিত অনুশীলন।</p>
         </div>
         <div class="rounded-[30px] bg-slate-950 text-white p-7 sm:p-10 md:p-12 shadow-2xl relative overflow-hidden mb-8">
           <div class="absolute -right-24 -top-24 w-80 h-80 rounded-full bg-indigo-600/20 blur-3xl"></div><div class="absolute -left-24 -bottom-24 w-72 h-72 rounded-full bg-blue-500/10 blur-3xl"></div>
           <div class="relative grid lg:grid-cols-12 gap-10 items-center">
-            <div class="lg:col-span-7"><h3 class="text-3xl font-extrabold mt-4 leading-tight">DUET-এ যাওয়ার স্বপ্নকে প্রস্তুতির সঠিক পথে নিয়ে যাওয়া</h3><p class="text-slate-300 mt-5 leading-8">রংধনুর সঙ্গে যুক্ত এই উদ্যোগের লক্ষ্য হলো পলিটেকনিক শিক্ষার্থীদের DUET ভর্তি পরীক্ষার প্রস্তুতিতে একটি সহায়ক পরিবেশ তৈরি করা।</p></div>
+            <div class="lg:col-span-7"><h3 class="text-3xl font-extrabold mt-4 leading-tight">কে পড়ায়, কীভাবে চলে</h3><p class="text-slate-300 mt-5 leading-8">রংধনুর সঙ্গে যুক্ত এই কোচিং পলিটেকনিক শিক্ষার্থীদের ডুয়েট ভর্তি পরীক্ষার প্রস্তুতিতে সাহায্য করে।</p></div>
             <div class="lg:col-span-5 grid sm:grid-cols-2 lg:grid-cols-1 gap-3">
-              <div class="rd-tile-dark rounded-2xl bg-white/5 border border-white/10 p-5"><div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-500/15 text-indigo-300 flex items-center justify-center"><i class="w-5 h-5" data-lucide="target"></i></div><div><h4 class="font-extrabold">Admission Focus</h4><p class="text-xs text-slate-400 mt-1 leading-5">DUET ভর্তি পরীক্ষাকেন্দ্রিক প্রস্তুতি ও পরিকল্পনা।</p></div></div></div>
-              <div class="rd-tile-dark rounded-2xl bg-white/5 border border-white/10 p-5"><div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-300 flex items-center justify-center"><i class="w-5 h-5" data-lucide="users"></i></div><div><h4 class="font-extrabold">Mentorship</h4><p class="text-xs text-slate-400 mt-1 leading-5">DUET-এ অধ্যয়নরত ও অভিজ্ঞদের কাছ থেকে দিকনির্দেশনা।</p></div></div></div>
+              <div class="rd-tile-dark rounded-2xl bg-white/5 border border-white/10 p-5"><div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-500/15 text-indigo-300 flex items-center justify-center"><i class="w-5 h-5" data-lucide="target"></i></div><div><h4 class="font-extrabold">Admission Focus</h4><p class="text-xs text-slate-400 mt-1 leading-5">শুধু ডুয়েট ভর্তি পরীক্ষা ধরেই পড়ানো হয়।</p></div></div></div>
+              <div class="rd-tile-dark rounded-2xl bg-white/5 border border-white/10 p-5"><div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-300 flex items-center justify-center"><i class="w-5 h-5" data-lucide="users"></i></div><div><h4 class="font-extrabold">Mentorship</h4><p class="text-xs text-slate-400 mt-1 leading-5">ডুয়েটে পড়ছে যারা, তাদের কাছ থেকেই পরামর্শ।</p></div></div></div>
             </div>
           </div>
         </div>
         <div class="grid lg:grid-cols-3 gap-5 mb-8">
-          <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="clipboard-check"></i></div><h3 class="font-extrabold text-slate-950 mt-5">মডেল টেস্ট ও অনুশীলন</h3><p class="text-sm text-slate-600 mt-2 leading-6">ভর্তি পরীক্ষার প্রস্তুতিতে নিয়মিত অনুশীলন ও model test-এর মাধ্যমে নিজের প্রস্তুতি যাচাইয়ের সুযোগ।</p></div>
-          <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="notebook-tabs"></i></div><h3 class="font-extrabold text-slate-950 mt-5">স্টাডি সাপোর্ট</h3><p class="text-sm text-slate-600 mt-2 leading-6">প্রয়োজনীয় study material, question practice এবং প্রস্তুতির বিভিন্ন ধাপকে গুছিয়ে নেওয়ার সহায়তা।</p></div>
-          <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="compass"></i></div><h3 class="font-extrabold text-slate-950 mt-5">গাইডলাইন ও মেন্টরশিপ</h3><p class="text-sm text-slate-600 mt-2 leading-6">DUET admission journey সম্পর্কে বাস্তব অভিজ্ঞতা ও প্রয়োজনীয় নির্দেশনা পাওয়ার সুযোগ।</p></div>
+          <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="clipboard-check"></i></div><h3 class="font-extrabold text-slate-950 mt-5">মডেল টেস্ট ও অনুশীলন</h3><p class="text-sm text-slate-600 mt-2 leading-6">নিয়মিত model test, যাতে নিজের প্রস্তুতি কোথায় দাঁড়িয়ে আছে বোঝা যায়।</p></div>
+          <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="notebook-tabs"></i></div><h3 class="font-extrabold text-slate-950 mt-5">স্টাডি সাপোর্ট</h3><p class="text-sm text-slate-600 mt-2 leading-6">study material, প্রশ্ন সমাধান আর প্রস্তুতির ধাপগুলো গুছিয়ে দেওয়া।</p></div>
+          <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="compass"></i></div><h3 class="font-extrabold text-slate-950 mt-5">গাইডলাইন ও মেন্টরশিপ</h3><p class="text-sm text-slate-600 mt-2 leading-6">ভর্তি পরীক্ষার পুরো পথটা যারা পার হয়ে এসেছে, তাদের বাস্তব পরামর্শ।</p></div>
         </div>
         <div class="grid lg:grid-cols-12 gap-6">
           <div class="lg:col-span-7 rounded-3xl bg-white border border-slate-200 p-7 sm:p-9 shadow-sm">
@@ -538,9 +542,9 @@
           </div>
           <div class="lg:col-span-5 rounded-3xl bg-indigo-50 border border-indigo-100 p-7 sm:p-9">
             <span class="text-indigo-700 text-xs font-extrabold section-kicker uppercase">A Proven Journey</span>
-            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 mt-3">একটি উল্লেখযোগ্য ফলাফল</h3>
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 mt-3">গত বছরের ফলাফল</h3>
             <div class="mt-6 flex items-end gap-3"><span class="text-5xl font-extrabold text-indigo-700">৯০</span><span class="text-sm font-bold text-slate-700 pb-2">শিক্ষার্থী</span></div>
-            <p class="text-slate-600 leading-7 mt-3">DUET Admission 2025–26-এ PDACC-এর ৯০ জন শিক্ষার্থী ভর্তি হওয়ার সুযোগ পেয়েছিল—যা আমাদের জন্য একটি উল্লেখযোগ্য অর্জন।</p>
+            <p class="text-slate-600 leading-7 mt-3">DUET Admission 2025–26-এ PDACC-এর ৯০ জন শিক্ষার্থী ভর্তির সুযোগ পেয়েছে।</p>
           </div>
         </div>
         <div id="pdacc-leadership" class="mt-12 hidden">
@@ -867,10 +871,10 @@
         <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12">
           <div class="max-w-3xl">
             <span class="inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold uppercase tracking-widest">
-              <i data-lucide="calendar" class="w-4 h-4 text-blue-600"></i> ক্যাম্পাসের সকল কার্যক্রম ও আয়োজন
+              <i data-lucide="calendar" class="w-4 h-4 text-blue-600"></i> যা যা হয়েছে
             </span>
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3">ইভেন্ট, ট্যুর ও সমাজসেবামূলক কার্যক্রম</h2>
-            <p class="text-slate-600 text-sm sm:text-base mt-2">Rangdhanu Familyের সাম্প্রতিক কর্মসূচি, সমাজকল্যাণমূলক উদ্যোগ ও বার্ষিক ট্যুর স্মৃতি।</p>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3">ইভেন্ট ও ট্যুর</h2>
+            <p class="text-slate-600 text-sm sm:text-base mt-2">রংধনু পরিবার এ পর্যন্ত যা যা করেছে — ট্যুর, বৃক্ষরোপণ, ফ্রেশার্স রিসেপশন।</p>
           </div>
           <button type="button" onclick="openEventSubmitModal()" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-slate-900 hover:bg-blue-600 text-white font-bold shadow-lg transition-colors">
             <i class="w-4 h-4" data-lucide="plus-circle"></i> ইভেন্ট যুক্ত করুন
@@ -888,7 +892,7 @@
               <div class="p-6 flex-1 flex flex-col">
                 <div class="flex items-center gap-2 text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ৫ আগস্ট ২০২৬</div>
                 <h3 class="text-xl font-extrabold text-slate-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 cursor-pointer" onclick="openDynamicEvent(0)">ক্যাম্পাসে বৃক্ষরোপণ কর্মসূচি ২০২৬</h3>
-                <p class="text-sm text-slate-600 line-clamp-2 mb-5">সদ্য চান্সপ্রাপ্ত শিক্ষার্থীদের জন্য স্মরণীয় আয়োজন হিসেবে ক্যাম্পাসে বৃক্ষরোপণ কর্মসূচি।</p>
+                <p class="text-sm text-slate-600 line-clamp-2 mb-5">নতুন চান্স পাওয়া শিক্ষার্থীদের সঙ্গে ক্যাম্পাসে তিনটি গাছ লাগানো হয়।</p>
                 <div class="mt-auto pt-4 border-t border-slate-100"><button onclick="openDynamicEvent(0)" class="rd-detail-btn w-full py-2.5 rounded-xl bg-slate-50 group-hover:bg-blue-600 text-slate-700 group-hover:text-white text-sm font-bold transition-colors">View details</button></div>
               </div>
             </div>
@@ -903,7 +907,7 @@
               <div class="p-6 flex-1 flex flex-col">
                 <div class="flex items-center gap-2 text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ১৫ ও ১৬ ডিসেম্বর ২০২৪</div>
                 <h3 class="text-xl font-extrabold text-slate-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 cursor-pointer" onclick="openDynamicEvent(1)">RANGDHANU Tour & Freshers' Reception 2024</h3>
-                <p class="text-sm text-slate-600 line-clamp-2 mb-5">Rangdhanu Familyের আয়োজনে কুয়াকাটা সমুদ্র সৈকতে অনুষ্ঠিত বার্ষিক ট্যুর ও নবীন শিক্ষার্থীদের ফ্রেশার্স রিসেপশন ২০২৪।</p>
+                <p class="text-sm text-slate-600 line-clamp-2 mb-5">কুয়াকাটায় দুই দিনের বার্ষিক ট্যুর, সঙ্গে নবীনদের ফ্রেশার্স রিসেপশন।</p>
                 <div class="mt-auto pt-4 border-t border-slate-100"><button onclick="openDynamicEvent(1)" class="rd-detail-btn w-full py-2.5 rounded-xl bg-slate-50 group-hover:bg-blue-600 text-slate-700 group-hover:text-white text-sm font-bold transition-colors">View details</button></div>
               </div>
             </div>
@@ -918,7 +922,7 @@
               <div class="p-6 flex-1 flex flex-col">
                 <div class="flex items-center gap-2 text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ১৯-২০ ডিসেম্বর ২০২৫</div>
                 <h3 class="text-xl font-extrabold text-slate-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 cursor-pointer" onclick="openDynamicEvent(2)">RANGDHANU Tour & Freshers' Reception 2025</h3>
-                <p class="text-sm text-slate-600 line-clamp-2 mb-5">Sea Beach Journey with RANGDHANU. নবীন শিক্ষার্থীদের ফ্রেশার্স রিসেপশন ও ভ্রাতৃত্বের বন্ধন।</p>
+                <p class="text-sm text-slate-600 line-clamp-2 mb-5">কক্সবাজারে দুই দিনের বার্ষিক ট্যুর, সঙ্গে নবীনদের ফ্রেশার্স রিসেপশন।</p>
                 <div class="mt-auto pt-4 border-t border-slate-100"><button onclick="openDynamicEvent(2)" class="rd-detail-btn w-full py-2.5 rounded-xl bg-slate-50 group-hover:bg-blue-600 text-slate-700 group-hover:text-white text-sm font-bold transition-colors">View details</button></div>
               </div>
             </div>
@@ -928,7 +932,7 @@
         <!-- DYNAMIC EVENTS -->
         <div class="pt-10 border-t border-slate-200">
            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <h3 class="text-2xl font-extrabold text-slate-900">সাম্প্রতিক অন্যান্য ইভেন্ট</h3>
+              <h3 class="text-2xl font-extrabold text-slate-900">অন্যান্য ইভেন্ট</h3>
               <div id="public-events-status"></div>
            </div>
            <div id="public-events-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>

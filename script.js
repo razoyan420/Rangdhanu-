@@ -12,8 +12,8 @@
       {
         eventId: 'STATIC-1', eventName: 'ক্যাম্পাসে বৃক্ষরোপণ কর্মসূচি ২০২৬', category: 'পরিবেশ ও সমাজকল্যাণ',
         eventDate: '2026-08-05', venue: 'ডুয়েট ক্যাম্পাস প্রাঙ্গণ, গাজীপুর',
-        shortDescription: 'সদ্য চান্সপ্রাপ্ত শিক্ষার্থীদের জন্য স্মরণীয় আয়োজন হিসেবে ক্যাম্পাসে বৃক্ষরোপণ কর্মসূচি।',
-        fullDescription: 'জুলাই গণ-অভ্যুত্থান দিবস এবং ডুয়েটের ২০২৫–২৬ শিক্ষাবর্ষের ভর্তি পরীক্ষার ফলাফল প্রকাশ উপলক্ষে সদ্য চান্সপ্রাপ্ত শিক্ষার্থীদের জন্য স্মরণীয় একটি আয়োজন হিসেবে ক্যাম্পাসে এই বৃক্ষরোপণ কর্মসূচির আয়োজন করা হয়।\n\nরোপিত চারাগাছের তালিকা (মোট ৩টি):\n১. নিম গাছ\n২. কদবেল গাছ\n৩. জাম্বুরা গাছ',
+        shortDescription: 'নতুন চান্স পাওয়া শিক্ষার্থীদের সঙ্গে ক্যাম্পাসে তিনটি গাছ লাগানো হয়।',
+        fullDescription: 'জুলাই গণ-অভ্যুত্থান দিবস আর ডুয়েটের ২০২৫–২৬ শিক্ষাবর্ষের ভর্তি পরীক্ষার ফলাফল প্রকাশ উপলক্ষে নতুন চান্স পাওয়া শিক্ষার্থীদের সঙ্গে ক্যাম্পাসে বৃক্ষরোপণ করা হয়।\n\nযে তিনটি চারা লাগানো হয়েছে:\n১. নিম\n২. কদবেল\n৩. জাম্বুরা',
         driveFolder: 'Tree Plantation 2026',
         mainImage: 'Images/Tree Plantation/Tree Plantation 1.jpg',
         gallery: [
@@ -25,8 +25,8 @@
       {
         eventId: 'STATIC-2', eventName: 'RANGDHANU Tour & Freshers\' Reception 2024', category: 'Tour',
         eventDate: '2024-12-15', venue: 'কুয়াকাটা সমুদ্র সৈকত, পটুয়াখালী',
-        shortDescription: 'Rangdhanu Familyের আয়োজনে কুয়াকাটা সমুদ্র সৈকতে অনুষ্ঠিত বার্ষিক ট্যুর ও নবীন শিক্ষার্থীদের ফ্রেশার্স রিসেপশন ২০২৪।',
-        fullDescription: 'সূর্যোদয় থেকে সূর্যাস্ত—সমুদ্র, প্রকৃতি, ভ্রমণ ও পারিবারিক বন্ধনের এক আনন্দময় আয়োজন।\n\nভ্রমণসূচি ও প্রধান আকর্ষণ:\n• Kuakata Sea Beach\n• Jhaubon\n• Shutki Palli\n• Fatrar Char\n• Gangamati Reserved Forest\n• Red Crab Island\n• Kuakata Well\n• Kuakata Buddhist Temple\n• Rakhain Community Village',
+        shortDescription: 'কুয়াকাটায় দুই দিনের বার্ষিক ট্যুর, সঙ্গে নবীনদের ফ্রেশার্স রিসেপশন।',
+        fullDescription: 'রংধনু পরিবারের আয়োজনে কুয়াকাটায় বার্ষিক ট্যুর, সঙ্গে ২০২৪-এর নবীনদের ফ্রেশার্স রিসেপশন।\n\nযেখানে যেখানে যাওয়া হয়েছে:\n• Kuakata Sea Beach\n• Jhaubon\n• Shutki Palli\n• Fatrar Char\n• Gangamati Reserved Forest\n• Red Crab Island\n• Kuakata Well\n• Kuakata Buddhist Temple\n• Rakhain Community Village',
         driveFolder: 'Kuakata Tour 2024',
         mainImage: 'Images/Kuakata Tour/01.jpg',
         gallery: [
@@ -40,8 +40,8 @@
       {
         eventId: 'STATIC-3', eventName: 'RANGDHANU Tour & Freshers\' Reception 2025', category: 'Tour',
         eventDate: '2025-12-19', venue: 'কক্সবাজার সমুদ্র সৈকত, কক্সবাজার',
-        shortDescription: 'Sea Beach Journey with RANGDHANU. নবীন শিক্ষার্থীদের ফ্রেশার্স রিসেপশন ও ভ্রাতৃত্বের বন্ধন।',
-        fullDescription: 'রংধনু ডুয়েট পরিবারের আয়োজনে ১৯ ও ২০ ডিসেম্বর ২০২৫ তারিখে কক্সবাজার সমুদ্র সৈকতে অনুষ্ঠিত হয় Sea Beach Journey with RANGDHANU।\n\nভ্রমণসূচিতে ছিল:\n• কক্সবাজার সি বিচ\n• সুগন্ধা বিচ\n• হিমছড়ি ওয়াটারফল ও হিল\n• মেরিন ড্রাইভ রোড\n• ইনানী বিচ\n• হিমছড়ি ভিউ পয়েন্ট\n• কলাতলী বিচ\n• ফিশ মার্কেট',
+        shortDescription: 'কক্সবাজারে দুই দিনের বার্ষিক ট্যুর, সঙ্গে নবীনদের ফ্রেশার্স রিসেপশন।',
+        fullDescription: 'রংধনু পরিবারের আয়োজনে ১৯ ও ২০ ডিসেম্বর ২০২৫, কক্সবাজারে বার্ষিক ট্যুর, সঙ্গে নবীনদের ফ্রেশার্স রিসেপশন।\n\nযেখানে যেখানে যাওয়া হয়েছে:\n• কক্সবাজার সি বিচ\n• সুগন্ধা বিচ\n• হিমছড়ি ওয়াটারফল ও হিল\n• মেরিন ড্রাইভ রোড\n• ইনানী বিচ\n• হিমছড়ি ভিউ পয়েন্ট\n• কলাতলী বিচ\n• ফিশ মার্কেট',
         driveFolder: 'Cox Bazar Tour 2025',
         mainImage: 'Images/Cox Bazar/C 1.jpg',
         gallery: [
@@ -578,47 +578,50 @@
        nextCoverSlide() and prevCoverSlide(), none of which existed, so the
        cover never moved and every click threw a ReferenceError. */
     const RD_HOME_SLIDES = [
-      { file: 'IMG_2388.JPG', alt: 'রংধনুর ঐক্য ও ভ্রাতৃত্ব', badge: 'RANGDHANU • DUET', title: 'ঐক্য, ভ্রাতৃত্ব ও ছাত্রকল্যাণের পথচলা' },
+      { file: 'IMG_2388.JPG', alt: 'রংধনুর ঐক্য ও ভ্রাতৃত্ব', badge: 'RANGDHANU • DUET', title: 'রংপুরের শিক্ষার্থীদের নিজেদের সংগঠন' },
       { file: 'IMG_1971.JPG', alt: 'Rangdhanu Familyের সঙ্গে পথচলা', badge: 'COMMUNITY', title: 'একটি পরিবার, বহু প্রজন্মের বন্ধন' },
       { file: 'IMG_1917.JPG', alt: 'উত্তরবঙ্গের প্রকৌশলীদের মেলবন্ধন', badge: 'ALUMNI', title: 'বর্তমান থেকে প্রাক্তন, সম্পর্কের সেতুবন্ধন' },
       { file: 'DSC02142.JPG', alt: 'ডুয়েট ক্যাম্পাসের স্মৃতি', badge: 'MEMORIES', title: 'ডুয়েট ক্যাম্পাসে আমাদের সোনালী মুহূর্ত' },
       { file: 'DSC02197.JPG', alt: 'Rangdhanu Familyের ঐক্য', badge: 'UNITY', title: 'যেখানেই থাকি, বন্ধন থাকে অটুট' },
       { file: 'DSC02128.JPG', alt: 'Rangdhanu Familyের আড্ডা', badge: 'CAMPUS LIFE', title: 'ক্যাম্পাস জীবনের বাইরে, একটি বড় পরিবার' },
-      { file: 'DSC02178.JPG', alt: 'Rangdhanu Familyের বন্ধন', badge: 'RANGDHANU FAMILY', title: 'ভালোবাসা, সহযোগিতা ও একসঙ্গে এগিয়ে চলা' },
+      { file: 'DSC02178.JPG', alt: 'Rangdhanu Familyের বন্ধন', badge: 'RANGDHANU FAMILY', title: 'বিপদে-আনন্দে একসঙ্গে' },
       { file: 'IMG_5210.JPG', alt: 'রংধনুর আয়োজন', badge: 'ACTIVITIES', title: 'শিক্ষা, সংস্কৃতি, ক্রীড়া ও সামাজিক কার্যক্রম' },
-      { file: '817A4451 (1).JPG', alt: 'ডুয়েটিয়ানদের মিলনমেলা', badge: 'NETWORK', title: 'একটি সংযুক্ত উত্তরবঙ্গীয় শিক্ষার্থী কমিউনিটি' },
+      { file: '817A4451 (1).JPG', alt: 'ডুয়েটিয়ানদের মিলনমেলা', badge: 'NETWORK', title: 'রংপুর থেকে ডুয়েট, সবাই এক জায়গায়' },
       { file: 'IMG (84).JPG', alt: 'রংধনু ডুয়েটের স্মরণীয় মুহূর্ত', badge: 'OUR STORY', title: 'যেথায় থাকুক যে যেখানে, রংধনু আছে মনে প্রাণে' }
     ];
     const RD_SLIDE_MS = 6500;
 
-    /* ---------- how long the bundled first frame keeps the screen ----------
-       slide-home.jpg / slide-pdacc.jpg are in the repository, so they paint
-       almost immediately -- while the Drive photo for the same slide takes a
-       second or two.  Until this window closes, slide 0 *is* the bundled
-       photo: its Drive URL is parked in RD_COVER_HELD / RD_PDACC_HELD and
-       written into the same image element later, once slide 0 is off screen, so the
-       visitor never sees the swap.  7 s against a 6.5 s slide means the first
-       frame holds for the whole first lap. */
-    const RD_FIRST_HOLD_MS = 7000;
+    /* ---------- the bundled first frame is a slide of its own ----------
+       slide-home.jpg / slide-pdacc.jpg ship with the site, so they paint almost
+       immediately -- while the Drive photo behind them takes a second or two.
+
+       They used to be a temporary stand-in for slide 0: the Drive URL was
+       parked in RD_COVER_HELD / RD_PDACC_HELD and written into the very same
+       image element once the bar had moved on.  The bundled photo therefore left the
+       rotation after the first lap and only came back on a reload -- exactly
+       what the owner reported.  Now it is simply prepended as its own
+       permanent slide, so it opens the bar *and* stays in the loop, and no URL
+       has to be parked or swapped anywhere. */
     /* The first step of the visit waits a little longer than the rest, so the
        bundled frame is genuinely seen and the Drive photos behind it are all
        in by the time the bar moves.  Every later step uses RD_SLIDE_MS. */
     const RD_FIRST_SLIDE_MS = 7000;
     let rdCoverStepped = false, rdPdStepped = false;
     const RD_BOOT_AT = Date.now();
-    function rdFirstHoldOn() { return (Date.now() - RD_BOOT_AT) < RD_FIRST_HOLD_MS; }
-    let RD_COVER_HELD = '', RD_PDACC_HELD = '';
 
-    /* Put the parked Drive URL into slide 0's image element. Called only when
-       is not the one being shown, so there is nothing to see. */
-    function rdReleaseHeld(wrapId, held) {
-      if (!held || rdFirstHoldOn()) return held;
-      const wrap = document.getElementById(wrapId);
-      const img = wrap && wrap.querySelector('img.slide-img');
-      if (!img) return held;
-      img.src = held;
-      if (img.setAttribute) img.setAttribute('data-rd-img', held);
-      return '';
+    function rdFirstFrameSlide(src, pool) {
+      return {
+        src: src, local: src,
+        alt: (pool && (pool.alt || pool.title)) || 'RANGDHANU DUET', badge: (pool && pool.badge) || '',
+        title: (pool && pool.title) || ''
+      };
+    }
+
+    /* Put the bundled frame in front of whatever Drive gave us -- unless Drive
+       already handed back that same file, which would show it twice. */
+    function rdWithFirstFrame(list, src, pool) {
+      const rest = (list || []).filter(s => s && s.src !== src);
+      return [rdFirstFrameSlide(src, pool)].concat(rest);
     }
     let rdSlides = [], rdSlideIdx = 0, rdSlideTimer = null;
 
@@ -634,20 +637,16 @@
          then the pictures that ship with the site. */
       const sheet = (RD_SL.slides || []).filter(s => s && s.url);
       if (sheet.length) {
-        return sheet.map((s, i) => {
+        return rdWithFirstFrame(sheet.map((s, i) => {
           const pool = RD_HOME_SLIDES[i % RD_HOME_SLIDES.length];
-          /* Slide 0 during the hold: show the bundled photo, park the Drive
-             URL so it can be slipped in later without a flicker. */
-          const hold = (i === 0 && rdFirstHoldOn());
-          if (hold) RD_COVER_HELD = s.url;
           return {
-            src: hold ? RD_COVER_FIRST : s.url,
+            src: s.url,
             local: s.fallbackUrl || (i === 0 ? RD_COVER_FIRST : ''),
             alt: s.caption || pool.alt,
             badge: s.badge || pool.badge,
             title: s.caption || ''
           };
-        });
+        }), RD_COVER_FIRST, RD_HOME_SLIDES[0]);
       }
       const drive = (RD_DRIVE.folders.home || []).filter(im => !rdIsLogoName(im.name));
       if (!drive.length) {
@@ -659,18 +658,16 @@
           alt: RD_HOME_SLIDES[0].alt, badge: RD_HOME_SLIDES[0].badge, title: RD_HOME_SLIDES[0].title
         }];
       }
-      return drive.map((im, i) => {
+      return rdWithFirstFrame(drive.map((im, i) => {
         const pool = RD_HOME_SLIDES[i % RD_HOME_SLIDES.length];
-        const hold = (i === 0 && rdFirstHoldOn());
-        if (hold) RD_COVER_HELD = im.url;
         return {
-          src: hold ? RD_COVER_FIRST : im.url,
+          src: im.url,
           local: im.fallbackUrl || (i === 0 ? RD_COVER_FIRST : ''),
           alt: im.caption || pool.alt,
           badge: pool.badge,
           title: im.caption || pool.title
         };
-      });
+      }), RD_COVER_FIRST, RD_HOME_SLIDES[0]);
     }
 
     /* ---------------------------------------------------------------
@@ -769,11 +766,6 @@
         dots.style.display = rdSlides.length > 1 ? '' : 'none';
       }
       rdSlideIdx = 0;
-      /* One slide means the autoplay never runs, so setCoverSlide() would
-         never come back for the parked URL. Hand it over on a timer instead. */
-      if (rdSlides.length < 2 && RD_COVER_HELD) {
-        setTimeout(function () { RD_COVER_HELD = rdReleaseHeld('cover-slides', RD_COVER_HELD); }, RD_FIRST_HOLD_MS + 250);
-      }
       startCoverAutoplay();
     }
 
@@ -781,9 +773,6 @@
       const items = document.querySelectorAll('#cover-slides .cover-slide');
       if (!items.length) return;
       rdSlideIdx = ((i % items.length) + items.length) % items.length;
-      /* Slide 0 has just left the screen, so this is the moment to give it the
-         Drive photo that was parked while the bundled frame held the bar. */
-      if (rdSlideIdx !== 0) RD_COVER_HELD = rdReleaseHeld('cover-slides', RD_COVER_HELD);
       items.forEach((el, n) => {
         const on = n === rdSlideIdx;
         el.classList.toggle('opacity-100', on);
@@ -834,9 +823,9 @@
        --------------------------------------------------------------- */
     const RD_PDACC_SLIDES = [
       { badge: 'PDACC', title: 'ডুয়েট ভর্তির প্রস্তুতি, অভিজ্ঞ ডুয়েটিয়ানদের হাতে' },
-      { badge: 'ADMISSION', title: 'সুপরিকল্পিত স্টাডি ম্যাটেরিয়াল ও নিয়মিত মডেল টেস্ট' },
-      { badge: 'GUIDELINE', title: 'প্রতিটি শিক্ষার্থীর জন্য আলাদা করে দিশা' },
-      { badge: 'RESULT', title: 'ভর্তি পরীক্ষায় সফলতার পথে একসাথে' }
+      { badge: 'ADMISSION', title: 'স্টাডি ম্যাটেরিয়াল আর নিয়মিত মডেল টেস্ট' },
+      { badge: 'GUIDELINE', title: 'যার যেখানে আটকায়, সেখানেই সাহায্য' },
+      { badge: 'RESULT', title: 'গত বছর ৯০ জন ভর্তির সুযোগ পেয়েছে' }
     ];
     let rdPdSlides = [], rdPdIdx = 0, rdPdTimer = null;
 
@@ -877,18 +866,16 @@
     function pdaccCoverList() {
       const sheet = (RD_SL.pdacc || []).filter(s => s && s.url);
       if (sheet.length) {
-        return sheet.map((s, i) => {
+        return rdWithFirstFrame(sheet.map((s, i) => {
           const pool = RD_PDACC_SLIDES[i % RD_PDACC_SLIDES.length];
-          const hold = (i === 0 && rdFirstHoldOn());
-          if (hold) RD_PDACC_HELD = s.url;
           return {
-            src: hold ? RD_PDACC_FIRST : s.url,
+            src: s.url,
             local: s.fallbackUrl || RD_PDACC_FIRST,
             alt: s.caption || pool.title,
             badge: s.badge || pool.badge,
             title: s.caption || ''
           };
-        });
+        }), RD_PDACC_FIRST, RD_PDACC_SLIDES[0]);
       }
       /* `crest: true` only means "there is no Drive picture"; renderPdaccSlides()
          draws the poster and the caption for it, no image element at all. */
@@ -957,9 +944,6 @@
         dots.style.display = rdPdSlides.length > 1 ? '' : 'none';
       }
       rdPdIdx = 0;
-      if (rdPdSlides.length < 2 && RD_PDACC_HELD) {
-        setTimeout(function () { RD_PDACC_HELD = rdReleaseHeld('pdacc-slides', RD_PDACC_HELD); }, RD_FIRST_HOLD_MS + 250);
-      }
       startPdaccAutoplay();
     }
 
@@ -967,7 +951,6 @@
       const items = document.querySelectorAll('#pdacc-slides .pdacc-slide');
       if (!items.length) return;
       rdPdIdx = ((i % items.length) + items.length) % items.length;
-      if (rdPdIdx !== 0) RD_PDACC_HELD = rdReleaseHeld('pdacc-slides', RD_PDACC_HELD);
       items.forEach((el, n) => {
         const on = n === rdPdIdx;
         el.classList.toggle('opacity-100', on);
@@ -2020,19 +2003,109 @@
       return null;
     }
 
+    /* The kicker over a message is the committee's own name with the words
+       "Executive Committee" taken off the end: the section heading already
+       says these are the Presidents of our Executive Committees, so the full
+       formal string only made the label long enough to wrap
+       ("DUET RANGDHANU Alumni Association Executive Committee"). */
+    function ecShortCommittee(name) {
+      return String(name || '').replace(/\s*Executive\s+Committee\s*$/i, '').trim();
+    }
+
+    /* ---------- the President deck ---------------------------------------
+       Both messages used to sit side by side, so the home page opened with two
+       walls of text. One at a time now: the deck turns itself over every
+       RD_LEADER_MS, a finger can drag it sideways, and a dot jumps straight to
+       a message. Same shape as the cover bar -- a chain of one-shot timers,
+       its own state, and nothing at all when there is only one message. */
+    const RD_LEADER_MS = 4000;
+    let rdLeaderSlides = 0, rdLeaderIdx = 0, rdLeaderTimer = null, rdLeaderSwipeOn = false;
+
+    function setLeaderSlide(i) {
+      const track = document.getElementById('home-leader-msgs');
+      if (!track || rdLeaderSlides < 1) return;
+      rdLeaderIdx = ((i % rdLeaderSlides) + rdLeaderSlides) % rdLeaderSlides;
+      if (track.style) track.style.transform = 'translateX(-' + (rdLeaderIdx * 100) + '%)';
+      const dots = document.getElementById('home-leader-dots');
+      const all = (dots && dots.querySelectorAll) ? dots.querySelectorAll('.leader-dot') : [];
+      for (let n = 0; n < all.length; n++) {
+        const on = n === rdLeaderIdx;
+        all[n].classList.toggle('on', on);
+        all[n].setAttribute('aria-current', on ? 'true' : 'false');
+      }
+      startLeaderAutoplay();
+    }
+    function nextLeaderSlide() { setLeaderSlide(rdLeaderIdx + 1); }
+    function prevLeaderSlide() { setLeaderSlide(rdLeaderIdx - 1); }
+
+    function startLeaderAutoplay() {
+      if (rdLeaderTimer) { clearTimeout(rdLeaderTimer); rdLeaderTimer = null; }
+      if (rdLeaderSlides < 2) return;
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      rdLeaderTimer = setTimeout(function () {
+        rdLeaderTimer = null;
+        setLeaderSlide(rdLeaderIdx + 1);
+      }, RD_LEADER_MS);
+    }
+
+    /* Bound once, on the viewport rather than the track, so a re-render does
+       not stack a second set of handlers. A drag that is more vertical than
+       horizontal is a scroll, not a swipe, and is left alone. */
+    function rdLeaderBindSwipe() {
+      const deck = document.getElementById('home-leader-deck');
+      if (!deck || rdLeaderSwipeOn || !deck.addEventListener) return;
+      rdLeaderSwipeOn = true;
+      let x0 = null, y0 = null;
+      const start = function (e) {
+        const t = (e.touches && e.touches[0]) || e;
+        x0 = t.clientX; y0 = t.clientY;
+      };
+      const end = function (e) {
+        if (x0 === null) return;
+        const t = (e.changedTouches && e.changedTouches[0]) || e;
+        const dx = t.clientX - x0, dy = t.clientY - y0;
+        x0 = null;
+        if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
+        if (dx < 0) nextLeaderSlide(); else prevLeaderSlide();
+      };
+      deck.addEventListener('touchstart', start, { passive: true });
+      deck.addEventListener('touchend', end, { passive: true });
+      deck.addEventListener('mousedown', start);
+      deck.addEventListener('mouseup', end);
+    }
+
     function renderHomeLeaderMessages() {
       const box = document.getElementById('home-leader-msgs');
       const sec = document.getElementById('home-leadership');
       if (!box || !sec) return;
+      const dots = document.getElementById('home-leader-dots');
       const wanted = ['Rangdhanu Executive Committee',
                       'DUET RANGDHANU Alumni Association Executive Committee'];
       const cards = wanted.map(ecLatestPresident).filter(Boolean);
-      if (!cards.length) { sec.classList.add('hidden'); box.innerHTML = ''; return; }
+      rdLeaderSlides = cards.length;
+      rdLeaderIdx = 0;
+      if (!cards.length) {
+        sec.classList.add('hidden');
+        box.innerHTML = '';
+        if (dots) dots.innerHTML = '';
+        return;
+      }
       sec.classList.remove('hidden');
       box.innerHTML = cards.map(x =>
-        '<div><p class="text-[11px] font-extrabold uppercase text-blue-700 tracking-widest ' +
-        'mb-2.5">' + escapeHtml(x.committee) + '</p>' +
+        '<div class="leader-slide"><p class="text-[11px] font-extrabold uppercase text-blue-700 ' +
+        'tracking-widest mb-2.5">' + escapeHtml(ecShortCommittee(x.committee)) + '</p>' +
         ecLeaderCard(x.member, x.session) + '</div>').join('');
+      if (dots) {
+        /* One message needs no dots, and no way to move off it. */
+        dots.innerHTML = cards.length < 2 ? '' : cards.map((x, i) =>
+          '<button type="button" class="leader-dot' + (i === 0 ? ' on' : '') +
+          '" aria-current="' + (i === 0 ? 'true' : 'false') +
+          '" aria-label="' + escapeHtml(ecShortCommittee(x.committee)) +
+          '" onclick="setLeaderSlide(' + i + ')"></button>').join('');
+      }
+      if (box.style) box.style.transform = 'translateX(0%)';
+      rdLeaderBindSwipe();
+      startLeaderAutoplay();
       lucide.createIcons();
     }
 
@@ -2406,9 +2479,11 @@
       return { credits: credits, cgpa: credits > 0 ? points / credits : 0 };
     }
 
+    /* "A+ (4.00)" -- the em dash that used to sit between the two looked, on a
+       narrow phone, like a minus sign in front of the point value. */
     function cgpaGradeOptions() {
       return '<option value="">Grade</option>' + RD_GRADES.map(g =>
-        '<option value="' + g.point.toFixed(2) + '">' + g.code + ' — ' + g.point.toFixed(2) + '</option>').join('');
+        '<option value="' + g.point.toFixed(2) + '">' + g.code + ' (' + g.point.toFixed(2) + ')</option>').join('');
     }
 
     function cgpaRowHtml(s, r, row) {

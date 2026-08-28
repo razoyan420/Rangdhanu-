@@ -147,11 +147,25 @@
       .rd-pd-anim>*,.rd-cap-badge,.rd-cap-line,.rd-cap-title{animation:none!important}
       .rd-cap-line{width:2.75rem;opacity:1}
     }
+    /* ---------- the President deck on the home page ----------------------
+       Batch 35: the two messages used to sit in a two-column grid, so the
+       page opened with two walls of text. One at a time now. The track is a
+       flex row as wide as the number of messages and slides by whole
+       viewport widths; `touch-action:pan-y` keeps a vertical scroll working
+       while a sideways drag is read as a swipe. */
+    .leader-deck{position:relative;overflow:hidden;}
+    .leader-track{display:flex;align-items:flex-start;transition:transform .6s cubic-bezier(.16,1,.3,1);touch-action:pan-y;}
+    .leader-slide{flex:0 0 100%;min-width:100%;}
+    .leader-dots{display:flex;justify-content:center;gap:.45rem;margin-top:1.35rem;}
+    .leader-dot{width:.45rem;height:.45rem;padding:0;border:0;border-radius:9999px;background:#cbd5e1;cursor:pointer;transition:width .3s ease,background .3s ease;}
+    .leader-dot.on{width:1.6rem;background:#1d4ed8;}
+    @media (prefers-reduced-motion:reduce){.leader-track{transition:none;}}
     .brand-word{display:flex;flex-direction:column;gap:.2rem;line-height:1;}
     .brand-name{white-space:nowrap;font-size:clamp(.92rem,3vw,1.3rem);line-height:1;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#0f172a;text-shadow:none;}
     .brand-duet{color:#0ea5e9;}
     .brand-tag{white-space:nowrap;font-size:.5rem;letter-spacing:.09em;text-transform:uppercase;font-weight:600;color:#64748b;}
-    @media (max-width:1023px){ .brand-tag{display:none;} }
+    @media (max-width:1023px){ .brand-tag{white-space:normal;font-size:.42rem;letter-spacing:.04em;line-height:1.3;max-width:11.5rem;} }
+    @media (max-width:359px){ .brand-tag{display:none;} }
     @media (min-width:1024px) and (max-width:1279px){ .brand-tag{font-size:.45rem;letter-spacing:.05em;} }
 
     .mobile-nav-item{display:flex;align-items:center;gap:.65rem;width:100%;text-align:left;padding:.8rem 1rem;border-radius:12px;color:#334155;font-weight:700;}
