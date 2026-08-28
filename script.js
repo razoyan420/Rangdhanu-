@@ -141,6 +141,7 @@
           renderPdaccSlides();
           pdaccHeroStartCycle();
           loadPdacc();
+          loadPdaccStats();
         }
         if (pageId === 'pdacc-updates') loadPdacc();
         if (pageId === 'admin') adminEnterPage();
@@ -1029,6 +1030,39 @@
 
     /* About: the real description is already on this page, so the button
        scrolls to it. Nothing is duplicated and no panel opens. */
+    /* ---------- PDACC: A Proven Journey ----------------------------------
+       The heading, the figure and the caption used to be typed straight into
+       index.html, so a new admission season meant a code change. They are read
+       from the PDACC Stats sheet now. The markup keeps last season's wording,
+       which is what stays on screen if the fetch fails -- the block never
+       blanks out. */
+    let RD_PDSTATS = null;
+
+    async function fetchPdaccStats(force) {
+      if (RD_PDSTATS && !force) return RD_PDSTATS;
+      const r = await apiGet('pdaccstats');
+      RD_PDSTATS = r.stats || {};
+      return RD_PDSTATS;
+    }
+
+    function applyPdaccStats(d) {
+      const put = function (id, v) {
+        const el = document.getElementById(id);
+        if (el && String(v == null ? '' : v).trim()) el.textContent = String(v).trim();
+      };
+      put('pd-journey-kicker', d.kicker);
+      put('pd-journey-title', d.title);
+      put('pd-journey-figure', d.figure);
+      put('pd-journey-unit', d.unit);
+      put('pd-journey-note', d.note);
+    }
+
+    async function loadPdaccStats() {
+      if (!document.getElementById('pd-journey-figure')) return;
+      try { applyPdaccStats(await fetchPdaccStats()); }
+      catch (err) { console.warn('[rd] pdaccstats:', err); }
+    }
+
     function pdaccAbout() {
       const box = document.getElementById('pdacc-about');
       if (!box || !box.scrollIntoView) return;
@@ -2079,8 +2113,10 @@
       const sec = document.getElementById('home-leadership');
       if (!box || !sec) return;
       const dots = document.getElementById('home-leader-dots');
-      const wanted = ['Rangdhanu Executive Committee',
-                      'DUET RANGDHANU Alumni Association Executive Committee'];
+      /* Seniority sets the order, so the Alumni Association President opens the
+         deck and the Rangdhanu President follows. */
+      const wanted = ['DUET RANGDHANU Alumni Association Executive Committee',
+                      'Rangdhanu Executive Committee'];
       const cards = wanted.map(ecLatestPresident).filter(Boolean);
       rdLeaderSlides = cards.length;
       rdLeaderIdx = 0;
@@ -2981,8 +3017,15 @@
         const r = await apiPost('verifymemberforupdate', { data: { memberId, mobile } });
         if (!r.success) throw new Error(r.message || 'The Member ID and mobile number do not match.');
         uinfoAuthed = { memberId: r.memberId, mobile };
-        applyUpdateInfoPrefill(r);
-        showUpdateInfoStep('edit');
+        /* Matching the ID to the mobile number is not proof of identity on its
+           own: both are printed on the membership card. So the edit form is
+           never opened from here. A code goes to the registered email address
+           and submitOtpVerify() is the only way through to it. */
+        btn.innerHTML = '<span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> Sending the code...</span>'; lucide.createIcons();
+        const sent = await apiPost('requestemailotp', { data: { mobile } });
+        if (!sent.success) throw new Error(sent.message || 'The verification code could not be sent.');
+        document.getElementById('otp-sent-msg').textContent = (sent.message || 'A verification code has been sent.') + ' Please check your email, including the Spam or Junk folder.';
+        showUpdateInfoStep('otp-verify');
       } catch (err) {
         reportError(err);
       } finally {
@@ -3569,11 +3612,46 @@ f.reset();
     let RD_ADMIN = { tab: 'registrations', status: 'PENDING', state: 'idle', gate: 'locked',
                      error: '', admin: '', rows: {}, busy: '', noteOpen: '',
                      nbEdit: '', scEdit: '', evEdit: '', slEdit: '', slPlace: 'home',
-                     pdKind: 'LINE', pdEdit: '',
+                     pdKind: 'LINE', pdEdit: '', role: 'ALL',
                      askWhat: '', askId: '' };
 
     function adminTabMeta(key) {
       return RD_ADMIN_TABS.find(t => t.key === key) || RD_ADMIN_TABS[0];
+    }
+
+    /* ---------- two kinds of admin -----------------------------------------
+       A PDACC admin looks after the PDACC page and nothing else, so the rest
+       of the panel is not drawn for them. This is only what is on screen --
+       the sheets are guarded on the server by rdRequireRole_(), which is what
+       actually decides. Anything unrecognised is treated as a full admin, so a
+       backend that has not been redeployed yet behaves exactly as before. */
+    function adminTabList() {
+      return RD_ADMIN.role === 'PDACC'
+        ? RD_ADMIN_TABS.filter(t => t.key === 'pdacc')
+        : RD_ADMIN_TABS;
+    }
+
+    function adminTabAllowed(key) {
+      return adminTabList().some(t => t.key === key);
+    }
+
+    /* The refusal itself is the signal. A PDACC admin is turned away from the
+       Membership Applications feed by rdRequireRole_() on the server, and that
+       message is what opens their own tab instead of locking the page -- so
+       nobody pays an extra round trip just to ask who they are. */
+    function rdIsRoleError(err) {
+      return /not open to your account/i.test(String(err && err.message || err));
+    }
+
+    async function adminOpenPdaccOnly() {
+      RD_ADMIN.role = 'PDACC';
+      RD_ADMIN.tab = 'pdacc';
+      RD_ADMIN.state = 'idle';
+      RD_ADMIN.error = '';
+      RD_ADMIN.gate = 'open';
+      adminGateRender();
+      renderAdmin();
+      await loadAdminDashboard(true);
     }
 
     /* Each source has its own column names. Normalising here means the card,
@@ -3752,6 +3830,7 @@ f.reset();
         adminGateRender();
         renderAdmin();
       } catch (err) {
+        if (rdIsRoleError(err)) { await adminOpenPdaccOnly(); return; }
         adminGateLock(friendlyError(err).msg);
       }
     }
@@ -3815,6 +3894,7 @@ f.reset();
 
     function adminSwitchTab(key) {
       if (RD_ADMIN.tab === key) return;
+      if (!adminTabAllowed(key)) return;
       RD_ADMIN.tab = key;
       /* Events and Committee have no DUPLICATE status; do not strand the view
          on a filter that can never match. */
@@ -3938,14 +4018,15 @@ f.reset();
       const box = document.getElementById('admin-tabs');
       if (!box) return;
       const counts = {};
-      RD_ADMIN_TABS.forEach(t => {
+      const tabs = adminTabList();
+      tabs.forEach(t => {
         const list = RD_ADMIN.rows[t.key];
         /* A duplicate also waits on the admin, so the badge counts it. */
         counts[t.key] = (list && !t.custom)
           ? list.filter(r => r.status === 'PENDING' || r.status === 'DUPLICATE').length
           : null;
       });
-      box.innerHTML = RD_ADMIN_TABS.map(t => {
+      box.innerHTML = tabs.map(t => {
         const on = RD_ADMIN.tab === t.key;
         const badge = counts[t.key] ? '<span class="ml-auto inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 rounded-lg text-[11px] font-extrabold ' +
           (on ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700') + '">' + counts[t.key] + '</span>' : '';
@@ -4759,10 +4840,14 @@ f.reset();
        wrong list by accident. */
     const RD_PD_KINDS_UI = [
       { key: 'LINE',   label: 'Notice line',   icon: 'megaphone' },
-      { key: 'UPDATE', label: 'Latest update', icon: 'newspaper' }
+      { key: 'UPDATE', label: 'Latest update', icon: 'newspaper' },
+      { key: 'STATS',  label: 'A Proven Journey', icon: 'trending-up' }
     ];
 
-    function adminPdKind() { return RD_ADMIN.pdKind === 'UPDATE' ? 'UPDATE' : 'LINE'; }
+    function adminPdKind() {
+      const k = RD_ADMIN.pdKind;
+      return (k === 'UPDATE' || k === 'STATS') ? k : 'LINE';
+    }
 
     function adminPdKindMeta(kind) {
       return RD_PD_KINDS_UI.find(k => k.key === kind) || RD_PD_KINDS_UI[0];
@@ -4779,7 +4864,7 @@ f.reset();
     /* Switching the kind drops whatever was half-edited, on purpose: an
        update's title has nowhere to go in a one-line notice. */
     function adminPdaccKind(kind) {
-      RD_ADMIN.pdKind = kind === 'UPDATE' ? 'UPDATE' : 'LINE';
+      RD_ADMIN.pdKind = (kind === 'UPDATE' || kind === 'STATS') ? kind : 'LINE';
       RD_ADMIN.pdEdit = '';
       renderAdmin();
     }
@@ -4805,7 +4890,7 @@ f.reset();
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-transparent text-white'
               : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50') + '">' +
             '<i data-lucide="' + k.icon + '" class="w-3.5 h-3.5"></i> ' + k.label +
-            '<span class="ml-1 opacity-70">(' + adminPdRowsOf(k.key).length + ')</span>' +
+            (k.key === 'STATS' ? '' : '<span class="ml-1 opacity-70">(' + adminPdRowsOf(k.key).length + ')</span>') +
           '</button>').join('') +
       '</div>';
     }
@@ -4956,8 +5041,89 @@ f.reset();
       '</article>';
     }
 
+    /* ---------- A Proven Journey ------------------------------------------
+       Five fields, one row in the sheet. This tab reads the same public
+       endpoint the PDACC page reads, so what is shown here is exactly what a
+       visitor sees. The figure is a free text box, not a number box: the page
+       carries Bengali digits, and a number box would fight them. */
+    async function adminPdStatsLoad() {
+      if (RD_PDSTATS) return;
+      try { await fetchPdaccStats(); renderAdmin(); }
+      catch (err) {
+        console.warn('[rd] pdaccstats:', err);
+        RD_PDSTATS = {};
+        renderAdmin();
+      }
+    }
+
+    function adminPdStatsForm() {
+      if (!RD_PDSTATS) {
+        adminPdStatsLoad();
+        return adminInfoBox('trending-up', 'Reading the figures',
+          'Fetching what the PDACC page is showing right now.', 'empty');
+      }
+      const d = RD_PDSTATS;
+      const box = function (id, label, val, max, ph) {
+        return '<div><label class="form-label" for="' + id + '">' + label + '</label>' +
+          '<input id="' + id + '" class="form-input" maxlength="' + max + '" placeholder="' +
+          escapeHtml(ph) + '" value="' + escapeHtml(String(d[val] == null ? '' : d[val])) + '"></div>';
+      };
+      const inner =
+        '<div class="mt-5">' + box('pd-sk', 'Small heading above', 'kicker', 60, 'A Proven Journey') + '</div>' +
+        '<div class="mt-4">' + box('pd-st', 'Heading *', 'title', 120, 'Last year’s result') + '</div>' +
+        '<div class="mt-4 grid sm:grid-cols-2 gap-4">' +
+          box('pd-sf', 'The figure *', 'figure', 20, '90') +
+          box('pd-su', 'What the figure counts *', 'unit', 40, 'students') +
+        '</div>' +
+        '<div class="mt-4"><label class="form-label" for="pd-sn">The line under it *</label>' +
+          '<textarea id="pd-sn" rows="3" maxlength="500" class="form-input" placeholder="One sentence about the season.">' +
+            escapeHtml(String(d.note == null ? '' : d.note)) + '</textarea></div>' +
+        '<div class="mt-5 flex flex-wrap gap-2">' +
+          '<button id="pd-ssave" type="button" onclick="adminPdStatsSave()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-extrabold cursor-pointer">' +
+            '<i data-lucide="save" class="w-4 h-4"></i> Save the figures</button>' +
+        '</div>';
+      return adminPanelShell('trending-up', 'A Proven Journey',
+        'The block on the right of the PDACC page. Write the figure the same way it should read on the page — Bengali digits stay Bengali.',
+        inner);
+    }
+
+    async function adminPdStatsSave() {
+      if (RD_ADMIN.busy) {
+        showToast('Another change is still being saved. Please wait a moment, or reload the admin page.',
+          'error', 'One at a time', { backTo: 'admin' });
+        return;
+      }
+      const val = id => String((document.getElementById(id) || {}).value || '').trim();
+      const data = { kicker: val('pd-sk'), title: val('pd-st'), figure: val('pd-sf'),
+                     unit: val('pd-su'), note: val('pd-sn') };
+      if (!data.title || !data.figure || !data.unit || !data.note) {
+        showToast('Please fill the heading, the figure, what it counts, and the line under it.',
+          'error', 'Something is missing', { backTo: 'admin' });
+        return;
+      }
+      RD_ADMIN.busy = 'pdstats';
+      const btn = document.getElementById('pd-ssave');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+      try {
+        const r = await apiPost('savepdaccstats', { data: data });
+        RD_ADMIN.busy = '';
+        RD_PDSTATS = r.stats || data;
+        showToast(r.message || 'The figures are saved.', 'success', 'Saved', { backTo: 'admin' });
+        renderAdmin();
+      } catch (err) {
+        console.warn('[rd] savepdaccstats:', err);
+        RD_ADMIN.busy = '';
+        showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
+        renderAdmin();
+      }
+    }
+
     function adminPdaccHtml() {
       const kind = adminPdKind();
+      /* One row, not a list: the stats tab is a form with nothing under it. */
+      if (kind === 'STATS') {
+        return '<div class="space-y-4">' + adminPdKindSwitch() + adminPdStatsForm() + '</div>';
+      }
       const rows = adminPdRowsOf(kind);
       return '<div class="space-y-4">' + adminPdKindSwitch() +
         (kind === 'UPDATE' ? adminPdUpdateForm() : adminPdLineForm()) +
