@@ -199,9 +199,6 @@
     </div>
     <!-- Right side -->
     <div class="flex items-center gap-3 shrink-0">
-      <button class="hidden lg:inline-flex nav-cta" onclick="switchPage('register')">
-        Membership Application
-      </button>
       <button id="mobile-menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu" class="xl:hidden p-3 rounded-2xl bg-sky-50 border border-sky-200 text-slate-700 hover:bg-sky-100 cursor-pointer" onclick="toggleMobileMenu()">
         <i id="mobile-menu-icon" class="w-6 h-6" data-lucide="menu"></i>
       </button>
@@ -220,6 +217,7 @@
       <button class="nav-btn premium-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')"><span>Notice</span></button>
       <button class="nav-btn premium-nav-item" data-page="cgpa" onclick="switchPage('cgpa')"><span>CGPA</span></button>
       <span class="ml-auto inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-slate-500">DUET, Gazipur</span>
+      <button class="nav-cta ml-3" onclick="switchPage('register')"><i class="w-4 h-4" data-lucide="user-plus"></i>Membership Application</button>
     </div>
   </nav>
   <!-- Mobile menu -->
@@ -232,7 +230,7 @@
     <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')">Executive Committee</button>
     <button class="mobile-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')">Notice Board</button>
     <button class="mobile-nav-item" data-page="cgpa" onclick="switchPage('cgpa')">CGPA Calculator</button>
-    <button class="w-full mt-3 py-3 rounded-xl text-white font-extrabold" style="background:#0ea5e9;box-shadow:0 10px 26px -10px rgba(14,165,233,.7);" onclick="switchPage('register')">Membership Application</button>
+    <button class="w-full mt-3 py-3 rounded-xl text-white font-extrabold inline-flex items-center justify-center gap-2" style="background:#0ea5e9;box-shadow:0 10px 26px -10px rgba(14,165,233,.7);" onclick="switchPage('register')"><i class="w-5 h-5" data-lucide="user-plus"></i>Membership Application</button>
   </div>
 </header>
 

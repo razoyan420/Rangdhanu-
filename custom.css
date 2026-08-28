@@ -82,7 +82,7 @@
     .nav-strip .premium-nav-item:hover{color:#0c4a6e;background:rgba(14,165,233,.12);transform:none;}
     .nav-strip .premium-nav-item.active{background:#0ea5e9;color:#fff;box-shadow:0 8px 18px -10px rgba(14,165,233,.95);}
     /* Premium register CTA */
-    .nav-cta{position:relative;display:inline-flex;align-items:center;padding:.55rem .9rem;border-radius:13px;font-weight:800;font-size:.79rem;white-space:nowrap;color:#fff;background:#0ea5e9;box-shadow:0 10px 26px -10px rgba(14,165,233,.75);border:1px solid rgba(2,132,199,.28);}
+    .nav-cta{position:relative;display:inline-flex;align-items:center;gap:.4rem;padding:.55rem .9rem;border-radius:13px;font-weight:800;font-size:.79rem;white-space:nowrap;color:#fff;background:#0ea5e9;box-shadow:0 10px 26px -10px rgba(14,165,233,.75);border:1px solid rgba(2,132,199,.28);}
     .nav-cta:hover{transform:translateY(-2px);background:#0284c7;box-shadow:0 16px 34px -10px rgba(14,165,233,.9);}
     /* Premium brand lockup */
     .brand-logo{position:relative;width:3.15rem;height:3.15rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;background:#f0f9ff;box-shadow:0 0 0 1.5px rgba(14,165,233,.35), 0 8px 22px -8px rgba(14,165,233,.45);overflow:hidden;transition:transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s ease;}
