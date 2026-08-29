@@ -3849,6 +3849,22 @@ f.reset();
       RD_ADMIN.gate = 'checking';
       RD_ADMIN.error = '';
       adminGateRender();
+
+      /* Ask who this is before asking for anything they may not be allowed to
+         see. This used to be inferred from the refusal that came back when a
+         PDACC admin reached for the Membership Applications feed, which saved a
+         round trip but read the server's wording to do it -- so any handler
+         that rephrased or wrapped the message sent a PDACC admin to the error
+         card instead of their own page. The role now comes from the one route
+         that exists to answer exactly that question. */
+      try {
+        const who = await apiGet('adminrole', {});
+        if (who && who.role === 'PDACC') { await adminOpenPdaccOnly(); return; }
+      } catch (err) {
+        /* An older deployment has no adminrole route. Fall through: the refusal
+           below is still read, so nothing gets worse than it was. */
+      }
+
       try {
         const meta = adminTabMeta('registrations');
         const res = await apiGet(meta.action, {});
