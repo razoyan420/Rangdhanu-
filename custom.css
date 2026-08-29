@@ -42,6 +42,13 @@
     .rd-tile-dark:hover{transform:translateY(-4px);background:rgba(255,255,255,.10);
       border-color:rgba(125,211,252,.5);box-shadow:0 22px 44px -24px rgba(56,189,248,.55);}
 
+    /* The icon chip on the third PDACC "who teaches" tile. The other two use
+       bg-indigo-500/15 and bg-blue-500/15, but Tailwind never built an emerald
+       pair for this page, and rebuilding style.css would drop classes that the
+       JavaScript injects at runtime. So this one chip carries its own colours:
+       emerald-500 at 15% behind emerald-300 glyphs. */
+    .rd-pd-chip-emerald{background:rgba(16,185,129,.15);color:#6ee7b7;}
+
     /* Every button reacts to the mouse. The two exclusions are the slideshow
        and lightbox arrows, which are already vertically centred with a
        transform -- lifting them would knock them off centre. */
