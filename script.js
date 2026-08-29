@@ -1723,6 +1723,13 @@
         msg: 'You are already on our list, so the application has been sent for another admin check. You will be emailed once the review is done.' },
       { re: /already (a )?member|already exists|duplicate/i, duplicate: true,
         msg: 'You are already on our list. The application has been sent for an admin check.' },
+      /* Three separate doors, three separate cures. All three used to fall
+         through to the generic "server is having trouble" line because they
+         happen to contain the word permission, which cost an evening of
+         hunting deployments and sharing lists. */
+      { re: /does not have admin permission|Admin account is not active|Unauthorized admin access/i,
+        msg: 'This Google account is not set up as an admin yet. Ask the main admin to add it to the '
+           + 'Admins sheet with a Role chosen from the list and Status set to ACTIVE.' },
       /* The web app runs as the person using it, so an admin whose Google
          account was never shared on the data sheet gets Google's own refusal
          back. That used to land on the generic "server is having trouble"
