@@ -1058,7 +1058,7 @@
           <div><label class="form-label">Mobile Number *</label><input name="mobile" required type="tel" inputmode="tel" maxlength="18" autocomplete="tel" placeholder="017xxxxxxxx / +9715xxxxxxx" class="form-input"></div>
           <div><label class="form-label">WhatsApp Number *</label><input name="whatsapp" required type="tel" inputmode="tel" maxlength="18" autocomplete="tel" placeholder="017xxxxxxxx / +9715xxxxxxx" class="form-input"></div>
           <div><label class="form-label">Email *</label><input name="email" required type="email" class="form-input"></div>
-          <div class="sm:col-span-2"><label class="form-label">Permanent Address *</label><textarea name="address" required rows="2" class="form-input"></textarea></div>
+          <div class="sm:col-span-2"><label class="form-label">Permanent Address *</label><div data-addr="address" data-addr-name="address"></div></div><div class="sm:col-span-2"><label class="form-label">Present Address *</label><div data-addr="presentAddress" data-addr-name="presentAddress"></div></div>
           <div>
             <label class="form-label">Blood Group *</label>
             <select name="bloodGroup" required class="form-input"><option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
@@ -1083,7 +1083,7 @@
           </div>
           <div><label class="form-label">Current Organization / Company</label><input name="organization" class="form-input"></div>
           <div><label class="form-label">Current Designation</label><input name="designation" class="form-input"></div>
-          <div><label class="form-label">Work Location (Division/Country)</label><input name="workLocation" class="form-input"></div>
+          <div class="sm:col-span-2"><label class="form-label">Work Location</label><div data-addr="workLocation" data-addr-name="workLocation"></div></div>
           <div class="sm:col-span-2"><label class="form-label" id="member-position-label" data-rd-position-label>Position / Role at Rangdhanu / PDACC</label><input name="formerPosition" class="form-input" placeholder="e.g. Joint Secretary, PDACC Instructor"></div>
           <div class="sm:col-span-2"><label class="form-label">Passport Size Image</label><input name="photo" type="file" accept="image/*" class="form-input py-2"></div>
           
@@ -1212,7 +1212,7 @@
         </div>
         <div><label class="form-label">Current Organization / Company</label><input name="organization" class="form-input"></div>
         <div><label class="form-label">Current Designation</label><input name="designation" class="form-input"></div>
-        <div><label class="form-label">Work Location (Division/Country)</label><input name="workLocation" class="form-input"></div>
+        <div><label class="form-label">Work Location</label><div data-addr="uinfoWork" data-addr-name="workLocation"></div></div>
         <div><label class="form-label">Change photo (optional)</label><input type="file" name="photo" accept="image/*" class="form-input"></div>
         <button id="uinfo-edit-submit-btn" type="submit" class="w-full mt-2 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm">Update information</button>
       </form>

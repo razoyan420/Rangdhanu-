@@ -1113,6 +1113,7 @@
       renderReunionPhotos();
       ecFillFormCommittees();
       rdFillSeriesSelects();
+      rdAddrInitAll();
       loadExecutiveCommittee();
       renderCgpa();
       /* loadPublicAlumni() and loadPublicEvents() used to run here.  The home
@@ -3074,6 +3075,243 @@
     }
 
     /* REGISTRATION API (FIXED EXACT PAYLOAD + JS BUG) */
+    /* ---------- ADDRESS PICKER ------------------------------------------
+       The address was a free textarea, and the collected answers show exactly
+       why that cannot be filtered: one member wrote "Rangpur", another
+       "Ishwardi, Pabna, Rajshahi, Bangladesh", a third "N/A".  No filter can
+       join those into one place.
+
+       Division and district are picked from a list.  The upazila stays a typed
+       box on purpose -- there are 495 of them, and a list that long is slower
+       to use than simply typing the name, besides being easy to get wrong.
+
+       All three parts live in ONE sheet column, comma-joined in a fixed order,
+       so no column is added per part:
+
+           Rangpur, Rangpur, Badarganj
+           Abroad, Toronto Canada
+
+       The fixed order is what makes the column filterable later -- part 2 is
+       always the district.  rdAddrJoin and rdAddrParse are the only two places
+       that know the order, so a change stays in one spot. */
+
+    const RD_ADDR_ABROAD = 'Abroad';
+
+    /* Greater Rangpur first.  This is a Rangpur association, so for most
+       members the first row is the only row they need to read. */
+    const RD_BD_DIVISIONS = [
+      ['Rangpur',    ['Dinajpur', 'Gaibandha', 'Kurigram', 'Lalmonirhat', 'Nilphamari', 'Panchagarh', 'Rangpur', 'Thakurgaon']],
+      ['Dhaka',      ['Dhaka', 'Faridpur', 'Gazipur', 'Gopalganj', 'Kishoreganj', 'Madaripur', 'Manikganj', 'Munshiganj', 'Narayanganj', 'Narsingdi', 'Rajbari', 'Shariatpur', 'Tangail']],
+      ['Rajshahi',   ['Bogura', 'Chapai Nawabganj', 'Joypurhat', 'Naogaon', 'Natore', 'Pabna', 'Rajshahi', 'Sirajganj']],
+      ['Khulna',     ['Bagerhat', 'Chuadanga', 'Jashore', 'Jhenaidah', 'Khulna', 'Kushtia', 'Magura', 'Meherpur', 'Narail', 'Satkhira']],
+      ['Chattogram', ['Bandarban', 'Brahmanbaria', 'Chandpur', 'Chattogram', 'Cumilla', "Cox's Bazar", 'Feni', 'Khagrachhari', 'Lakshmipur', 'Noakhali', 'Rangamati']],
+      ['Sylhet',     ['Habiganj', 'Moulvibazar', 'Sunamganj', 'Sylhet']],
+      ['Barishal',   ['Barguna', 'Barishal', 'Bhola', 'Jhalokati', 'Patuakhali', 'Pirojpur']],
+      ['Mymensingh', ['Jamalpur', 'Mymensingh', 'Netrokona', 'Sherpur']]
+    ];
+
+    function rdAddrDivisionNames() { return RD_BD_DIVISIONS.map(d => d[0]); }
+
+    function rdAddrDistrictsOf(division) {
+      const hit = RD_BD_DIVISIONS.find(d => d[0] === division);
+      return hit ? hit[1] : [];
+    }
+
+    /* Every district in the country, sorted -- the member filter uses this. */
+    function rdAddrAllDistricts() {
+      return RD_BD_DIVISIONS.reduce((all, d) => all.concat(d[1]), []).sort();
+    }
+
+    function rdAddrJoin(s) {
+      if (!s || !s.div) return '';
+      if (s.div === RD_ADDR_ABROAD) {
+        const t = String(s.text || '').trim();
+        return t ? (RD_ADDR_ABROAD + ', ' + t) : RD_ADDR_ABROAD;
+      }
+      return [s.div, s.dist, String(s.thana || '').trim()].filter(Boolean).join(', ');
+    }
+
+    function rdAddrParse(value) {
+      const p = String(value || '').split(',').map(x => x.trim()).filter(Boolean);
+      const empty = { div: '', dist: '', thana: '', text: '' };
+      if (!p.length) return empty;
+      if (p[0] === RD_ADDR_ABROAD) {
+        return { div: RD_ADDR_ABROAD, dist: '', thana: '', text: p.slice(1).join(', ') };
+      }
+      /* An unknown first part means hand-typed legacy text.  It is kept whole in
+         .thana rather than silently dropped, so nobody's old address is lost --
+         the picker just shows it as "not chosen yet" and asks again. */
+      if (rdAddrDivisionNames().indexOf(p[0]) === -1) return empty;
+      return { div: p[0], dist: p[1] || '', thana: p.slice(2).join(', '), text: '' };
+    }
+
+    /* One state object per field name, so the same widget serves both the
+       permanent and the present address without either knowing about the other. */
+    const rdAddrState = {};
+
+    function rdAddrMount(name) { return document.querySelector('[data-addr="' + name + '"]'); }
+
+    /* The hidden input is rendered inside its own mount, not looked up by name
+       across the document.  Two forms may both post a `workLocation`, and a
+       document-wide name lookup would hand the second form the first form's
+       box. */
+    function rdAddrHidden(name) {
+      const mount = rdAddrMount(name);
+      return mount ? mount.querySelector('input[type="hidden"]') : null;
+    }
+
+    function rdAddrFieldName(name) {
+      const mount = rdAddrMount(name);
+      return (mount && mount.getAttribute('data-addr-name')) || name;
+    }
+
+    /* The hidden input is the single source of truth for submit.  Writing it
+       here means submitMemberRegistration keeps reading fd.get('address') and
+       never learns that the field became a picker. */
+    function rdAddrSync(name) {
+      const box = rdAddrHidden(name);
+      if (box) box.value = rdAddrJoin(rdAddrState[name]);
+      rdAddrMirrorWork(name);
+    }
+
+    /* Work location is the present address for almost everyone, so it is filled
+       in from there instead of being asked twice.  Only an untouched work
+       location is overwritten -- once the member picks a different place, the
+       present address stops following it. */
+    function rdAddrMirrorWork(name) {
+      if (name !== 'presentAddress') return;
+      const w = rdAddrState.workLocation;
+      if (!w || w.dirty) return;
+      if (!rdAddrMount('workLocation')) return;
+      rdAddrState.workLocation = Object.assign({}, rdAddrState.presentAddress, { dirty: false });
+      rdAddrRenderOnly('workLocation');
+    }
+
+    /* Draws without writing the hidden input -- the caller has just written it,
+       and going back through rdAddrSync would start the mirror over again. */
+    function rdAddrRenderOnly(name) {
+      rdAddrRender(name);
+    }
+
+    function rdAddrPillRow(name, level, items, current) {
+      return items.map(v => {
+        const on = v === current;
+        return '<button type="button" onclick="rdAddrPick(\'' + name + '\',\'' + level + '\',this.dataset.v)" data-v="' +
+          escapeHtml(v) + '" class="px-3 py-1.5 rounded-full text-sm border transition ' +
+          (on ? 'bg-blue-600 border-blue-600 text-white font-semibold shadow-sm'
+              : 'bg-white border-slate-300 text-slate-700 hover:border-blue-400 hover:text-blue-700') +
+          '">' + escapeHtml(v) + '</button>';
+      }).join('');
+    }
+
+    function rdAddrCrumb(name, s) {
+      const parts = [s.div, s.dist, s.thana || s.text].filter(Boolean).map(escapeHtml);
+      if (!parts.length) return '';
+      return '<div class="flex items-center gap-2 flex-wrap mb-3">' +
+        '<span class="text-sm font-semibold text-slate-800">' + parts.join('<span class="text-slate-400"> / </span>') + '</span>' +
+        '<button type="button" onclick="rdAddrReset(\'' + name + '\')" class="text-xs text-blue-600 hover:text-blue-800 underline">বদলান</button>' +
+        '</div>';
+    }
+
+    /* Three steps in one box, never three boxes.  Only the step the member is
+       on is drawn, which is what keeps the registration form short. */
+    function rdAddrRender(name) {
+      const mount = rdAddrMount(name);
+      if (!mount) return;
+      const s = rdAddrState[name] || (rdAddrState[name] = { div: '', dist: '', thana: '', text: '' });
+      let html = '<input type="hidden" name="' + escapeHtml(rdAddrFieldName(name)) + '" value="' + escapeHtml(rdAddrJoin(s)) +
+        '"><div class="rounded-xl border border-slate-300 bg-slate-50 p-3">' + rdAddrCrumb(name, s);
+
+      if (!s.div) {
+        html += '<p class="text-xs text-slate-500 mb-2">বিভাগ বাছুন</p><div class="flex flex-wrap gap-2">' +
+          rdAddrPillRow(name, 'div', rdAddrDivisionNames().concat([RD_ADDR_ABROAD]), '') + '</div>';
+      } else if (s.div === RD_ADDR_ABROAD) {
+        html += '<p class="text-xs text-slate-500 mb-2">দেশ ও শহরের নাম লিখুন</p>' +
+          '<input type="text" value="' + escapeHtml(s.text || '') + '" oninput="rdAddrType(\'' + name + '\',\'text\',this.value)" ' +
+          'placeholder="Toronto, Canada" class="form-input">';
+      } else if (!s.dist) {
+        html += '<p class="text-xs text-slate-500 mb-2">জেলা বাছুন</p><div class="flex flex-wrap gap-2">' +
+          rdAddrPillRow(name, 'dist', rdAddrDistrictsOf(s.div), '') + '</div>';
+      } else {
+        html += '<p class="text-xs text-slate-500 mb-2">উপজেলা / থানার নাম লিখুন</p>' +
+          '<input type="text" value="' + escapeHtml(s.thana || '') + '" oninput="rdAddrType(\'' + name + '\',\'thana\',this.value)" ' +
+          'placeholder="Badarganj" class="form-input">';
+      }
+
+      html += '<p class="rd-addr-error text-xs text-red-600 mt-2 hidden"></p></div>';
+      mount.innerHTML = html;
+      rdAddrSync(name);
+    }
+
+    function rdAddrPick(name, level, value) {
+      const s = rdAddrState[name] || (rdAddrState[name] = { div: '', dist: '', thana: '', text: '' });
+      if (level === 'div') { s.div = value; s.dist = ''; s.thana = ''; s.text = ''; }
+      else { s.dist = value; s.thana = ''; }
+      s.dirty = true;
+      rdAddrClearError(name);
+      rdAddrRender(name);
+    }
+
+    /* Typing must not redraw -- a redraw would replace the input under the
+       cursor and the member would lose focus after every letter. */
+    function rdAddrType(name, key, value) {
+      const s = rdAddrState[name];
+      if (!s) return;
+      s[key] = value;
+      s.dirty = true;
+      rdAddrClearError(name);
+      rdAddrSync(name);
+    }
+
+    function rdAddrReset(name) {
+      rdAddrState[name] = { div: '', dist: '', thana: '', text: '' };
+      rdAddrClearError(name);
+      rdAddrRender(name);
+    }
+
+    /* setFieldError cannot serve this field: it binds an input listener and
+       focuses the element, and a hidden input takes neither.  So the picker
+       carries its own line, inside its own border. */
+    function rdAddrError(name, message) {
+      const mount = rdAddrMount(name);
+      if (!mount) return;
+      const p = mount.querySelector('.rd-addr-error');
+      if (!p) return;
+      p.textContent = message;
+      p.classList.remove('hidden');
+      mount.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function rdAddrClearError(name) {
+      const mount = rdAddrMount(name);
+      const p = mount && mount.querySelector('.rd-addr-error');
+      if (p) { p.textContent = ''; p.classList.add('hidden'); }
+    }
+
+    /* Complete means: a district was reached, or Abroad was named.  The upazila
+       is left optional -- a member who does not remember the exact spelling
+       should still be able to submit, and the district is what we filter on. */
+    function rdAddrComplete(name) {
+      const s = rdAddrState[name];
+      if (!s || !s.div) return false;
+      if (s.div === RD_ADDR_ABROAD) return !!String(s.text || '').trim();
+      return !!s.dist;
+    }
+
+    function rdAddrInit(name, value) {
+      rdAddrState[name] = rdAddrParse(value);
+      rdAddrRender(name);
+    }
+
+    /* Every picker on the page.  The starting value comes from data-addr-value,
+       so a prefilled profile and a blank registration form use one code path;
+       rdAddrInit(name, value) is there for the caller that has the value in hand. */
+    function rdAddrInitAll() {
+      document.querySelectorAll('[data-addr]').forEach(el => {
+        rdAddrInit(el.getAttribute('data-addr'), el.getAttribute('data-addr-value') || '');
+      });
+    }
+
     async function submitMemberRegistration(e){
       e.preventDefault();
       const f=e.target, b=document.getElementById('member-submit-btn'), fd=new FormData(f);
@@ -3088,6 +3326,16 @@
         firstBad = firstBad || nm;
       });
       if (firstBad) return;
+      /* The address pickers are hidden inputs, so `required` cannot guard them --
+         the browser refuses to report a field it cannot show.  They are checked
+         here instead, and each carries its own message inside its own box. */
+      let addrBad = '';
+      [['address', 'স্থায়ী ঠিকানা'], ['presentAddress', 'বর্তমান ঠিকানা']].forEach(([nm, label]) => {
+        if (!rdAddrMount(nm) || rdAddrComplete(nm)) return;
+        if (!addrBad) rdAddrError(nm, label + ' বাছাই সম্পূর্ণ করুন — অন্তত জেলা পর্যন্ত।');
+        addrBad = addrBad || nm;
+      });
+      if (addrBad) return;
       b.disabled=true; b.innerHTML='<span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> Submitting...</span>'; lucide.createIcons();
       try {
         const payload = {
@@ -3096,6 +3344,7 @@
           whatsapp: normalizeBdMobile(fd.get('whatsapp')),
           email: fd.get('email'),
           address: fd.get('address'),
+          presentAddress: fd.get('presentAddress'),
           bloodGroup: fd.get('bloodGroup'),
           department: fd.get('department'),
           series: fd.get('series'),
@@ -3116,6 +3365,9 @@
         const r = await apiPost('submitRegistration', {registration: payload});
         f.reset();
         clearFieldErrors(f);
+        /* form.reset() empties the hidden inputs but cannot redraw the pickers;
+           without this the next applicant would see the previous one's district. */
+        rdAddrInitAll();
         /* The backend flags a duplicate instead of failing; say so plainly and
            keep the "admin will review" promise, because that is what happens. */
         const dup = String(r.status || '').toUpperCase() === 'DUPLICATE';
@@ -3156,7 +3408,11 @@
       f.employmentType.value = info.employmentType || '';
       f.organization.value = info.organization || '';
       f.designation.value = info.designation || '';
-      f.workLocation.value = info.workLocation || '';
+      /* The work location is a picker here too, so an update cannot put free
+         text back into a column the directory now filters on.  Whatever the
+         sheet holds is parsed; an old unrecognised value simply shows as
+         unchosen and the member picks it once. */
+      rdAddrInit('uinfoWork', info.workLocation || '');
       document.getElementById('uinfo-verified-badge').innerHTML = `${escapeHtml(info.fullName || '')} • Member ID: <strong>${escapeHtml(info.memberId || '')}</strong>`;
     }
 
