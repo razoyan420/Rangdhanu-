@@ -1723,6 +1723,14 @@
         msg: 'You are already on our list, so the application has been sent for another admin check. You will be emailed once the review is done.' },
       { re: /already (a )?member|already exists|duplicate/i, duplicate: true,
         msg: 'You are already on our list. The application has been sent for an admin check.' },
+      /* The web app runs as the person using it, so an admin whose Google
+         account was never shared on the data sheet gets Google's own refusal
+         back. That used to land on the generic "server is having trouble"
+         line, which sent us hunting the deployment instead of the sharing
+         list. Name it, because the cure is one click in the Sheet. */
+      { re: /do not have permission|permission to access|Requested entity was not found|openById/i,
+        msg: 'This Google account is on the admin list but has not been given access to the data sheet. '
+           + 'Ask the main admin to share the Rangdhanu spreadsheet and Drive folders with this account as an Editor.' },
       { re: /exception|permission|quota|timed? ?out|service|invalid response|failed to fetch|networkerror/i,
         msg: 'The server is having trouble and could not save this right now. Please try again in a little while.' },
       /* A function the backend does not have yet: the paste-in file is
