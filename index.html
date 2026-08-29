@@ -685,6 +685,16 @@
           <div><label class="form-label">Mobile Number *</label><input name="mobile" required class="form-input" inputmode="tel" placeholder="01XXXXXXXXX"></div>
           <div><label class="form-label">Email *</label><input name="email" required type="email" class="form-input"></div>
 
+          <!-- Alumni Association members are working people, so the two
+               professional fields are offered only to them, and never
+               required: an entry must not be blocked by a blank job. -->
+          <div class="sm:col-span-2 hidden" id="ec-alumni-extra-wrap">
+            <div class="grid sm:grid-cols-2 gap-5">
+              <div><label class="form-label">Designation <span class="text-slate-400 font-medium">(optional)</span></label><input name="designation" class="form-input" placeholder="e.g. Assistant Engineer"></div>
+              <div><label class="form-label">Organization <span class="text-slate-400 font-medium">(optional)</span></label><input name="organization" class="form-input" placeholder="e.g. RHD, Dhaka"></div>
+            </div>
+          </div>
+
           <div class="sm:col-span-2"><label class="form-label">Photo <span class="text-slate-400 font-medium">(optional)</span></label><input name="photo" type="file" accept="image/*" class="form-input py-2"></div>
 
           <div class="sm:col-span-2"><label class="form-label">Message (optional)</label><textarea name="message" rows="3" class="form-input" placeholder="The President and General Secretary messages are shown separately on the Committee page"></textarea></div>
@@ -1064,7 +1074,7 @@
           </div>
           <div>
             <label class="form-label">Series *</label>
-            <select name="series" required class="form-input" data-rd-series><option value="">Select Series</option></select>
+            <select name="series" required class="form-input" data-rd-series onchange="rdSyncPositionLabel()"><option value="">Select Series</option></select>
           </div>
           <div><label class="form-label">Batch (If Remembered)</label><input name="batch" class="form-input"></div>
           <div>
@@ -1074,7 +1084,7 @@
           <div><label class="form-label">Current Organization / Company</label><input name="organization" class="form-input"></div>
           <div><label class="form-label">Current Designation</label><input name="designation" class="form-input"></div>
           <div><label class="form-label">Work Location (Division/Country)</label><input name="workLocation" class="form-input"></div>
-          <div class="sm:col-span-2"><label class="form-label">Former Position at Rangdhanu / PDACC</label><input name="formerPosition" class="form-input"></div>
+          <div class="sm:col-span-2"><label class="form-label" id="member-position-label" data-rd-position-label>Position / Role at Rangdhanu / PDACC</label><input name="formerPosition" class="form-input" placeholder="e.g. Joint Secretary, PDACC Instructor"></div>
           <div class="sm:col-span-2"><label class="form-label">Passport Size Image</label><input name="photo" type="file" accept="image/*" class="form-input py-2"></div>
           
           <div class="sm:col-span-2"><button id="member-submit-btn" type="submit" class="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold">Submit Membership Application</button></div>

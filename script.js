@@ -1496,7 +1496,7 @@
              ${a.wa || a.phone ? `<a href="https://wa.me/${(a.wa || a.phone).replace(/[^0-9]/g, '')}" target="_blank" class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition"><i data-lucide="message-circle" class="w-4 h-4"></i></a>` : ''}
            </div>
 
-           ${a.former_pos ? `<div class="p-3 bg-amber-50 rounded-xl border border-amber-100"><p class="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">Former Position</p><p class="font-bold text-amber-900">${escapeHtml(a.former_pos)}</p></div>`:''}
+           ${a.former_pos ? `<div class="p-3 bg-amber-50 rounded-xl border border-amber-100"><p class="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">${escapeHtml(rdPositionLabel(a.status))}</p><p class="font-bold text-amber-900">${escapeHtml(a.former_pos)}</p></div>`:''}
         </div>
       `;
       openSubPage('profile', 'alumni');
@@ -1900,6 +1900,64 @@
         sel.innerHTML = opts;
         if (keep) sel.value = keep;
       });
+    }
+
+    /* ---------- One position field, two labels ------------------------
+       The sheet keeps a single column. Whether that text reads as a
+       current role or a former one is a question of who is looking at it,
+       not of where it is stored, so nothing is copied or migrated when a
+       series turns into Alumni in December. Only the label moves. */
+    const RD_POSITION_LABEL_NOW  = 'Position / Role at Rangdhanu / PDACC';
+    const RD_POSITION_LABEL_PAST = 'Former Position at Rangdhanu / PDACC';
+
+    function rdIsAlumniStatus(status) {
+      return /alumni/i.test(String(status || ''));
+    }
+
+    function rdPositionLabel(status) {
+      return rdIsAlumniStatus(status) ? RD_POSITION_LABEL_PAST : RD_POSITION_LABEL_NOW;
+    }
+
+    /* The newest series the server already counts as Alumni. Read off the
+       public directory, which carries viewStatus per row, so the cutoff is
+       never duplicated here and cannot drift from the backend. Returns ''
+       while the directory has not been read yet. */
+    function rdAlumniCutoffSeries() {
+      const order = rdSeriesList();
+      let rows = (alumniData || []).map(a => ({ series: a.series, status: a.status }));
+      /* The join page does not fetch the directory, so fall back to whatever
+         this tab already remembered. No extra round trip is taken for a label,
+         and the raw rows are read as they are: only two of their columns are
+         needed here, so nothing is re-shaped. */
+      if (!rows.length) {
+        const warm = rdFeedRecall('alumni');
+        if (Array.isArray(warm)) {
+          rows = warm.map(m => ({ series: String(m['Series'] || '').trim(),
+                                  status: String(m['viewStatus'] || '').trim() }));
+        }
+      }
+      let best = -1;
+      rows.forEach(a => {
+        if (!rdIsAlumniStatus(a.status)) return;
+        const i = order.indexOf(String(a.series || '').trim());
+        if (i > best) best = i;
+      });
+      return best === -1 ? '' : order[best];
+    }
+
+    /* Called when the applicant picks a Series on the membership form. */
+    function rdSyncPositionLabel() {
+      const label = document.getElementById('member-position-label');
+      if (!label) return;
+      const form = document.getElementById('member-registration-form');
+      const sel = form && form.querySelector('select[name="series"]');
+      const cutoff = rdAlumniCutoffSeries();
+      const order = rdSeriesList();
+      const mine = sel ? String(sel.value || '').trim() : '';
+      /* Unknown cutoff or no series chosen keeps the neutral wording. */
+      const past = !!(mine && cutoff &&
+        order.indexOf(mine) !== -1 && order.indexOf(mine) <= order.indexOf(cutoff));
+      label.textContent = past ? RD_POSITION_LABEL_PAST : RD_POSITION_LABEL_NOW;
     }
 
     /* ---------- The session must be written in full: 2025-2026 --------
@@ -2320,6 +2378,13 @@
             '<p class="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold ' +
               (lead ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700') + '">' + escapeHtml(m.position) + '</p>' +
             '<p class="text-xs text-slate-500 mt-2 font-medium">' + escapeHtml(m.department) + ' \u2022 Series ' + escapeHtml(m.series) + '</p>' +
+            /* Alumni Association entries may carry a job; the rest never do,
+               so the line simply is not drawn when both boxes were left blank. */
+            (String(m.designation || '').trim() || String(m.organization || '').trim()
+              ? '<p class="text-xs text-slate-600 mt-1.5 font-semibold break-words">' +
+                [m.designation, m.organization].map(x => String(x || '').trim()).filter(Boolean)
+                  .map(escapeHtml).join(' \u2022 ') + '</p>'
+              : '') +
           '</div>' +
         '</div>' +
         (lead && String(m.message || '').trim()
@@ -2438,6 +2503,8 @@
           position: position, fullName: fd.get('fullName'),
           department: fd.get('department'), series: fd.get('series'),
           mobile: mobile, email: String(fd.get('email') || '').trim(),
+          designation: ecWantsProfession(fd.get('committee')) ? String(fd.get('designation') || '').trim() : '',
+          organization: ecWantsProfession(fd.get('committee')) ? String(fd.get('organization') || '').trim() : '',
           message: fd.get('message') || '', photo: photo
         }});
         form.reset();
@@ -2473,7 +2540,25 @@
           list.map(p => '<option value="' + escapeHtml(p) + '">' + escapeHtml(p) + '</option>').join('')
         : '<option value="">Select the committee first</option>';
       psel.value = '';
+      ecSyncAlumniExtra();
       ecPositionChanged();
+    }
+
+    /* Designation and Organization are asked of the Alumni Association only.
+       They stay optional: a graduate between jobs must still be able to submit,
+       so the two boxes are never given `required`, and they are emptied when a
+       different committee is chosen so a stale answer cannot travel along. */
+    function ecWantsProfession(committee) {
+      return String(committee || '').trim() === RD_EC_COMMITTEES[1].name;
+    }
+
+    function ecSyncAlumniExtra() {
+      const csel = document.getElementById('ec-form-committee');
+      const wrap = document.getElementById('ec-alumni-extra-wrap');
+      if (!csel || !wrap) return;
+      const on = ecWantsProfession(csel.value);
+      wrap.classList.toggle('hidden', !on);
+      if (!on) wrap.querySelectorAll('input').forEach(i => { i.value = ''; });
     }
 
     /* "Others" is the escape hatch -- it swaps in a free-text box, and that
