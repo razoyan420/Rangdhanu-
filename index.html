@@ -852,6 +852,14 @@
             <button type="button" class="alumni-view-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-600 border-slate-200 hover:border-blue-300 transition" data-view="Alumni" onclick="setAlumniViewFilter('Alumni')"><span class="inline-flex items-center gap-1.5"><i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> Alumni</span></button>
             <button type="button" class="alumni-view-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-600 border-slate-200 hover:border-blue-300 transition" data-view="Running Member" onclick="setAlumniViewFilter('Running Member')"><span class="inline-flex items-center gap-1.5"><i data-lucide="backpack" class="w-3.5 h-3.5"></i> Running Member</span></button>
           </div>
+          <div class="flex flex-wrap gap-2 pt-4 mt-4 border-t border-slate-100" id="alumni-committee-links">
+            <button type="button" id="alumni-btn-ec" onclick="alumniViewExecutiveCommittee()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-extrabold hover:bg-slate-800 transition cursor-pointer">
+              <i data-lucide="shield-check" class="w-4 h-4"></i> Rangdhanu Executive Committee
+            </button>
+            <button type="button" id="alumni-btn-ac" onclick="alumniViewAlumniCommittee()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs sm:text-sm font-extrabold hover:border-blue-300 hover:bg-slate-50 transition cursor-pointer">
+              <i data-lucide="users" class="w-4 h-4"></i> Alumni Committee
+            </button>
+          </div>
           <div class="flex flex-wrap justify-between items-center gap-3 pt-4 mt-4 border-t border-slate-100 text-xs sm:text-sm text-slate-500 font-medium">
             <span id="alumni-count-text">Loading directory...</span>
             <div class="flex items-center gap-4">
@@ -1104,9 +1112,14 @@
               <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-display tracking-tight">Admin Dashboard</h2>
               <p class="mt-1.5 text-sm text-slate-500 leading-relaxed">Approve or reject applications, events and committee entries.</p>
             </div>
-            <button type="button" onclick="loadAdminDashboard()" class="shrink-0 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-sm hover:shadow-md transition cursor-pointer">
+            <div class="shrink-0 flex flex-wrap gap-2">
+            <button type="button" onclick="loadAdminDashboard()" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-sm hover:shadow-md transition cursor-pointer">
               <i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh
             </button>
+            <button type="button" id="admin-signout-btn" onclick="adminSignOut()" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-bold transition cursor-pointer">
+              <i data-lucide="log-out" class="w-4 h-4"></i> Sign out
+            </button>
+            </div>
           </div>
           <div id="admin-auth-status" class="mt-5"></div>
           <div class="grid sm:grid-cols-3 gap-2 mt-6" id="admin-tabs"></div>

@@ -1505,6 +1505,35 @@
     function closeAlumniModal() { goBackFromSubPage('profile'); }
     
     let alumniViewFilter = 'ALL';
+
+    /* ---------- from the directory to the committee page -----------------
+       The directory answers "who is in Rangdhanu"; the committee page answers
+       "who runs it". They were two clicks apart through the menu, so each
+       view now offers the committee that belongs to it: the Running Member
+       view points at the Rangdhanu Executive Committee, the Alumni view at
+       the Alumni Association committee. Same page, preselected -- not a copy
+       of it, so there is only ever one committee list to keep right. */
+    function rdViewCommittee(name) {
+      RD_EC.committee = name;
+      RD_EC.session = '';
+      switchPage('committee');
+      renderExecutiveCommittee();
+      lucide.createIcons();
+    }
+    function alumniViewExecutiveCommittee() { rdViewCommittee(RD_EC_COMMITTEES[0].name); }
+    function alumniViewAlumniCommittee() { rdViewCommittee(RD_EC_COMMITTEES[1].name); }
+
+    /* Which of the two shortcuts is on screen follows the view being read.
+       On "Everyone" both are offered, because both lists are on screen. */
+    function rdSyncAlumniCommitteeLinks(v) {
+      const pair = [['alumni-btn-ec', v === 'ALL' || v === 'Running Member'],
+                    ['alumni-btn-ac', v === 'ALL' || v === 'Alumni']];
+      pair.forEach(([id, show]) => {
+        const b = document.getElementById(id);
+        if (b) b.classList.toggle('hidden', !show);
+      });
+    }
+
     function setAlumniViewFilter(v) {
       alumniViewFilter = v;
       document.querySelectorAll('.alumni-view-tab-btn').forEach(b => {
@@ -1512,6 +1541,7 @@
         b.classList.toggle('bg-blue-600', active); b.classList.toggle('text-white', active); b.classList.toggle('border-blue-600', active);
         b.classList.toggle('bg-white', !active); b.classList.toggle('text-slate-600', !active); b.classList.toggle('border-slate-200', !active);
       });
+      rdSyncAlumniCommitteeLinks(v);
       filterAlumni();
     }
     function filterAlumni() {
@@ -3595,6 +3625,7 @@ f.reset();
       { key: 'social',        label: 'Social Media Corner',     icon: 'share-2',      action: 'getadminsocialposts', custom: true },
       { key: 'slides',        label: 'Slideshows',              icon: 'images',       action: 'getadminslides',      custom: true },
       { key: 'pdacc',         label: 'PDACC Page',              icon: 'graduation-cap', action: 'getadminpdacc',     custom: true },
+      { key: 'activity',      label: 'Edit History',            icon: 'history',      action: 'getadminactivity',    custom: true },
       { key: 'summary',       label: 'Members Summary',         icon: 'bar-chart-3',  action: '',                    custom: true }
     ];
     const RD_ADMIN_STATUSES = ['PENDING', 'DUPLICATE', 'APPROVED', 'REJECTED', 'ALL'];
@@ -3859,6 +3890,30 @@ f.reset();
       }
       RD_ADMIN.rows = { registrations: null, events: null, committee: null };
       adminGateRender();
+    }
+
+    /* Signing out is the gate closing on purpose. The token is dropped, Google
+       is told not to sign this browser back in by itself, and every loaded row
+       is thrown away so the next person on this computer starts from the
+       sign-in card with nothing of the last admin left on screen. No popup:
+       the page simply goes back to its locked state. */
+    function adminSignOut() {
+      RD_ADMIN_TOKEN = '';
+      try { if (rdGsiReady()) google.accounts.id.disableAutoSelect(); } catch (err) {}
+      RD_ADMIN.gate = 'locked';
+      RD_ADMIN.state = 'idle';
+      RD_ADMIN.error = '';
+      RD_ADMIN.admin = '';
+      RD_ADMIN.role = 'ALL';
+      RD_ADMIN.tab = 'registrations';
+      RD_ADMIN.status = 'PENDING';
+      RD_ADMIN.rows = {};
+      RD_ADMIN.busy = '';
+      RD_ADMIN.noteOpen = '';
+      RD_ADMIN.askWhat = '';
+      RD_ADMIN.askId = '';
+      adminGateRender();
+      if (!rdDrawGsiButton()) setTimeout(rdDrawGsiButton, 700);
     }
 
     async function loadAdminDashboard(force) {
@@ -4135,6 +4190,14 @@ f.reset();
         return [{ id: 'summary' }];
       }
 
+      if (tab === 'activity') {
+        /* The log is one flat list, newest first, and nothing on the card is
+           pressable -- so a running index is all the id it needs. */
+        const res = await apiGet('getadminactivity', {});
+        const rows = Array.isArray(res.rows) ? res.rows : [];
+        return rows.map((r, i) => Object.assign({}, r, { id: 'act-' + i }));
+      }
+
       const res = await apiGet(adminTabMeta(tab).action, {});
       const rows = Array.isArray(res.rows) ? res.rows : [];
       return rows.map(r => Object.assign({}, r, { id: String(r.noticeId || r.postId || r.slideId || r.lineId || r.updateId || '').trim() }))
@@ -4146,7 +4209,48 @@ f.reset();
       if (tab === 'social') return adminSocialHtml();
       if (tab === 'slides') return adminSlidesHtml();
       if (tab === 'pdacc') return adminPdaccHtml();
+      if (tab === 'activity') return adminActivityHtml();
       return adminSummaryHtml();
+    }
+
+    /* ---------- Edit History tab ---------------------------------------
+       Read only. Every admin function on the server passes through
+       rdRequireRole_(), which writes one line per change, so this tab is
+       simply that sheet turned around: newest first, one card per line.
+       Nothing here can be pressed, because nothing here should be edited. */
+    function adminActivityRowHtml(r) {
+      const verb = String(r.action || '');
+      const tone = /delete|remove|reject|clear/i.test(verb)
+        ? 'bg-rose-50 text-rose-700 border-rose-200'
+        : (/approve|publish|add|create|upload/i.test(verb)
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            : 'bg-blue-50 text-blue-700 border-blue-200');
+
+      return '<li class="rounded-2xl border border-slate-200 bg-white px-4 py-3.5">' +
+        '<div class="flex flex-wrap items-center gap-2">' +
+          '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-extrabold ' + tone + '">' +
+            escapeHtml(verb || 'change') + '</span>' +
+          (r.section ? '<span class="text-[11px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg">' + escapeHtml(r.section) + '</span>' : '') +
+          '<span class="ml-auto text-[11px] font-bold text-slate-400 tabular-nums">' + escapeHtml(r.when || '') + '</span>' +
+        '</div>' +
+        (r.item ? '<p class="mt-2 text-sm font-bold text-slate-800 break-words">' + escapeHtml(r.item) + '</p>' : '') +
+        '<p class="mt-1.5 text-[11px] font-semibold text-slate-500 break-words">' +
+          '<i data-lucide="user" class="w-3 h-3 inline-block align-[-1px]"></i> ' + escapeHtml(r.email || 'unknown') +
+          (r.role ? ' &middot; ' + escapeHtml(r.role) : '') + '</p>' +
+        (r.detail ? '<p class="mt-1.5 text-[11px] text-slate-400 leading-relaxed break-words">' + escapeHtml(r.detail) + '</p>' : '') +
+      '</li>';
+    }
+
+    function adminActivityHtml() {
+      const rows = Array.isArray(RD_ADMIN.rows.activity) ? RD_ADMIN.rows.activity : [];
+      const inner = rows.length
+        ? '<ul class="mt-5 space-y-2.5">' + rows.map(adminActivityRowHtml).join('') + '</ul>'
+        : '<div class="mt-5">' + adminInfoBox('history', 'Nothing recorded yet',
+            'Every change an admin makes shows up here with the date and time. The list fills up as the panel is used.', 'empty') + '</div>';
+
+      return adminPanelShell('history', 'Edit History',
+        'Who changed or removed what, newest first. This list is written by the server and cannot be edited here.',
+        inner);
     }
 
     /* A small, consistent set of buttons for these tabs. */
