@@ -101,6 +101,7 @@
       'event-detail': { parent: 'events', needsData: true  },
       'my-info':      { parent: 'alumni', needsData: false },
       'profile':      { parent: 'alumni', needsData: true  },
+      'member-signin': { parent: 'alumni', needsData: false },
       'photo':        { parent: 'home',   needsData: true  },
       'notice-file':  { parent: 'noticeboard', needsData: true  },
       'committee-new': { parent: 'committee', needsData: false },
@@ -1114,6 +1115,7 @@
       ecFillFormCommittees();
       rdFillSeriesSelects();
       rdAddrInitAll();
+      rdMemberRestore();
       loadExecutiveCommittee();
       renderCgpa();
       /* loadPublicAlumni() and loadPublicEvents() used to run here.  The home
@@ -1453,12 +1455,260 @@
       pager.innerHTML = html;
     }
     
-    function openAlumniModal(id) { 
+    /* ================= MEMBER SIGN IN ==================================
+       No second login system: this is the same Google ID token the admin gate
+       uses, verified by the same server helper. The only difference is the
+       parameter name -- a member token travels as `memberToken`, so it can
+       never be mistaken for an admin one.
+
+       The token lives in sessionStorage, not localStorage: closing the tab
+       signs the member out. A shared phone is the normal case here, not the
+       exception. */
+    const RD_MEMBER_KEY = 'rd_member_token';
+    let RD_MEMBER = { token: '', email: '', me: null, contacts: null, busy: false };
+
+    function rdMemberParams() { return RD_MEMBER.token ? { memberToken: RD_MEMBER.token } : {}; }
+    function rdMemberSignedIn() { return !!(RD_MEMBER.token && RD_MEMBER.me); }
+
+    function rdMemberRemember(token) {
+      RD_MEMBER.token = token || '';
+      try {
+        if (token) sessionStorage.setItem(RD_MEMBER_KEY, token);
+        else sessionStorage.removeItem(RD_MEMBER_KEY);
+      } catch (err) { /* private mode: the token still works for this page */ }
+    }
+
+    function rdMemberMsg(id, text, kind) {
+      const box = document.getElementById(id);
+      if (!box) return;
+      if (!text) { box.classList.add('hidden'); box.textContent = ''; return; }
+      box.classList.remove('hidden');
+      box.textContent = text;
+      box.className = 'text-sm font-bold mt-3 ' +
+        (kind === 'ok' ? 'text-emerald-700' : kind === 'wait' ? 'text-slate-500' : 'text-red-600');
+    }
+
+    /* Google's button owns one global callback, and the admin gate uses the same
+       one. So whichever page is on screen re-initialises it for itself; without
+       that, opening the member page would have pointed the admin button at the
+       member handler. */
+    let rdGsiOwner = '';
+
+    function rdDrawMemberGsiButton() {
+      const box = document.getElementById('member-gsi-btn');
+      if (!box) return false;
+      if (!rdGsiReady()) { box.classList.add('hidden'); return false; }
+      box.classList.remove('hidden');
+      try {
+        google.accounts.id.initialize({
+          client_id: RD_ADMIN_CLIENT_ID,
+          callback: memberGoogleCredential,
+          auto_select: false,
+          cancel_on_tap_outside: true
+        });
+        google.accounts.id.renderButton(box, {
+          theme: 'outline', size: 'large', shape: 'pill',
+          text: 'signin_with', width: 260
+        });
+        rdGsiOwner = 'member';
+        rdGsiDrawn = false;
+        return true;
+      } catch (err) {
+        box.classList.add('hidden');
+        return false;
+      }
+    }
+
+    function memberGoogleCredential(resp) {
+      const token = (resp && resp.credential) || '';
+      if (!token) { rdMemberMsg('member-signin-msg', 'Google সাইন ইন সম্পূর্ণ হয়নি।'); return; }
+      rdMemberRemember(token);
+      memberVerify(false);
+    }
+
+    async function memberVerify(quiet) {
+      if (!RD_MEMBER.token || RD_MEMBER.busy) return;
+      RD_MEMBER.busy = true;
+      if (!quiet) rdMemberMsg('member-signin-msg', 'দেখা হচ্ছে...', 'wait');
+      try {
+        const r = await apiGet('membersignin', rdMemberParams());
+        if (r && r.status === 'NO_MATCH') {
+          RD_MEMBER.me = null;
+          RD_MEMBER.email = r.email || '';
+          if (!quiet) {
+            rdMemberMsg('member-signin-msg',
+              (r.email || 'এই ইমেইলটি') + ' — এই ইমেইলটি আমাদের তালিকায় নেই। নিচে Member ID দিয়ে একবার মিলিয়ে নিন।');
+          }
+          return;
+        }
+        await memberSignedIn(r, quiet);
+      } catch (err) {
+        RD_MEMBER.me = null;
+        rdMemberRemember('');
+        if (!quiet) rdMemberMsg('member-signin-msg', friendlyError(err).msg);
+      } finally {
+        RD_MEMBER.busy = false;
+      }
+    }
+
+    async function memberSignedIn(r, quiet) {
+      RD_MEMBER.me = (r && r.member) || null;
+      RD_MEMBER.email = (r && r.email) || '';
+      await memberLoadContacts();
+      if (quiet) { rdMemberPaintSignInLinks(); return; }
+      rdMemberMsg('member-signin-msg', 'সাইন ইন হয়েছে ✅', 'ok');
+      showToast('সাইন ইন হয়েছে — সম্পূর্ণ তথ্য এখন দেখতে পাবেন।', 'success', 'স্বাগতম');
+      rdMemberPaintSignInLinks();
+      if (rdCurrentPageId === 'member-signin') goBackFromSubPage('member-signin');
+      if (RD_MEMBER.lastProfileId) openAlumniModal(RD_MEMBER.lastProfileId);
+    }
+
+    /* The contact sheet arrives once per sign-in and is kept in memory only --
+       never in sessionStorage, so a signed-out tab cannot be read back. */
+    async function memberLoadContacts() {
+      RD_MEMBER.contacts = null;
+      if (!RD_MEMBER.token) return;
+      try {
+        const r = await apiGet('membercontacts', rdMemberParams());
+        RD_MEMBER.contacts = (r && r.contacts) || {};
+      } catch (err) {
+        RD_MEMBER.contacts = null;
+      }
+    }
+
+    function memberContact(memberId) {
+      if (!RD_MEMBER.contacts || !memberId) return null;
+      return RD_MEMBER.contacts[String(memberId)] || null;
+    }
+
+    function memberSignOut() {
+      rdMemberRemember('');
+      RD_MEMBER.me = null;
+      RD_MEMBER.email = '';
+      RD_MEMBER.contacts = null;
+      try { if (rdGsiReady()) google.accounts.id.disableAutoSelect(); } catch (err) { /* nothing to undo */ }
+      rdMemberPaintSignInLinks();
+      showToast('সাইন আউট হয়েছে।', 'info', 'বিদায়');
+      if (RD_MEMBER.lastProfileId && rdCurrentPageId === 'profile') openAlumniModal(RD_MEMBER.lastProfileId);
+    }
+
+    /* ---------- the email did not match: six-digit code ------------------ */
+
+    async function memberLinkStart() {
+      if (!RD_MEMBER.token) {
+        rdMemberMsg('member-link-msg', 'আগে উপরের Google বাটন দিয়ে সাইন ইন করুন।');
+        return;
+      }
+      const id = (document.getElementById('member-link-id') || {}).value || '';
+      if (!id.trim()) { rdMemberMsg('member-link-msg', 'নিজের Member ID লিখুন।'); return; }
+      rdMemberMsg('member-link-msg', 'কোড পাঠানো হচ্ছে...', 'wait');
+      try {
+        const r = await apiPost('memberlinkstart', Object.assign({ memberId: id.trim() }, rdMemberParams()));
+        if (r && r.status !== 'OK') throw new Error(r.message || 'কোড পাঠানো গেল না।');
+        const box = document.getElementById('member-code-box');
+        if (box) box.classList.remove('hidden');
+        rdMemberMsg('member-link-msg', 'কোড গেছে: ' + (r.sentTo || 'আপনার ইমেইলে'), 'ok');
+      } catch (err) {
+        rdMemberMsg('member-link-msg', friendlyError(err).msg);
+      }
+    }
+
+    async function memberLinkVerify() {
+      const id = ((document.getElementById('member-link-id') || {}).value || '').trim();
+      const code = ((document.getElementById('member-link-code') || {}).value || '').trim();
+      if (!code) { rdMemberMsg('member-link-msg', 'ইমেইলে আসা কোডটি লিখুন।'); return; }
+      rdMemberMsg('member-link-msg', 'মেলানো হচ্ছে...', 'wait');
+      try {
+        const r = await apiPost('memberlinkverify',
+                                Object.assign({ memberId: id, code: code }, rdMemberParams()));
+        if (r && r.status !== 'OK') throw new Error(r.message || 'কোড মিলল না।');
+        rdMemberMsg('member-link-msg', 'মিলে গেছে ✅ এরপর থেকে সোজা Google দিয়েই ঢুকবেন।', 'ok');
+        await memberSignedIn(r, false);
+      } catch (err) {
+        rdMemberMsg('member-link-msg', friendlyError(err).msg);
+      }
+    }
+
+    /* Signed-in state shows up in two places only: the alumni page gets a small
+       sign-in / sign-out line, and the profile card unlocks. Nothing in the nav
+       changes, so the header stays exactly as it is. */
+    function rdMemberPaintSignInLinks() {
+      const box = document.getElementById('alumni-member-bar');
+      if (!box) return;
+      box.innerHTML = rdMemberSignedIn()
+        ? '<span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold"><i data-lucide="badge-check" class="w-4 h-4"></i> ' +
+          escapeHtml(RD_MEMBER.email) + '</span>' +
+          '<button type="button" onclick="memberSignOut()" class="ml-2 underline font-bold text-slate-500 hover:text-slate-900">সাইন আউট</button>'
+        : '<button type="button" onclick="openMemberSignIn(\'alumni\')" class="inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900"><i data-lucide="lock" class="w-4 h-4"></i> সদস্য সাইন ইন করে সম্পূর্ণ তথ্য দেখুন</button>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
+
+    /* A refresh must not sign anybody out, so the token is read back and checked
+       once -- quietly, because nobody pressed anything. */
+    function rdMemberRestore() {
+      let token = '';
+      try { token = sessionStorage.getItem(RD_MEMBER_KEY) || ''; } catch (err) { token = ''; }
+      rdMemberPaintSignInLinks();
+      if (!token) return;
+      RD_MEMBER.token = token;
+      memberVerify(true);
+    }
+
+    function openMemberSignIn(backTo) {
+      openSubPage('member-signin', backTo || rdCurrentPageId);
+      rdMemberMsg('member-signin-msg', '');
+      rdMemberMsg('member-link-msg', '');
+      if (!rdDrawMemberGsiButton()) setTimeout(rdDrawMemberGsiButton, 700);
+    }
+
+    function openAlumniModal(id) {
         const a = alumniData.find(x => String(x.id) === String(id)); 
         if(a) openAlumniProfileModal(a); 
     }
 
+    /* One card per private field, and one locked card in place of all of them.
+       The values are not hidden with CSS -- a signed-out browser never receives
+       them, so there is nothing in the page to reveal. */
+    function rdMemberPrivateRows(a) {
+
+      const c = memberContact(a.memberId);
+
+      if (!c) {
+        return '<div class="p-4 bg-blue-50 rounded-xl border border-blue-100 text-center">' +
+          '<div class="w-10 h-10 mx-auto rounded-full bg-white text-blue-700 flex items-center justify-center border border-blue-200"><i data-lucide="lock" class="w-5 h-5"></i></div>' +
+          '<p class="text-sm font-extrabold text-slate-900 mt-2.5">মোবাইল, WhatsApp, ইমেইল ও ঠিকানা</p>' +
+          '<p class="text-xs text-slate-600 mt-1 leading-relaxed">এই তথ্য শুধু সদস্যরাই দেখতে পান।</p>' +
+          '<button type="button" onclick="openMemberSignIn(\'profile\')" class="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition"><i data-lucide="shield-check" class="w-4 h-4"></i> সদস্য সাইন ইন</button>' +
+          '</div>';
+      }
+
+      const flat = (label, value) =>
+        '<div class="p-3 bg-slate-50 rounded-xl border border-slate-100">' +
+        '<p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">' + label + '</p>' +
+        '<p class="font-bold text-slate-900 break-all">' + escapeHtml(value || 'N/A') + '</p></div>';
+
+      const withBtn = (label, value, href, cls, icon) =>
+        '<div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center gap-3">' +
+        '<div class="min-w-0"><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">' + label + '</p>' +
+        '<p class="font-bold text-slate-900 font-mono text-base truncate">' + escapeHtml(value || 'N/A') + '</p></div>' +
+        (value ? '<a href="' + href + '" target="_blank" rel="noopener" class="w-10 h-10 shrink-0 rounded-full ' + cls +
+                 ' flex items-center justify-center transition"><i data-lucide="' + icon + '" class="w-4 h-4"></i></a>' : '') +
+        '</div>';
+
+      const phone = c['Mobile Number'] || '';
+      const wa = c['WhatsApp Number'] || phone;
+
+      return flat('Email', c['Email']) +
+             flat('Permanent Address', c['Permanent Address']) +
+             flat('Present Address', c['Present Address']) +
+             withBtn('Mobile Number', phone, 'tel:' + String(phone).replace(/[^0-9+]/g, ''),
+                     'bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white', 'phone') +
+             withBtn('WhatsApp Number', wa, 'https://wa.me/' + String(wa).replace(/[^0-9]/g, ''),
+                     'bg-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white', 'message-circle');
+    }
+
     function openAlumniProfileModal(a) {
+      RD_MEMBER.lastProfileId = a.id;
       const mc = document.getElementById("profile-content");
       mc.innerHTML = `
         <div class="relative bg-gradient-to-br from-slate-900 to-blue-900 rounded-t-3xl p-6 sm:p-8 text-center">
@@ -1489,30 +1739,7 @@
                   <p class="font-bold text-slate-900 line-clamp-1">${escapeHtml(a.loc)}</p>
                </div>
            </div>
-           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-              <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Email</p>
-              <p class="font-bold text-slate-900 break-all">${escapeHtml(a.email || 'N/A')}</p>
-           </div>
-           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-              <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Permanent Address</p>
-              <p class="font-bold text-slate-900">${escapeHtml(a.address || 'N/A')}</p>
-           </div>
-           
-           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
-             <div>
-               <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Mobile Number</p>
-               <p class="font-bold text-slate-900 font-mono text-base">${escapeHtml(a.phone || 'N/A')}</p>
-             </div>
-             ${a.phone ? `<a href="tel:${a.phone}" class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition"><i data-lucide="phone" class="w-4 h-4"></i></a>` : ''}
-           </div>
-
-           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
-             <div>
-               <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">WhatsApp Number</p>
-               <p class="font-bold text-slate-900 font-mono text-base">${escapeHtml(a.wa || 'N/A')}</p>
-             </div>
-             ${a.wa || a.phone ? `<a href="https://wa.me/${(a.wa || a.phone).replace(/[^0-9]/g, '')}" target="_blank" class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition"><i data-lucide="message-circle" class="w-4 h-4"></i></a>` : ''}
-           </div>
+           ${rdMemberPrivateRows(a)}
 
            ${a.former_pos ? `<div class="p-3 bg-amber-50 rounded-xl border border-amber-100"><p class="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">${escapeHtml(rdPositionCardLabel(a.status))}</p><p class="font-bold text-amber-900">${escapeHtml(a.former_pos)}</p></div>`:''}
         </div>
@@ -4190,7 +4417,7 @@ f.reset();
       if (!box) return false;
       if (!rdGsiReady()) { box.classList.add('hidden'); return false; }
       box.classList.remove('hidden');
-      if (rdGsiDrawn) return true;
+      if (rdGsiDrawn && rdGsiOwner === 'admin') return true;
       try {
         google.accounts.id.initialize({
           client_id: RD_ADMIN_CLIENT_ID,
@@ -4203,6 +4430,7 @@ f.reset();
           text: 'signin_with', width: 260
         });
         rdGsiDrawn = true;
+        rdGsiOwner = 'admin';
         return true;
       } catch (err) {
         box.classList.add('hidden');
