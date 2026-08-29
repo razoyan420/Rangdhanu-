@@ -1453,14 +1453,14 @@
             </div>
         </div>
         <div class="p-6 bg-white rounded-b-3xl space-y-3 text-sm">
-           <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+           ${String(a.desig || '').trim() ? `<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div class="w-10 h-10 shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><i data-lucide="briefcase" class="w-5 h-5"></i></div>
               <div><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Designation</p><p class="font-extrabold text-slate-900">${escapeHtml(a.desig)}</p></div>
-           </div>
-           <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+           </div>` : ''}
+           ${String(a.org || '').trim() ? `<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div class="w-10 h-10 shrink-0 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><i data-lucide="building-2" class="w-5 h-5"></i></div>
               <div><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Organization</p><p class="font-bold text-slate-900">${escapeHtml(a.org)}</p></div>
-           </div>
+           </div>` : ''}
            <div class="grid grid-cols-2 gap-3">
                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
                   <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Blood Group</p>
@@ -1496,7 +1496,7 @@
              ${a.wa || a.phone ? `<a href="https://wa.me/${(a.wa || a.phone).replace(/[^0-9]/g, '')}" target="_blank" class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition"><i data-lucide="message-circle" class="w-4 h-4"></i></a>` : ''}
            </div>
 
-           ${a.former_pos ? `<div class="p-3 bg-amber-50 rounded-xl border border-amber-100"><p class="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">${escapeHtml(rdPositionLabel(a.status))}</p><p class="font-bold text-amber-900">${escapeHtml(a.former_pos)}</p></div>`:''}
+           ${a.former_pos ? `<div class="p-3 bg-amber-50 rounded-xl border border-amber-100"><p class="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">${escapeHtml(rdPositionCardLabel(a.status))}</p><p class="font-bold text-amber-900">${escapeHtml(a.former_pos)}</p></div>`:''}
         </div>
       `;
       openSubPage('profile', 'alumni');
@@ -1916,6 +1916,17 @@
 
     function rdPositionLabel(status) {
       return rdIsAlumniStatus(status) ? RD_POSITION_LABEL_PAST : RD_POSITION_LABEL_NOW;
+    }
+
+    /* The profile card prints its labels in small uppercase letters, where the
+       full form wording wraps onto three lines and stops being readable. The
+       card therefore gets the short pair. Same rule, same source of truth —
+       only the length differs, so the two can never disagree about status. */
+    const RD_POSITION_CARD_NOW  = 'Position / Role';
+    const RD_POSITION_CARD_PAST = 'Former Position';
+
+    function rdPositionCardLabel(status) {
+      return rdIsAlumniStatus(status) ? RD_POSITION_CARD_PAST : RD_POSITION_CARD_NOW;
     }
 
     /* The newest series the server already counts as Alumni. Read off the
