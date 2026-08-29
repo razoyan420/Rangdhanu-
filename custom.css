@@ -328,6 +328,34 @@
 
     #page-photo img{-webkit-user-select:none;user-select:none;touch-action:pan-y;}
 
+    /* MEMBER DIRECTORY CARDS
+       The grid used to snap in fully formed the moment the fetch landed, which
+       read as a jolt on a page where everything else fades.  The cards now rise
+       the way .page-view does, so the arrival matches the rest of the site.
+
+       The stagger is per row of three rather than per card: eighteen separate
+       delays would finish nearly a second apart and start to feel slow, while a
+       row at a time still reads as filling in.  Delays stay short on purpose --
+       the last row is only .10s behind the first, so nobody waits for motion.
+
+       No prefers-reduced-motion rule is needed here; the catch-all at the end of
+       this file already flattens every animation on the page. */
+    @keyframes rdCardIn{0%{opacity:0;transform:translateY(12px) scale(.985)}100%{opacity:1;transform:none}}
+    #alumni-grid>.alumni-card{animation:rdCardIn .5s cubic-bezier(.16,1,.3,1) both;}
+    #alumni-grid>.alumni-card:nth-child(n+4){animation-delay:.02s;}
+    #alumni-grid>.alumni-card:nth-child(n+7){animation-delay:.04s;}
+    #alumni-grid>.alumni-card:nth-child(n+10){animation-delay:.06s;}
+    #alumni-grid>.alumni-card:nth-child(n+13){animation-delay:.08s;}
+    #alumni-grid>.alumni-card:nth-child(n+16){animation-delay:.10s;}
+
+    /* The photo carries its own fade because it lands after its card -- Drive is
+       a second request, and a picture appearing with a snap inside a card that
+       already faded in was the jolt moved rather than removed.  The class is
+       dropped by an onload handler, so a cached image is never held back. */
+    #alumni-grid .alumni-card img,#page-profile .rd-photo-in{transition:opacity .45s ease;}
+    .rd-photo-in{opacity:0;}
+    .rd-photo-in.rd-photo-ready{opacity:1;}
+
     @media (prefers-reduced-motion:reduce){
       /* !important because Tailwind's .scroll-smooth class outranks a bare html selector */
       html,html.scroll-smooth{scroll-behavior:auto !important;}

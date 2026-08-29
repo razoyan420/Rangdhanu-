@@ -69,10 +69,26 @@
     
     function initialsFor(name) { return String(name || '').split(' ').filter(n => n && !n.includes('.')).map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'DU'; }
     
+    /* A photo lands after the card that holds it -- Drive is a separate request.
+       The image therefore starts transparent and is faded in once it is here.
+       An error counts as arrival too: a broken photo must show its alt text and
+       its grey box, never an invisible hole. */
+    function rdPhotoReady(el) { if (el) el.classList.add('rd-photo-ready'); }
+
+    /* innerHTML can hand back an image that a warm browser cache already has,
+       and a load event that fired before this code ran never reaches us.  The
+       sweep after every render catches exactly those. */
+    function rdPhotoSweep(root) {
+      const scope = root || document;
+      scope.querySelectorAll('img.rd-photo-in:not(.rd-photo-ready)').forEach(img => {
+        if (img.complete) rdPhotoReady(img);
+      });
+    }
+
     function alumniAvatarMarkup(a, sz = 'w-12 h-12', tx = 'text-base', rd = 'rounded-2xl') {
       const img = normalizeAlumniImage(a.image);
       if (!img) return `<div class="${sz} ${rd} bg-blue-50 border border-blue-200 flex items-center justify-center font-bold text-blue-600 ${tx} shadow-sm">${escapeHtml(initialsFor(a.name))}</div>`;
-      return `<div class="${sz} ${rd} overflow-hidden flex items-center justify-center shadow-sm relative bg-slate-100"><img src="${escapeHtml(img)}" alt="${escapeHtml(a.name || '')}" loading="lazy" decoding="async" class="w-full h-full object-cover"></div>`;
+      return `<div class="${sz} ${rd} overflow-hidden flex items-center justify-center shadow-sm relative bg-slate-100"><img src="${escapeHtml(img)}" alt="${escapeHtml(a.name || '')}" loading="lazy" decoding="async" onload="rdPhotoReady(this)" onerror="rdPhotoReady(this)" class="w-full h-full object-cover rd-photo-in"></div>`;
     }
 
     /* ---------- Sub-pages: what used to be popups are now real pages ----------
@@ -1397,6 +1413,7 @@
              </div>`;
       }
       renderAlumniPager(last);
+      rdPhotoSweep(grid);
       lucide.createIcons();
     }
 
