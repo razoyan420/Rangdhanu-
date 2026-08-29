@@ -1521,7 +1521,7 @@
 
     function memberGoogleCredential(resp) {
       const token = (resp && resp.credential) || '';
-      if (!token) { rdMemberMsg('member-signin-msg', 'Google সাইন ইন সম্পূর্ণ হয়নি।'); return; }
+      if (!token) { rdMemberMsg('member-signin-msg', 'Google sign in did not finish.'); return; }
       rdMemberRemember(token);
       memberVerify(false);
     }
@@ -1529,7 +1529,7 @@
     async function memberVerify(quiet) {
       if (!RD_MEMBER.token || RD_MEMBER.busy) return;
       RD_MEMBER.busy = true;
-      if (!quiet) rdMemberMsg('member-signin-msg', 'দেখা হচ্ছে...', 'wait');
+      if (!quiet) rdMemberMsg('member-signin-msg', 'Checking...', 'wait');
       try {
         const r = await apiGet('membersignin', rdMemberParams());
         if (r && r.status === 'NO_MATCH') {
@@ -1537,7 +1537,7 @@
           RD_MEMBER.email = r.email || '';
           if (!quiet) {
             rdMemberMsg('member-signin-msg',
-              (r.email || 'এই ইমেইলটি') + ' — এই ইমেইলটি আমাদের তালিকায় নেই। নিচে Member ID দিয়ে একবার মিলিয়ে নিন।');
+              (r.email || 'This email') + ' is not on our list. Enter your Member ID below to match it once.');
           }
           return;
         }
@@ -1556,8 +1556,8 @@
       RD_MEMBER.email = (r && r.email) || '';
       await memberLoadContacts();
       if (quiet) { rdMemberPaintSignInLinks(); return; }
-      rdMemberMsg('member-signin-msg', 'সাইন ইন হয়েছে ✅', 'ok');
-      showToast('সাইন ইন হয়েছে — সম্পূর্ণ তথ্য এখন দেখতে পাবেন।', 'success', 'স্বাগতম');
+      rdMemberMsg('member-signin-msg', 'You are signed in.', 'ok');
+      showToast('Contact details are open for you now.', 'success', 'Signed in');
       rdMemberPaintSignInLinks();
       if (rdCurrentPageId === 'member-signin') goBackFromSubPage('member-signin');
       if (RD_MEMBER.lastProfileId) openAlumniModal(RD_MEMBER.lastProfileId);
@@ -1588,7 +1588,7 @@
       RD_MEMBER.contacts = null;
       try { if (rdGsiReady()) google.accounts.id.disableAutoSelect(); } catch (err) { /* nothing to undo */ }
       rdMemberPaintSignInLinks();
-      showToast('সাইন আউট হয়েছে।', 'info', 'বিদায়');
+      showToast('You are signed out.', 'info', 'Signed out');
       if (RD_MEMBER.lastProfileId && rdCurrentPageId === 'profile') openAlumniModal(RD_MEMBER.lastProfileId);
     }
 
@@ -1596,18 +1596,18 @@
 
     async function memberLinkStart() {
       if (!RD_MEMBER.token) {
-        rdMemberMsg('member-link-msg', 'আগে উপরের Google বাটন দিয়ে সাইন ইন করুন।');
+        rdMemberMsg('member-link-msg', 'Sign in with the Google button above first.');
         return;
       }
       const id = (document.getElementById('member-link-id') || {}).value || '';
-      if (!id.trim()) { rdMemberMsg('member-link-msg', 'নিজের Member ID লিখুন।'); return; }
-      rdMemberMsg('member-link-msg', 'কোড পাঠানো হচ্ছে...', 'wait');
+      if (!id.trim()) { rdMemberMsg('member-link-msg', 'Enter your Member ID.'); return; }
+      rdMemberMsg('member-link-msg', 'Sending the code...', 'wait');
       try {
         const r = await apiPost('memberlinkstart', Object.assign({ memberId: id.trim() }, rdMemberParams()));
-        if (r && r.status !== 'OK') throw new Error(r.message || 'কোড পাঠানো গেল না।');
+        if (r && r.status !== 'OK') throw new Error(r.message || 'The code could not be sent.');
         const box = document.getElementById('member-code-box');
         if (box) box.classList.remove('hidden');
-        rdMemberMsg('member-link-msg', 'কোড গেছে: ' + (r.sentTo || 'আপনার ইমেইলে'), 'ok');
+        rdMemberMsg('member-link-msg', 'Code sent to ' + (r.sentTo || 'your email'), 'ok');
       } catch (err) {
         rdMemberMsg('member-link-msg', friendlyError(err).msg);
       }
@@ -1616,30 +1616,68 @@
     async function memberLinkVerify() {
       const id = ((document.getElementById('member-link-id') || {}).value || '').trim();
       const code = ((document.getElementById('member-link-code') || {}).value || '').trim();
-      if (!code) { rdMemberMsg('member-link-msg', 'ইমেইলে আসা কোডটি লিখুন।'); return; }
-      rdMemberMsg('member-link-msg', 'মেলানো হচ্ছে...', 'wait');
+      if (!code) { rdMemberMsg('member-link-msg', 'Enter the code from your email.'); return; }
+      rdMemberMsg('member-link-msg', 'Matching...', 'wait');
       try {
         const r = await apiPost('memberlinkverify',
                                 Object.assign({ memberId: id, code: code }, rdMemberParams()));
-        if (r && r.status !== 'OK') throw new Error(r.message || 'কোড মিলল না।');
-        rdMemberMsg('member-link-msg', 'মিলে গেছে ✅ এরপর থেকে সোজা Google দিয়েই ঢুকবেন।', 'ok');
+        if (r && r.status !== 'OK') throw new Error(r.message || 'The code did not match.');
+        rdMemberMsg('member-link-msg', 'Matched. From now on Google alone will sign you in.', 'ok');
         await memberSignedIn(r, false);
       } catch (err) {
         rdMemberMsg('member-link-msg', friendlyError(err).msg);
       }
     }
 
-    /* Signed-in state shows up in two places only: the alumni page gets a small
-       sign-in / sign-out line, and the profile card unlocks. Nothing in the nav
-       changes, so the header stays exactly as it is. */
+    /* Signed-in state shows up in three places: the nav item flips between
+       Sign In and My Profile, the alumni page gets a sign-in / sign-out line,
+       and the profile card unlocks. */
+    function rdMemberNavPaint() {
+      const on = rdMemberSignedIn();
+      const t = document.getElementById('nav-member-text');
+      if (t) t.textContent = on ? 'My Profile' : 'Sign In';
+      const item = document.getElementById('mobile-member-item');
+      if (item) item.textContent = on ? 'My Profile' : 'Sign In';
+      const btn = document.getElementById('mobile-member-btn');
+      if (btn) btn.setAttribute('aria-label', on ? 'My Profile' : 'Member sign in');
+      const icon = document.getElementById('mobile-member-icon');
+      if (icon) {
+        icon.outerHTML = '<i id="mobile-member-icon" class="w-6 h-6" data-lucide="' +
+                         (on ? 'circle-user-round' : 'log-in') + '"></i>';
+      }
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
+
+    /* One nav item for both states. Signed out it opens the sign-in page, signed
+       in it opens the member's own profile, so nothing extra sits in the header. */
+    function rdMemberNavClick() {
+      const menu = document.getElementById('mobile-menu');
+      if (menu && !menu.classList.contains('hidden')) {
+        menu.classList.add('hidden');
+        syncMobileMenuButton();
+      }
+      if (rdMemberSignedIn()) rdMemberMyProfile();
+      else openMemberSignIn(rdCurrentPageId);
+    }
+
+    /* The own row is shaped the same way the directory rows are, so a PENDING
+       member sees the same card even though the public feed leaves them out. */
+    function rdMemberMyProfile() {
+      if (!rdMemberSignedIn()) { openMemberSignIn(rdCurrentPageId); return; }
+      const mine = rdAlumniShape([RD_MEMBER.me])[0];
+      if (!mine || !mine.memberId) { openMemberSignIn(rdCurrentPageId); return; }
+      openAlumniProfileModal(mine);
+    }
+
     function rdMemberPaintSignInLinks() {
+      rdMemberNavPaint();
       const box = document.getElementById('alumni-member-bar');
       if (!box) return;
       box.innerHTML = rdMemberSignedIn()
         ? '<span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold"><i data-lucide="badge-check" class="w-4 h-4"></i> ' +
           escapeHtml(RD_MEMBER.email) + '</span>' +
-          '<button type="button" onclick="memberSignOut()" class="ml-2 underline font-bold text-slate-500 hover:text-slate-900">সাইন আউট</button>'
-        : '<button type="button" onclick="openMemberSignIn(\'alumni\')" class="inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900"><i data-lucide="lock" class="w-4 h-4"></i> সদস্য সাইন ইন করে সম্পূর্ণ তথ্য দেখুন</button>';
+          '<button type="button" onclick="memberSignOut()" class="ml-2 underline font-bold text-slate-500 hover:text-slate-900">Sign out</button>'
+        : '<button type="button" onclick="openMemberSignIn(\'alumni\')" class="inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900"><i data-lucide="lock" class="w-4 h-4"></i> Sign in to see contact details</button>';
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
     }
 
@@ -1676,9 +1714,9 @@
       if (!c) {
         return '<div class="p-4 bg-blue-50 rounded-xl border border-blue-100 text-center">' +
           '<div class="w-10 h-10 mx-auto rounded-full bg-white text-blue-700 flex items-center justify-center border border-blue-200"><i data-lucide="lock" class="w-5 h-5"></i></div>' +
-          '<p class="text-sm font-extrabold text-slate-900 mt-2.5">মোবাইল, WhatsApp, ইমেইল ও ঠিকানা</p>' +
-          '<p class="text-xs text-slate-600 mt-1 leading-relaxed">এই তথ্য শুধু সদস্যরাই দেখতে পান।</p>' +
-          '<button type="button" onclick="openMemberSignIn(\'profile\')" class="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition"><i data-lucide="shield-check" class="w-4 h-4"></i> সদস্য সাইন ইন</button>' +
+          '<p class="text-sm font-extrabold text-slate-900 mt-2.5">Mobile, WhatsApp, email and address</p>' +
+          '<p class="text-xs text-slate-600 mt-1 leading-relaxed">Shown to signed in members only.</p>' +
+          '<button type="button" onclick="openMemberSignIn(\'profile\')" class="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition"><i data-lucide="shield-check" class="w-4 h-4"></i> Member Sign In</button>' +
           '</div>';
       }
 

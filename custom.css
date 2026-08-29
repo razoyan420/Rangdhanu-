@@ -362,3 +362,11 @@
       *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
       button:active,a:active{transform:none;}
     }
+
+    /* Two icon buttons now sit in the brand row on a phone: sign in, then the
+       menu. At 375 px the pair ran a few pixels past the edge, so on the
+       narrowest screens both boxes lose a little padding. */
+    @media (max-width:430px){
+      #mobile-member-btn,#mobile-menu-btn{padding:.55rem;}
+      #mobile-member-btn svg,#mobile-menu-btn svg{width:1.35rem;height:1.35rem;}
+    }

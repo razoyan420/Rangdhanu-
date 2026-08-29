@@ -199,6 +199,9 @@
     </div>
     <!-- Right side -->
     <div class="flex items-center gap-3 shrink-0">
+      <button id="mobile-member-btn" type="button" aria-label="Member sign in" class="xl:hidden p-3 rounded-2xl bg-white border border-sky-200 text-slate-700 hover:bg-sky-50 cursor-pointer" onclick="rdMemberNavClick()">
+        <i id="mobile-member-icon" class="w-6 h-6" data-lucide="log-in"></i>
+      </button>
       <button id="mobile-menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu" class="xl:hidden p-3 rounded-2xl bg-sky-50 border border-sky-200 text-slate-700 hover:bg-sky-100 cursor-pointer" onclick="toggleMobileMenu()">
         <i id="mobile-menu-icon" class="w-6 h-6" data-lucide="menu"></i>
       </button>
@@ -217,6 +220,7 @@
       <button class="nav-btn premium-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')"><span>Notice</span></button>
       <button class="nav-btn premium-nav-item" data-page="cgpa" onclick="switchPage('cgpa')"><span>CGPA</span></button>
       <span class="ml-auto inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-slate-500">DUET, Gazipur</span>
+      <button id="nav-member-btn" type="button" class="nav-btn premium-nav-item" onclick="rdMemberNavClick()"><span id="nav-member-text">Sign In</span></button>
       <button class="nav-cta ml-3" onclick="switchPage('register')"><i class="w-4 h-4" data-lucide="user-plus"></i>Membership Application</button>
     </div>
   </nav>
@@ -230,6 +234,7 @@
     <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')">Executive Committee</button>
     <button class="mobile-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')">Notice Board</button>
     <button class="mobile-nav-item" data-page="cgpa" onclick="switchPage('cgpa')">CGPA Calculator</button>
+    <button id="mobile-member-item" type="button" class="mobile-nav-item" onclick="rdMemberNavClick()">Sign In</button>
     <button class="w-full mt-3 py-3 rounded-xl text-white font-extrabold inline-flex items-center justify-center gap-2" style="background:#0ea5e9;box-shadow:0 10px 26px -10px rgba(14,165,233,.7);" onclick="switchPage('register')"><i class="w-5 h-5" data-lucide="user-plus"></i>Membership Application</button>
   </div>
 </header>
@@ -1250,42 +1255,36 @@
 
         <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 text-center">
           <div class="w-14 h-14 mx-auto rounded-full bg-blue-100 text-blue-700 flex items-center justify-center"><i data-lucide="shield-check" class="w-7 h-7"></i></div>
-          <h2 class="text-xl font-extrabold text-slate-900 mt-4">সদস্য সাইন ইন</h2>
-          <p class="text-sm text-slate-600 mt-2 leading-relaxed">মোবাইল, WhatsApp, ইমেইল আর ঠিকানা শুধু সদস্যরাই দেখতে পান। সাইন ইন করলে সম্পূর্ণ তথ্য খুলে যাবে।</p>
+          <h2 class="text-xl font-extrabold text-slate-900 mt-4">Member Sign In</h2>
+          <p class="text-sm text-slate-600 mt-2 leading-relaxed">Mobile, WhatsApp, email and addresses are shown to members only.</p>
 
           <div class="mt-5 flex justify-center" id="member-gsi-btn"></div>
           <p id="member-signin-msg" class="text-sm font-bold mt-3 hidden"></p>
         </div>
 
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 text-left">
-          <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">কারা সাইন ইন করতে পারবেন</p>
-          <ul class="text-sm text-slate-600 mt-2 space-y-1.5 list-disc pl-5">
-            <li>যাঁদের Membership Application অনুমোদন হয়েছে (Member ID পেয়েছেন)।</li>
-            <li>যাঁদের আবেদন এখনো অপেক্ষায় আছে — তাঁরাও ঢুকে নিজের তথ্য ঠিক করতে পারবেন।</li>
-          </ul>
-          <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wider mt-4">কোন ইমেইল দিয়ে</p>
-          <p class="text-sm text-slate-600 mt-2 leading-relaxed">আবেদনপত্রে যে ইমেইলটি দিয়েছিলেন, সেই Google অ্যাকাউন্টটিই ব্যবহার করুন। ইমেইলটি Gmail না হলে বা আলাদা হলে নিচের কোড দিয়ে একবার মিলিয়ে নিন — এরপর থেকে সোজা Google দিয়েই ঢুকবেন।</p>
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">
+          <p class="text-sm text-slate-600 leading-relaxed">Approved and pending members can sign in. Use the Google account for the email you gave on your application.</p>
         </div>
 
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5" id="member-link-box">
-          <p class="text-sm font-extrabold text-slate-900">ইমেইল মিলছে না?</p>
-          <p class="text-xs text-slate-500 mt-1 leading-relaxed">Google দিয়ে সাইন ইন করে নিজের Member ID লিখুন। আবেদনপত্রের ইমেইলে ছয় অঙ্কের কোড যাবে।</p>
+          <p class="text-sm font-extrabold text-slate-900">Email not matching?</p>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">Sign in with Google, then enter your Member ID. A six digit code goes to the email on your application.</p>
 
           <label class="form-label mt-4">Member ID</label>
           <input id="member-link-id" class="form-input" placeholder="RD-2025-001" autocomplete="off">
-          <button type="button" onclick="memberLinkStart()" class="mt-3 w-full py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 transition">কোড পাঠান</button>
+          <button type="button" onclick="memberLinkStart()" class="mt-3 w-full py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 transition">Send code</button>
 
           <div id="member-code-box" class="hidden mt-4 pt-4 border-t border-slate-200">
-            <label class="form-label">ছয় অঙ্কের কোড</label>
+            <label class="form-label">Six digit code</label>
             <input id="member-link-code" class="form-input font-mono tracking-widest" placeholder="123456" inputmode="numeric" maxlength="6" autocomplete="off">
-            <button type="button" onclick="memberLinkVerify()" class="mt-3 w-full py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition">মিলিয়ে নিন</button>
+            <button type="button" onclick="memberLinkVerify()" class="mt-3 w-full py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition">Verify</button>
           </div>
 
           <p id="member-link-msg" class="text-sm font-bold mt-3 hidden"></p>
         </div>
 
         <div class="bg-blue-50 rounded-3xl border border-blue-100 p-5 text-center">
-          <p class="text-sm text-slate-700">এখনো সদস্য হননি?</p>
+          <p class="text-sm text-slate-700">Not a member yet?</p>
           <button type="button" onclick="switchPage('register')" class="mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition"><i data-lucide="user-plus" class="w-4 h-4"></i> Membership Application</button>
         </div>
 
