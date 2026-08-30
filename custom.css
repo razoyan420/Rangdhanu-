@@ -497,3 +497,70 @@
       text-overflow:ellipsis;
     }
     .rd-vis-select:focus{outline:none;border-color:#93c5fd;background:#fff;}
+
+    /* ---------------- social media accounts ----------------------------
+       Two shapes, one look: the editable row on the registration form and
+       My Profile, and the read only chip another member taps. */
+    .rd-soc-row{
+      display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;
+      padding:.4rem;border:1px solid #e2e8f0;border-radius:.9rem;background:#f8fafc;
+    }
+    .rd-soc-row.is-bad{border-color:#fca5a5;background:#fef2f2;}
+    .rd-soc-mark{
+      width:2rem;height:2rem;flex:0 0 auto;border-radius:.6rem;
+      display:flex;align-items:center;justify-content:center;
+      background:#fff;border:1px solid #e2e8f0;color:#475569;
+    }
+    .rd-soc-mark svg{width:1.05rem;height:1.05rem;}
+    .rd-soc-net{
+      flex:0 0 auto;width:6.5rem;
+      border:1px solid #e2e8f0;border-radius:.6rem;background:#fff;
+      padding:.4rem .5rem;font-size:.75rem;font-weight:700;color:#334155;cursor:pointer;
+    }
+    .rd-soc-url{
+      flex:1 1 auto;min-width:0;
+      border:1px solid #e2e8f0;border-radius:.6rem;background:#fff;
+      padding:.4rem .6rem;font-size:.8rem;color:#0f172a;
+    }
+    .rd-soc-net:focus,.rd-soc-url:focus{outline:none;border-color:#93c5fd;}
+    .rd-soc-del{
+      width:2rem;height:2rem;flex:0 0 auto;border-radius:.6rem;
+      display:flex;align-items:center;justify-content:center;
+      background:#fff;border:1px solid #e2e8f0;color:#94a3b8;cursor:pointer;
+      transition:background .15s ease,color .15s ease,border-color .15s ease;
+    }
+    .rd-soc-del:hover,.rd-soc-del:focus-visible{background:#fef2f2;border-color:#fca5a5;color:#dc2626;}
+    .rd-soc-foot{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem;}
+    .rd-soc-add{
+      display:inline-flex;align-items:center;gap:.35rem;
+      padding:.4rem .8rem;border-radius:.7rem;
+      border:1px dashed #93c5fd;background:#eff6ff;color:#1d4ed8;
+      font-size:.75rem;font-weight:800;cursor:pointer;
+      transition:background .15s ease,border-color .15s ease;
+    }
+    .rd-soc-add:hover:not(:disabled){background:#dbeafe;border-color:#60a5fa;}
+    .rd-soc-add:disabled{opacity:.5;cursor:not-allowed;}
+    .rd-soc-note{font-size:.7rem;font-weight:700;color:#94a3b8;}
+    .rd-soc-err{font-size:.75rem;font-weight:700;color:#dc2626;margin-top:.5rem;}
+
+    /* The chip carries the platform's own colour, so the row of logos reads at
+       a glance without a label being needed at all. */
+    .rd-soc-chips{display:flex;flex-wrap:wrap;gap:.5rem;}
+    .rd-soc-chip{
+      display:inline-flex;align-items:center;gap:.45rem;
+      padding:.5rem .85rem;border-radius:.8rem;
+      border:1px solid #e2e8f0;background:#f8fafc;color:#334155;
+      font-size:.78rem;font-weight:800;text-decoration:none;
+      transition:background .15s ease,border-color .15s ease,color .15s ease;
+    }
+    .rd-soc-chip svg{width:1.05rem;height:1.05rem;}
+    .rd-soc-chip.is-facebook{color:#1877f2;border-color:#c7ddfb;background:#eff6ff;}
+    .rd-soc-chip.is-linkedin{color:#0a66c2;border-color:#c3dcf5;background:#eff6ff;}
+    .rd-soc-chip.is-x{color:#0f172a;border-color:#d8dee7;background:#f1f5f9;}
+    .rd-soc-chip:hover,.rd-soc-chip:focus-visible{background:#fff;border-color:currentColor;}
+
+    @media (max-width:480px){
+      .rd-soc-row{flex-wrap:wrap;}
+      .rd-soc-net{width:auto;flex:1 1 5rem;}
+      .rd-soc-url{flex:1 1 100%;order:3;}
+    }

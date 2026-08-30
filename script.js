@@ -458,15 +458,14 @@
       return out;
     }
 
-    /* The three long-standing event cards are hand-written HTML, so their
-       covers are refreshed here once the manifest arrives. */
+    /* The long-standing events keep their pictures in Drive, and they are
+       ordinary cards in the one events grid now -- so the grid is simply drawn
+       again once the manifest arrives, and they pick their Drive covers up.
+       This used to hand three picture-element ids a new src; those cards were
+       hand-written HTML then, and each of them was also drawn a second time by
+       the grid below. */
     function applyStaticEventCovers() {
-      staticEvents.forEach((e, i) => {
-        const img = document.getElementById('static-event-cover-' + i);
-        if (!img) return;
-        const url = rdEventFromDrive(e).mainImage;
-        if (url && url !== img.getAttribute('src')) img.setAttribute('src', url);
-      });
+      if (document.getElementById('public-events-grid')) rdEventsPaint(RD_EV_DYNAMIC);
     }
 
     /* ================= REUNION TRAILER (Google Drive) ===================
@@ -1122,6 +1121,7 @@
       ecFillFormCommittees();
       rdFillSeriesSelects();
       rdAddrInitAll();
+      rdSocialInitAll();
       rdMemberRestore();
       loadExecutiveCommittee();
       renderCgpa();
@@ -1914,6 +1914,8 @@
       rdAddrInit('mypPresent', m['Present Address'] || '');
       rdAddrInit('mypWork', m['Work Location (Division / Country)'] || '');
 
+      rdSocialRender('myp-social', rdSocialParse(m['Social Links']));
+
       const vis = m.visibility || {};
       document.querySelectorAll('[data-myp-vis]').forEach(sel => {
         const field = sel.getAttribute('data-myp-vis');
@@ -1962,6 +1964,11 @@
         visibility[sel.getAttribute('data-myp-vis')] = sel.value;
       });
 
+      /* null means one of the rows is wrong; the block says so itself, so
+         there is nothing to add here beyond not saving. */
+      const social = rdSocialCollect('myp-social');
+      if (social === null) return false;
+
       const payload = {
         mobile: mobile,
         whatsapp: wa,
@@ -1974,6 +1981,7 @@
         designation: String(fd.get('designation') || '').trim(),
         workLocation: String(fd.get('workLocation') || '').trim(),
         formerPosition: String(fd.get('formerPosition') || '').trim(),
+        socialLinks: social,
         visibility: visibility
       };
 
@@ -2246,7 +2254,13 @@
 
       const contact = rdProfileSection('Contact', rdMemberPrivateRows(a));
 
-      mc.innerHTML = head + idCard + work + contact;
+      /* Drawn only for a member who added an account, and only from the signed
+         in contacts answer -- so "Only me" keeps the links out of the reply
+         rather than merely off the screen. */
+      const c = memberContact(a.memberId);
+      const social = rdProfileSection('Social Media', c ? rdSocialChips(c['Social Links']) : '');
+
+      mc.innerHTML = head + idCard + work + contact + social;
       openSubPage('profile', 'alumni');
       lucide.createIcons();
       /* A picture the browser already has fires its load event before this
@@ -3669,18 +3683,63 @@
 
     window.publicEvents = [];
 
+    /* The list from the network, kept so applyStaticEventCovers() can draw the
+       grid again on its own when the Drive manifest lands. */
+    let RD_EV_DYNAMIC = [];
+
+    /* Two events are the same event when they carry the same name. Nothing else
+       is comparable: a curated event has eventId STATIC-1, the copy submitted
+       through the website form gets an id of its own. */
+    function rdEventsKey(e) {
+      return String((e && (e.eventName || e['Event Name'])) || '').trim().toLowerCase();
+    }
+
+    /* The day it happened, as a number. An event with no readable date sinks to
+       the bottom rather than jumping to the top of the page. */
+    function rdEventsWhen(e) {
+      const t = Date.parse((e && (e.eventDate || e['Event Date'])) || '');
+      return isNaN(t) ? -Infinity : t;
+    }
+
     /* Draws the grid from a list of dynamic events.  Called twice: once with the
        remembered list so a reload has something on screen immediately, once with
-       the fresh list from the network. */
+       the fresh list from the network.
+
+       The page used to have a second, hand-written grid above this one holding
+       the three long-standing events -- and this grid drew those three as well,
+       because the list starts with them. Each of them was therefore on the page
+       twice. There is one grid now, so the two things that used to be implicit
+       are decided here: a name that turns up twice is drawn once, and the order
+       is the event date, newest first. */
     function rdEventsPaint(dynamicEvs) {
       const g = document.getElementById('public-events-grid'), st = document.getElementById('public-events-status');
       if (!g || !st) return;
       dynamicEvs = Array.isArray(dynamicEvs) ? dynamicEvs : [];
-        window.publicEvents = [...staticEvents, ...dynamicEvs];
-        st.innerHTML = `<span class="text-xs font-bold text-slate-500 bg-slate-100 inline-block px-3 py-1 rounded-lg">${dynamicEvs.length} events from the website</span>`;
+      RD_EV_DYNAMIC = dynamicEvs;
+
+        /* The curated copy wins, being the one with the Drive album and the
+           full description -- so the curated list is walked first. */
+        const rdSeen = {}, rdAll = [];
+        [...staticEvents, ...dynamicEvs].forEach(e => {
+          const k = rdEventsKey(e);
+          if (k && rdSeen[k]) return;
+          if (k) rdSeen[k] = true;
+          rdAll.push(e);
+        });
+        rdAll.sort((a, b) => rdEventsWhen(b) - rdEventsWhen(a));
+        window.publicEvents = rdAll;
+
+        st.innerHTML = `<span class="text-xs font-bold text-slate-500 bg-slate-100 inline-block px-3 py-1 rounded-lg">${rdAll.length} events</span>`;
         
-        g.innerHTML = window.publicEvents.map((e, index) => {
+        g.innerHTML = window.publicEvents.map((raw, index) => {
+          /* The curated events keep their pictures in Drive. The hand-written
+             cards had their covers swapped in after the manifest arrived; a
+             script-drawn card asks for the Drive copy right here. */
+          const e = rdEventFromDrive(raw);
           const img = normalizeAlumniImage(e.mainImage || e['Main Image'] || '');
+          /* Still a bundled path means Drive has no folder for this one yet, so
+             the card carries the same fallback the hand-written markup did. */
+          const local = /^Images\//.test(String(e.mainImage || '')) ? String(e.mainImage) : '';
           const title = e.eventName || e['Event Name'] || 'Event';
           const cat = e.category || e['Category'] || 'Event';
           const date = e.eventDate || e['Event Date'] || '';
@@ -3689,7 +3748,7 @@
           return `
             <article class="group bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden">
                <div class="relative aspect-video bg-slate-100 overflow-hidden cursor-pointer" onclick="openDynamicEvent(${index})">
-                 ${img ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">` : '<div class="w-full h-full flex items-center justify-center"><i data-lucide="image" class="w-8 h-8 text-slate-300"></i></div>'}
+                 ${img ? `<img src="${escapeHtml(img)}"${local ? ` data-rd-img="${escapeHtml(local)}" onerror="rdImgFallback(this, '${escapeHtml(local)}')"` : ''} alt="${escapeHtml(title)}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">` : '<div class="w-full h-full flex items-center justify-center"><i data-lucide="image" class="w-8 h-8 text-slate-300"></i></div>'}
                  <div class="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur text-blue-700 text-[10px] font-black uppercase tracking-widest shadow-sm">${escapeHtml(cat)}</div>
                </div>
                <div class="p-6 flex-1 flex flex-col">
@@ -4041,6 +4100,234 @@
       rdAddrRender(name);
     }
 
+    /* ---------------- social media accounts -------------------------------
+       Optional, and a member may add more than one. The three places are
+       named here and nowhere else on the site, so a fourth one is one line.
+       Member_Social.gs checks the same hosts again on the server -- a check
+       that only runs in the browser is a courtesy, not a rule.
+
+       One set of helpers serves both mounts: the registration form and My
+       Profile. Two copies would have drifted the first time one of them
+       gained a platform the other did not. */
+    const RD_SOCIAL_NETS = [
+      { key: 'FACEBOOK', label: 'Facebook',
+        hosts: ['facebook.com', 'fb.com', 'fb.me', 'm.facebook.com'],
+        hint: 'https://www.facebook.com/your.name' },
+      { key: 'LINKEDIN', label: 'LinkedIn',
+        hosts: ['linkedin.com', 'lnkd.in'],
+        hint: 'https://www.linkedin.com/in/your-name' },
+      { key: 'X', label: 'X',
+        hosts: ['x.com', 'twitter.com'],
+        hint: 'https://x.com/yourhandle' }
+    ];
+    const RD_SOCIAL_MAX = 6;
+
+    function rdSocialNet(key) {
+      const want = String(key || '').trim().toUpperCase();
+      return RD_SOCIAL_NETS.find(n => n.key === want || n.label.toUpperCase() === want) || RD_SOCIAL_NETS[0];
+    }
+
+    /* The real brand marks, drawn rather than fetched. lucide carries a
+       Facebook and a LinkedIn glyph but no X, so all three are kept together
+       here instead -- one shape language, and nothing to load. */
+    function rdSocialIcon(key) {
+      const net = rdSocialNet(key);
+      const d = {
+        FACEBOOK: 'M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.78-1.63 1.57v1.88h2.78l-.45 2.91h-2.33V22c4.78-.76 8.44-4.92 8.44-9.94z',
+        LINKEDIN: 'M4.98 3.5a2.5 2.5 0 1 1-.02 5 2.5 2.5 0 0 1 .02-5zM3.2 8.98h3.56V21H3.2zM9.34 8.98h3.41v1.64h.05c.47-.9 1.63-1.85 3.36-1.85 3.59 0 4.25 2.36 4.25 5.43V21h-3.55v-5.36c0-1.28-.02-2.92-1.78-2.92-1.79 0-2.06 1.39-2.06 2.83V21H9.34z',
+        X: 'M17.53 3h3.2l-6.99 7.99L21.8 21h-6.2l-4.86-6.35L5.13 21H1.92l7.28-8.32L2.2 3h6.36l4.53 5.99zM16.4 19.1h1.77L6.68 4.8H4.78z'
+      }[net.key];
+      return '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="' + d + '"></path></svg>';
+    }
+
+    /* A link is only accepted where it belongs, so nobody can drop a random
+       address into the Facebook row -- and javascript: or data: never reach
+       an href in the first place. */
+    function rdSocialUrlOk(key, url) {
+      const net = rdSocialNet(key);
+      const u = String(url || '').trim();
+      if (!u || u.length > 300 || !/^https?:\/\//i.test(u)) return false;
+      let host = u.replace(/^https?:\/\//i, '').split(/[\/?#]/)[0].toLowerCase();
+      if (host.indexOf('@') >= 0) return false;
+      host = host.split(':')[0];
+      return net.hosts.some(h => host === h || host.endsWith('.' + h));
+    }
+
+    /* The sheet keeps one account per line, `Facebook|https://...`. A broken
+       line is dropped rather than drawn, because a profile page must not stop
+       being readable over one bad row. */
+    function rdSocialParse(raw) {
+      const out = [], seen = {};
+      String(raw == null ? '' : raw).split(/[\r\n]+/).forEach(line => {
+        const cut = line.indexOf('|');
+        if (cut < 0 || out.length >= RD_SOCIAL_MAX) return;
+        const net = rdSocialNet(line.slice(0, cut));
+        const url = line.slice(cut + 1).trim();
+        if (String(line.slice(0, cut)).trim().toUpperCase() !== net.key &&
+            String(line.slice(0, cut)).trim().toUpperCase() !== net.label.toUpperCase()) return;
+        if (!rdSocialUrlOk(net.key, url)) return;
+        const k = net.key + '|' + url.toLowerCase();
+        if (seen[k]) return;
+        seen[k] = true;
+        out.push({ net: net.key, url: url });
+      });
+      return out;
+    }
+
+    function rdSocialSerialize(rows) {
+      return (Array.isArray(rows) ? rows : [])
+        .map(r => rdSocialNet(r.net).label + '|' + String(r.url || '').trim())
+        .join('\n');
+    }
+
+    /* ---- the editor: one row per account, on both forms ---- */
+
+    /* Which row is on screen, read straight back out of the DOM. Keeping the
+       list in a variable as well would have meant two versions of the truth. */
+    function rdSocialRows(mount) {
+      const box = document.getElementById(mount);
+      if (!box) return [];
+      return Array.from(box.querySelectorAll('[data-rd-soc-row]')).map(row => ({
+        net: (row.querySelector('[data-rd-soc-net]') || {}).value || RD_SOCIAL_NETS[0].key,
+        url: String((row.querySelector('[data-rd-soc-url]') || {}).value || '').trim()
+      }));
+    }
+
+    function rdSocialRowHtml(mount, i, net, url) {
+      const chosen = rdSocialNet(net);
+      const opts = RD_SOCIAL_NETS.map(n =>
+        '<option value="' + n.key + '"' + (n.key === chosen.key ? ' selected' : '') + '>' + n.label + '</option>'
+      ).join('');
+      return '<div class="rd-soc-row" data-rd-soc-row>' +
+        '<span class="rd-soc-mark" data-rd-soc-mark>' + rdSocialIcon(chosen.key) + '</span>' +
+        '<select class="rd-soc-net" data-rd-soc-net aria-label="Social media platform" ' +
+          'onchange="rdSocialNetChange(this)">' + opts + '</select>' +
+        '<input class="rd-soc-url" data-rd-soc-url type="url" inputmode="url" maxlength="300" ' +
+          'aria-label="' + chosen.label + ' profile link" placeholder="' + escapeHtml(chosen.hint) + '" ' +
+          'value="' + escapeHtml(url || '') + '">' +
+        '<button type="button" class="rd-soc-del" onclick="rdSocialRemove(\'' + mount + '\', ' + i + ')" ' +
+          'aria-label="Remove this account"><i data-lucide="x" class="w-4 h-4"></i></button>' +
+        '</div>';
+    }
+
+    /* Changing the platform swaps the logo and the example in place rather than
+       redrawing the block -- a redraw would take the half typed link with it. */
+    function rdSocialNetChange(sel) {
+      const row = sel.closest('[data-rd-soc-row]');
+      if (!row) return;
+      const net = rdSocialNet(sel.value);
+      const mark = row.querySelector('[data-rd-soc-mark]');
+      if (mark) mark.innerHTML = rdSocialIcon(net.key);
+      const url = row.querySelector('[data-rd-soc-url]');
+      if (url) {
+        url.placeholder = net.hint;
+        url.setAttribute('aria-label', net.label + ' profile link');
+      }
+      row.classList.remove('is-bad');
+    }
+
+    function rdSocialRender(mount, rows) {
+      const box = document.getElementById(mount);
+      if (!box) return;
+      const list = (Array.isArray(rows) ? rows : []).slice(0, RD_SOCIAL_MAX);
+      const full = list.length >= RD_SOCIAL_MAX;
+      box.innerHTML =
+        list.map((r, i) => rdSocialRowHtml(mount, i, r.net, r.url)).join('') +
+        '<div class="rd-soc-foot">' +
+          '<button type="button" class="rd-soc-add" onclick="rdSocialAdd(\'' + mount + '\')"' +
+            (full ? ' disabled' : '') + '>' +
+            '<i data-lucide="plus" class="w-4 h-4"></i> ' +
+            (list.length ? 'Add another account' : 'Add a social media account') +
+          '</button>' +
+          '<span class="rd-soc-note">' +
+            (full ? 'That is as many as one profile can hold.'
+                  : 'Optional. Facebook, LinkedIn or X.') +
+          '</span>' +
+        '</div>' +
+        '<p class="rd-soc-err hidden" data-rd-soc-err></p>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
+
+    /* The next row starts on a platform that is not on screen yet, so the
+       common case -- one Facebook, one LinkedIn -- takes no extra clicks. */
+    function rdSocialAdd(mount) {
+      const rows = rdSocialRows(mount);
+      if (rows.length >= RD_SOCIAL_MAX) return;
+      const used = rows.map(r => rdSocialNet(r.net).key);
+      const next = RD_SOCIAL_NETS.find(n => used.indexOf(n.key) < 0) || RD_SOCIAL_NETS[0];
+      rows.push({ net: next.key, url: '' });
+      rdSocialRender(mount, rows);
+      const boxes = document.getElementById(mount).querySelectorAll('[data-rd-soc-url]');
+      if (boxes.length) boxes[boxes.length - 1].focus();
+    }
+
+    function rdSocialRemove(mount, i) {
+      const rows = rdSocialRows(mount);
+      rows.splice(i, 1);
+      rdSocialRender(mount, rows);
+    }
+
+    function rdSocialMsg(mount, text) {
+      const box = document.getElementById(mount);
+      const p = box && box.querySelector('[data-rd-soc-err]');
+      if (!p) return;
+      p.textContent = text || '';
+      p.classList.toggle('hidden', !text);
+    }
+
+    /**
+     * What goes to the server, or null when a row is wrong. Empty rows are
+     * simply dropped: somebody who opens a row and changes their mind should
+     * not be stopped by it, because the whole thing is optional.
+     */
+    function rdSocialCollect(mount) {
+      const box = document.getElementById(mount);
+      if (!box) return '';
+      rdSocialMsg(mount, '');
+      box.querySelectorAll('[data-rd-soc-row]').forEach(r => r.classList.remove('is-bad'));
+
+      const keep = [], seen = {};
+      const rows = Array.from(box.querySelectorAll('[data-rd-soc-row]'));
+      for (let i = 0; i < rows.length; i++) {
+        const sel = rows[i].querySelector('[data-rd-soc-net]');
+        const inp = rows[i].querySelector('[data-rd-soc-url]');
+        const net = rdSocialNet(sel && sel.value);
+        const url = String((inp && inp.value) || '').trim();
+        if (!url) continue;
+        if (!rdSocialUrlOk(net.key, url)) {
+          rows[i].classList.add('is-bad');
+          rdSocialMsg(mount, 'That does not look like a ' + net.label + ' link. Example: ' + net.hint);
+          if (inp) inp.focus();
+          return null;
+        }
+        const k = net.key + '|' + url.toLowerCase();
+        if (seen[k]) {
+          rows[i].classList.add('is-bad');
+          rdSocialMsg(mount, 'That ' + net.label + ' link is already on the list.');
+          if (inp) inp.focus();
+          return null;
+        }
+        seen[k] = true;
+        keep.push({ net: net.key, url: url });
+      }
+      return rdSocialSerialize(keep);
+    }
+
+    /* ---- read only: the logos another member taps on ---- */
+
+    /* Nothing at all is drawn for a member who has not added an account, so a
+       quiet profile never reads as an unfinished one. */
+    function rdSocialChips(raw) {
+      const rows = rdSocialParse(raw);
+      if (!rows.length) return '';
+      return '<div class="rd-soc-chips">' + rows.map(r => {
+        const net = rdSocialNet(r.net);
+        return '<a class="rd-soc-chip is-' + net.key.toLowerCase() + '" href="' + escapeHtml(r.url) + '" ' +
+          'target="_blank" rel="noopener noreferrer nofollow">' + rdSocialIcon(net.key) +
+          '<span>' + net.label + '</span></a>';
+      }).join('') + '</div>';
+    }
+
     /* Every picker on the page.  The starting value comes from data-addr-value,
        so a prefilled profile and a blank registration form use one code path;
        rdAddrInit(name, value) is there for the caller that has the value in hand. */
@@ -4048,6 +4335,12 @@
       document.querySelectorAll('[data-addr]').forEach(el => {
         rdAddrInit(el.getAttribute('data-addr'), el.getAttribute('data-addr-value') || '');
       });
+    }
+
+    /* Every social block on the page, drawn empty. Both mounts go through the
+       one call, so neither form can be left without its Add button. */
+    function rdSocialInitAll() {
+      document.querySelectorAll('[data-rd-social]').forEach(el => rdSocialRender(el.id, []));
     }
 
     async function submitMemberRegistration(e){
@@ -4074,6 +4367,11 @@
         addrBad = addrBad || nm;
       });
       if (addrBad) return;
+      /* The social rows are optional, so an empty block is fine -- but a row
+         that has been typed into and is wrong stops the submit here, before
+         anything is uploaded. */
+      const regSocial = rdSocialCollect('reg-social');
+      if (regSocial === null) return;
       b.disabled=true; b.innerHTML='<span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> Submitting...</span>'; lucide.createIcons();
       try {
         const payload = {
@@ -4091,7 +4389,8 @@
           organization: fd.get('organization'),
           designation: fd.get('designation'),
           workLocation: fd.get('workLocation'),
-          formerPosition: fd.get('formerPosition')
+          formerPosition: fd.get('formerPosition'),
+          socialLinks: regSocial
         };
         const photoFile = f.querySelector('[name="photo"]').files[0];
         if (photoFile && photoFile.size > 0) {
@@ -4106,6 +4405,9 @@
         /* form.reset() empties the hidden inputs but cannot redraw the pickers;
            without this the next applicant would see the previous one's district. */
         rdAddrInitAll();
+        /* Same reason for the social rows: reset() empties the inputs but
+           leaves the previous applicant's rows standing. */
+        rdSocialRender('reg-social', []);
         /* The backend flags a duplicate instead of failing; say so plainly and
            keep the "admin will review" promise, because that is what happens. */
         const dup = String(r.status || '').toUpperCase() === 'DUPLICATE';
