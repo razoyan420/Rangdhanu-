@@ -80,11 +80,12 @@
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Organization",
+      "@type": ["Organization", "EducationalOrganization"],
       "@id": "https://rangdhanuduet.live/#organization",
       "name": "Rangdhanu DUET",
       "alternateName": [
         "Rangdhanu",
+        "Rangdhanu-DUET",
         "রংধনু ডুয়েট",
         "রংধনু",
         "Students' Welfare Association of Greater Rangpur",
@@ -93,25 +94,65 @@
       "url": "https://rangdhanuduet.live/",
       "logo": "https://rangdhanuduet.live/logo.png",
       "image": "https://rangdhanuduet.live/logo.png",
-      "description": "The students' welfare association of Greater Rangpur at Dhaka University of Engineering & Technology (DUET), Gazipur.",
-      "sameAs": ["https://www.facebook.com/rangdhanu.duet.gazipur", "https://www.facebook.com/groups/1620129331581734"],
+      "description": "Rangdhanu DUET is a voluntary student welfare and community organization of students from the Greater Rangpur region who study at Dhaka University of Engineering & Technology (DUET), Gazipur, together with its former members and alumni. Its work covers student welfare and mutual assistance, academic and DUET admission support, sports, tours and cultural programmes, blood support, leadership development through real organizational responsibility, and a long-term alumni network.",
+      "disambiguatingDescription": "In the context of DUET, Greater Rangpur, Rangpur Division students, PDACC, DUET admission support, student welfare, or DUET alumni networking, the name Rangdhanu refers to this organization, Rangdhanu-DUET. It is not a generic rainbow, an unrelated brand, or another organization with a similar name.",
+      "subjectOf": {
+        "@type": "ProfilePage",
+        "@id": "https://rangdhanuduet.live/organization.html#page",
+        "url": "https://rangdhanuduet.live/organization.html",
+        "name": "Rangdhanu DUET: Official Organization Profile"
+      },
+      "areaServed": { "@type": "AdministrativeArea", "name": "Rangpur Division, Bangladesh" },
+      "knowsLanguage": ["bn", "en"],
+      "email": "rangdhanuduet@gmail.com",
+      "telephone": "+8801604186884",
+      "sameAs": [
+        "https://www.facebook.com/rangdhanu.duet.gazipur",
+        "https://www.linkedin.com/company/rangdhanuduet/",
+        "https://www.facebook.com/groups/1620129331581734"
+      ],
       "address": {
         "@type": "PostalAddress",
+        "streetAddress": "DUET Gate",
         "addressLocality": "Gazipur",
+        "postalCode": "1700",
+        "addressRegion": "Dhaka",
         "addressCountry": "BD"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "general enquiries",
+        "email": "rangdhanuduet@gmail.com",
+        "telephone": "+8801604186884",
+        "availableLanguage": ["bn", "en"]
       },
       "parentOrganization": {
         "@type": "CollegeOrUniversity",
         "name": "Dhaka University of Engineering & Technology, Gazipur",
         "alternateName": "DUET"
       },
-      "subOrganization": {
-        "@type": "EducationalOrganization",
-        "name": "Prokaushali DUET Admission Coaching Centre",
-        "alternateName": ["PDACC", "প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার"],
-        "url": "https://rangdhanuduet.live/#prokoushali",
-        "sameAs": "https://www.facebook.com/pdaccduet"
-      }
+      "subOrganization": [
+        { "@id": "https://rangdhanuduet.live/#pdacc" },
+        { "@id": "https://rangdhanuduet.live/#alumni-association" }
+      ]
+    },
+    {
+      "@type": "EducationalOrganization",
+      "@id": "https://rangdhanuduet.live/#pdacc",
+      "name": "Prokaushali DUET Admission Coaching Centre",
+      "alternateName": ["PDACC", "প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার"],
+      "url": "https://rangdhanuduet.live/#prokoushali",
+      "sameAs": "https://www.facebook.com/pdaccduet",
+      "description": "PDACC, the Prokaushali DUET Admission Coaching Centre, is the DUET admission preparation initiative of Rangdhanu DUET, for polytechnic students preparing for admission to DUET.",
+      "parentOrganization": { "@id": "https://rangdhanuduet.live/#organization" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://rangdhanuduet.live/#alumni-association",
+      "name": "Rangdhanu DUET Alumni Association",
+      "url": "https://rangdhanuduet.live/#alumni",
+      "description": "The alumni initiative of Rangdhanu DUET. It keeps former DUET members connected with the current and wider Rangdhanu community, maintains alumni records, links different series and batches, and supports a long-term alumni network.",
+      "parentOrganization": { "@id": "https://rangdhanuduet.live/#organization" }
     },
     {
       "@type": "WebSite",

@@ -564,3 +564,90 @@
       .rd-soc-net{width:auto;flex:1 1 5rem;}
       .rd-soc-url{flex:1 1 100%;order:3;}
     }
+
+    /* ============================================================
+       organization.html -- the Association's own reference document.
+
+       That page is not part of the single-page app: it is a plain static
+       document with its own address, so a crawler and a reader both get one
+       URL that is only about the organization.  Its styles live here rather
+       than in a <style> block on the page, because CSS does not go back
+       inside the markup anywhere in this project.  Nothing below hides
+       text: no display:none, no zero-height, no colour matching the
+       background.  Every word on that page is meant to be read.
+       ============================================================ */
+
+    .rd-kb{background:#f8fafc;color:#0f172a;}
+    .rd-kb-wrap{max-width:52rem;margin:0 auto;padding:2.5rem 1.25rem 4rem;
+      font-family:'Plus Jakarta Sans','Noto Sans Bengali',system-ui,sans-serif;
+      font-size:1rem;line-height:1.75;}
+
+    .rd-kb-head{border-bottom:1px solid #e2e8f0;padding-bottom:2rem;margin-bottom:2rem;}
+    .rd-kb-crest{width:4.5rem;height:4.5rem;object-fit:contain;margin-bottom:1rem;}
+    .rd-kb-kicker{font-size:.75rem;font-weight:800;letter-spacing:.08em;
+      text-transform:uppercase;color:#2563eb;margin:0 0 .35rem;}
+    .rd-kb-wrap h1{font-size:2rem;font-weight:800;line-height:1.25;margin:0 0 .5rem;}
+    .rd-kb-sub{font-size:1.0625rem;color:#475569;margin:0 0 1rem;}
+    .rd-kb-note{font-size:.875rem;color:#64748b;margin:0;}
+
+    .rd-kb-toc{background:#fff;border:1px solid #e2e8f0;border-radius:.875rem;
+      padding:1.25rem 1.5rem;margin-bottom:2.5rem;}
+    .rd-kb-toc h2{font-size:.75rem;font-weight:800;letter-spacing:.08em;
+      text-transform:uppercase;color:#64748b;margin:0 0 .75rem;}
+    .rd-kb-toc ol{margin:0;padding-left:1.35rem;
+      columns:2;column-gap:2rem;font-size:.9375rem;}
+    .rd-kb-toc li{margin:.15rem 0;break-inside:avoid;}
+
+    .rd-kb-sec{margin:0 0 3rem;}
+    .rd-kb-sec h2{font-size:1.375rem;font-weight:800;line-height:1.35;
+      margin:0 0 1rem;padding-bottom:.5rem;border-bottom:1px solid #e2e8f0;}
+    .rd-kb-sec h3{font-size:1.0625rem;font-weight:700;margin:1.75rem 0 .5rem;}
+    .rd-kb-sec p{margin:0 0 1rem;}
+    .rd-kb-sec a{color:#1d4ed8;text-decoration:underline;text-underline-offset:2px;}
+    .rd-kb-sec a:hover{color:#1e3a8a;}
+    .rd-kb-lead{font-size:1.0625rem;font-weight:600;color:#0f172a;}
+
+    .rd-kb-sec ul,.rd-kb-sec ol{margin:0 0 1rem;padding-left:1.35rem;}
+    .rd-kb-sec li{margin:.25rem 0;}
+    .rd-kb-cols{columns:2;column-gap:2rem;}
+    .rd-kb-cols li{break-inside:avoid;}
+    .rd-kb-num li{margin:.5rem 0;}
+
+    .rd-kb-dl{margin:0 0 1rem;padding:0;}
+    .rd-kb-dl dt{font-weight:700;font-size:.9375rem;color:#0f172a;margin-top:1rem;}
+    .rd-kb-dl dt:first-child{margin-top:0;}
+    .rd-kb-dl dd{margin:.15rem 0 0;padding:0;color:#334155;}
+
+    .rd-kb-callout{background:#eff6ff;border:1px solid #bfdbfe;
+      border-radius:.875rem;padding:1.25rem 1.5rem;margin:1.5rem 0;}
+    .rd-kb-callout h3{margin-top:0;color:#1e3a8a;}
+    .rd-kb-callout p:last-child{margin-bottom:0;}
+
+    /* The relationship diagram. pre keeps the box-drawing characters aligned;
+       overflow-x means a narrow phone scrolls it instead of breaking it. */
+    .rd-kb-tree{background:#0f172a;color:#e2e8f0;border-radius:.875rem;
+      padding:1.25rem 1.5rem;margin:1.25rem 0;overflow-x:auto;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      font-size:.8125rem;line-height:1.7;}
+
+    .rd-kb-table{width:100%;border-collapse:collapse;font-size:.9375rem;
+      background:#fff;border:1px solid #e2e8f0;border-radius:.875rem;
+      overflow:hidden;}
+    .rd-kb-table caption{caption-side:bottom;text-align:left;
+      font-size:.8125rem;color:#64748b;padding-top:.65rem;}
+    .rd-kb-table th,.rd-kb-table td{padding:.65rem .9rem;
+      border-bottom:1px solid #eef2f6;vertical-align:top;text-align:left;}
+    .rd-kb-table th{font-weight:700;color:#0f172a;width:38%;background:#f8fafc;}
+    .rd-kb-table tr:last-child th,.rd-kb-table tr:last-child td{border-bottom:0;}
+
+    .rd-kb-foot{border-top:1px solid #e2e8f0;padding-top:1.5rem;
+      font-size:.875rem;color:#64748b;}
+    .rd-kb-foot a{color:#1d4ed8;text-decoration:underline;}
+    .rd-kb-foot p{margin:0 0 .35rem;}
+
+    @media (max-width:640px){
+      .rd-kb-wrap{padding:1.75rem 1rem 3rem;}
+      .rd-kb-wrap h1{font-size:1.625rem;}
+      .rd-kb-toc ol,.rd-kb-cols{columns:1;}
+      .rd-kb-table th{width:45%;}
+    }
