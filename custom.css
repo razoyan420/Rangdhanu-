@@ -383,8 +383,85 @@
       background-size:cover,auto;
       background-position:center;
     }
+    /* The sign-in confirmation: one line under the header, in the page flow.
+       It is not fixed, not a layer and has no backdrop, so it cannot become the
+       popup the site does not have. Hidden it takes no height at all. */
+    .rd-flash{
+      display:flex;align-items:center;justify-content:center;gap:.5rem;
+      padding:.5rem 1rem;
+      background:#ecfdf5;
+      border-bottom:1px solid #a7f3d0;
+      color:#047857;
+      font-size:.8125rem;font-weight:800;
+      line-height:1.25rem;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      animation:rdFlashIn .25s ease-out both;
+    }
+    .rd-flash.hidden{display:none;}
+    @keyframes rdFlashIn{from{opacity:0;transform:translateY(-.35rem)}to{opacity:1;transform:none}}
+
+    /* The drawn cover: PROUD MEMBER. No photo is fetched for it, so it is on
+       screen with the page and costs nothing. The two corner arcs, the brush
+       streaks and the letters are all one blue -- the Association's own -- so
+       the band never reads as a flag or an arc of colours.
+
+       Everything is sized in vw inside its own box, which is why one drawing
+       fits a phone and a desktop without a second copy. */
+    .rd-proud{
+      position:absolute;inset:0;overflow:hidden;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:.15em;
+      background-color:#f1f7ff;
+      background-image:
+        radial-gradient(78% 130% at -10% -26%,#1d6fe0 0 33%,rgba(29,111,224,0) 34%),
+        radial-gradient(58% 96% at 106% 122%,#1d6fe0 0 38%,rgba(29,111,224,0) 39%),
+        radial-gradient(60% 100% at -4% 8%,#7cb6ff 0 26%,rgba(124,182,255,0) 27%),
+        repeating-linear-gradient(118deg,rgba(59,130,246,.10) 0 .5rem,rgba(255,255,255,0) .5rem 1.7rem);
+      font-family:'Poppins','Hind Siliguri',system-ui,sans-serif;
+      line-height:.92;
+      text-align:center;
+      user-select:none;
+    }
+    .rd-proud-1,.rd-proud-2{
+      font-weight:900;font-style:italic;letter-spacing:.02em;
+      text-transform:uppercase;white-space:nowrap;
+    }
+    .rd-proud-1{
+      font-size:clamp(1.15rem,5.4vw,2.6rem);
+      color:#1d6fe0;
+      text-shadow:0 .06em .12em rgba(29,111,224,.22);
+    }
+    .rd-proud-2{
+      position:relative;
+      font-size:clamp(1.7rem,8.2vw,4rem);
+      color:#fff;
+      text-shadow:
+        .045em 0 0 #1d6fe0,-.045em 0 0 #1d6fe0,0 .045em 0 #1d6fe0,0 -.045em 0 #1d6fe0,
+        .032em .032em 0 #1d6fe0,-.032em .032em 0 #1d6fe0,
+        .032em -.032em 0 #1d6fe0,-.032em -.032em 0 #1d6fe0,
+        0 .16em .2em rgba(29,111,224,.3);
+    }
+    /* The crown sits on the last letter, so it moves with the word instead of
+       drifting off on a narrow screen. */
+    .rd-proud-crown{
+      position:absolute;top:-.62em;right:-.5em;
+      width:.5em;height:.5em;color:#1d6fe0;
+    }
+    .rd-proud-tag{
+      margin-top:.5em;
+      max-width:92%;
+      padding:.18em .8em .26em;
+      border-radius:9999px;
+      background:#1d6fe0;color:#fff;
+      font-family:'Hind Siliguri','Poppins',sans-serif;
+      font-weight:700;line-height:1.35;
+      font-size:clamp(.5rem,2.2vw,.85rem);
+      box-shadow:0 .12em .3em rgba(29,111,224,.35);
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
     /* An uploaded cover replaces the drawing, so the two never show through
        each other. */
+    .rd-cover.rd-cover-photo > .rd-proud{display:none;}
     .rd-cover.rd-cover-photo{
       background-image:none;
       background-color:#0f172a;

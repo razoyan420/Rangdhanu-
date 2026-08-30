@@ -102,7 +102,10 @@
       'my-info':      { parent: 'alumni', needsData: false },
       'profile':      { parent: 'alumni', needsData: true  },
       'member-signin': { parent: 'alumni', needsData: false },
-      'my-profile':   { parent: 'alumni', needsData: true  },
+      /* Its own section, and needsData is false on purpose: the row comes
+         from the server on the page's own request, so a reload lands here
+         instead of bouncing the member out to the directory. */
+      'my-profile':   { parent: 'my-profile', needsData: false },
       'photo':        { parent: 'home',   needsData: true  },
       'notice-file':  { parent: 'noticeboard', needsData: true  },
       'committee-new': { parent: 'committee', needsData: false },
@@ -117,14 +120,17 @@
       const parent = (RD_SUBPAGES[pageId] || {}).parent || 'home';
       const from = rdCurrentPageId !== pageId ? rdCurrentPageId : '';
       let back = backTo || from || parent;
-      if (back === pageId) back = parent;
+      /* A section that is its own parent -- My Profile -- would otherwise send
+         Back to the page it is already on. */
+      if (back === pageId) back = parent === pageId ? 'home' : parent;
       rdSubReturn[pageId] = back;
       rdSubFrom[pageId] = from;   // the page sitting just behind us in history
       switchPage(pageId);
     }
 
     function goBackFromSubPage(pageId) {
-      const back = rdSubReturn[pageId] || (RD_SUBPAGES[pageId] || {}).parent || 'home';
+      let back = rdSubReturn[pageId] || (RD_SUBPAGES[pageId] || {}).parent || 'home';
+      if (back === pageId) back = 'home';
       // Only step through real history when the entry behind us IS where we want to land,
       // otherwise the URL bar and the visible page would disagree.
       if (rdSubFrom[pageId] === back && history.state && history.state.page === pageId && history.length > 1) {
@@ -1294,6 +1300,7 @@
           emp_type: String(m['Employment Type']||'').trim(), org: String(m['Current Organization / Company']||'').trim(),
           desig: String(m['Current Designation']||'').trim(), loc: String(m['Work Location (Division / Country)']||'').trim(),
           former_pos: String(m['Former Position at Rangdhanu / PDACC']||'').trim(), image: String(m['Passport Size Image']||'').trim(),
+          cover: String(m['Cover Photo']||'').trim(),
           status: String(m['viewStatus']||'').trim()
       }));
     }
@@ -1462,10 +1469,14 @@
        parameter name -- a member token travels as `memberToken`, so it can
        never be mistaken for an admin one.
 
-       The token lives in sessionStorage, not localStorage: closing the tab
-       signs the member out. A shared phone is the normal case here, not the
-       exception. */
+       The token lives in localStorage, and a second key remembers that the
+       member meant to stay signed in. Sign out is the only thing that clears
+       either one -- a refresh, a new tab and a closed browser all keep the
+       member where they were. Google's own token is good for about an hour, so
+       when it runs out the browser asks Google for a fresh one without showing
+       anything; only a revoked account falls through to the sign in page. */
     const RD_MEMBER_KEY = 'rd_member_token';
+    const RD_MEMBER_KEEP = 'rd_member_keep';
     let RD_MEMBER = { token: '', email: '', me: null, contacts: null, busy: false };
 
     function rdMemberParams() { return RD_MEMBER.token ? { memberToken: RD_MEMBER.token } : {}; }
@@ -1474,9 +1485,45 @@
     function rdMemberRemember(token) {
       RD_MEMBER.token = token || '';
       try {
-        if (token) sessionStorage.setItem(RD_MEMBER_KEY, token);
-        else sessionStorage.removeItem(RD_MEMBER_KEY);
+        if (token) {
+          localStorage.setItem(RD_MEMBER_KEY, token);
+          localStorage.setItem(RD_MEMBER_KEEP, '1');
+        } else {
+          localStorage.removeItem(RD_MEMBER_KEY);
+          localStorage.removeItem(RD_MEMBER_KEEP);
+        }
+        /* Whatever an older build of the site left behind goes with it. */
+        sessionStorage.removeItem(RD_MEMBER_KEY);
       } catch (err) { /* private mode: the token still works for this page */ }
+    }
+
+    function rdMemberWantsIn() {
+      try { return localStorage.getItem(RD_MEMBER_KEEP) === '1'; } catch (err) { return false; }
+    }
+
+    /* Read the expiry out of the token itself. Sending a token Google has
+       already retired only buys a failed round trip. */
+    function rdTokenLive(token) {
+      try {
+        const body = JSON.parse(atob(String(token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+        return !body.exp || (body.exp * 1000) - Date.now() > 60000;
+      } catch (err) { return true; }
+    }
+
+    /* One line under the header instead of a page of its own. */
+    function rdFlash(msg) {
+      const box = document.getElementById('rd-flash');
+      const txt = document.getElementById('rd-flash-text');
+      if (!box || !txt) return;
+      txt.textContent = msg;
+      box.classList.remove('hidden');
+      /* The line sits in the page flow, under the header. A member who was
+         scrolled down would never see it, so the top of the page is brought
+         back -- the same thing every page change already does. */
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      clearTimeout(rdFlash.timer);
+      rdFlash.timer = setTimeout(function () { box.classList.add('hidden'); }, 4000);
     }
 
     function rdMemberMsg(id, text, kind) {
@@ -1545,8 +1592,11 @@
         await memberSignedIn(r, quiet);
       } catch (err) {
         RD_MEMBER.me = null;
-        rdMemberRemember('');
+        /* The stored token stays. A dropped connection or a sleeping Apps
+           Script deployment is not the member asking to be signed out, and
+           wiping it here was what made a refresh look like a logout. */
         if (!quiet) rdMemberMsg('member-signin-msg', friendlyError(err).msg);
+        rdMemberPaintSignInLinks();
       } finally {
         RD_MEMBER.busy = false;
       }
@@ -1558,10 +1608,13 @@
       await memberLoadContacts();
       if (quiet) { rdMemberPaintSignInLinks(); return; }
       rdMemberMsg('member-signin-msg', 'You are signed in.', 'ok');
-      showToast('Contact details are open for you now.', 'success', 'Signed in');
       rdMemberPaintSignInLinks();
-      if (rdCurrentPageId === 'member-signin') goBackFromSubPage('member-signin');
+      /* No page of its own for this. A member who signs in is taken to the
+         thing they signed in for -- the profile they were reading, or their own
+         page -- and the confirmation is the one line under the header. */
       if (RD_MEMBER.lastProfileId) openAlumniModal(RD_MEMBER.lastProfileId);
+      else if (rdCurrentPageId === 'member-signin') openMyProfile('home');
+      rdFlash('Signed in successfully');
     }
 
     /* The contact sheet arrives once per sign-in and is kept in memory only --
@@ -1589,7 +1642,7 @@
       RD_MEMBER.contacts = null;
       try { if (rdGsiReady()) google.accounts.id.disableAutoSelect(); } catch (err) { /* nothing to undo */ }
       rdMemberPaintSignInLinks();
-      showToast('You are signed out.', 'info', 'Signed out');
+      rdFlash('Signed out');
       if (rdCurrentPageId === 'my-profile') switchPage('alumni');
       if (RD_MEMBER.lastProfileId && rdCurrentPageId === 'profile') openAlumniModal(RD_MEMBER.lastProfileId);
     }
@@ -1696,25 +1749,50 @@
       if (el) el.value = value == null ? '' : String(value);
     }
 
+    /* The drawn cover, in one place. Both the member's own page and the page
+       another member reads use this same markup, so the band can never say two
+       different things on the two pages. */
+    function rdProudCoverMarkup() {
+      return '<div class="rd-proud">' +
+        '<span class="rd-proud-1">Proud</span>' +
+        '<span class="rd-proud-2">Member<i data-lucide="crown" class="rd-proud-crown"></i></span>' +
+        '<span class="rd-proud-tag">একটি পরিবার, বহু প্রজন্মের বন্ধন</span>' +
+        '</div>';
+    }
+
     /* The default cover is drawn by the stylesheet, so a member who never
        uploads one still has a finished looking page. */
     function rdMypCover(url) {
       const box = document.getElementById('myp-cover');
       if (!box) return;
-      if (url) {
+      const src = normalizeAlumniImage(url);
+      const art = box.querySelector('.rd-proud');
+      if (src) {
         box.classList.add('rd-cover-photo');
-        box.style.backgroundImage = 'url("' + url + '")';
+        box.style.backgroundImage = 'url("' + src + '")';
+        if (art) art.remove();
       } else {
         box.classList.remove('rd-cover-photo');
         box.style.backgroundImage = '';
+        /* The drawing is put in from here rather than sitting in the markup, so
+           the Cover button beside it is never thrown away and the page source
+           stays in one language. */
+        if (!art) {
+          box.insertAdjacentHTML('afterbegin', rdProudCoverMarkup());
+          if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+        }
       }
     }
 
+    /* A Drive link straight out of the sheet is not a picture the browser can
+       draw, which is why the directory has always passed it through
+       normalizeAlumniImage first. The profile pages now do the same -- that one
+       missing call is why a photo showed in the directory and not here. */
     function rdMypFace(url) {
       const img = document.getElementById('myp-photo');
       if (!img) return;
       img.onerror = function () { this.onerror = null; this.src = 'logo.png'; };
-      img.src = url || 'logo.png';
+      img.src = normalizeAlumniImage(url) || 'logo.png';
     }
 
     function rdMypStatus(status) {
@@ -1888,14 +1966,84 @@
     }
 
     /* A refresh must not sign anybody out, so the token is read back and checked
-       once -- quietly, because nobody pressed anything. */
+       once -- quietly, because nobody pressed anything.
+
+       Three things happen here in order: the token from an older build of the
+       site is moved out of sessionStorage, a token Google has already retired is
+       replaced without anything appearing on screen, and a member who reloaded
+       straight onto My Profile gets that page filled in rather than being sent
+       to the directory. */
     function rdMemberRestore() {
       let token = '';
-      try { token = sessionStorage.getItem(RD_MEMBER_KEY) || ''; } catch (err) { token = ''; }
+      try {
+        token = localStorage.getItem(RD_MEMBER_KEY) || '';
+        if (!token) {
+          const old = sessionStorage.getItem(RD_MEMBER_KEY) || '';
+          if (old) { rdMemberRemember(old); token = old; }
+        }
+      } catch (err) { token = ''; }
+
       rdMemberPaintSignInLinks();
-      if (!token) return;
+
+      if (!token || !rdTokenLive(token)) {
+        /* Nothing usable in hand. If the member never signed out, Google is
+           asked for a fresh token in the background. */
+        if (rdMemberWantsIn()) rdMemberSilentRenew();
+        else rdMemberLandedSignedOut();
+        return;
+      }
       RD_MEMBER.token = token;
-      memberVerify(true);
+      memberVerify(true).then(function () {
+        if (rdMemberSignedIn()) rdMemberLandedSignedIn();
+        else if (rdMemberWantsIn()) rdMemberSilentRenew();
+        else rdMemberLandedSignedOut();
+      });
+    }
+
+    /* Google hands back a new ID token for an account that is already chosen,
+       with no button and no prompt, as long as the member has not revoked the
+       site. Nothing is drawn for this -- it either works or the member is asked
+       to sign in the ordinary way. */
+    function rdMemberSilentRenew(tries) {
+      tries = tries || 0;
+      if (!rdGsiReady()) {
+        if (tries < 6) { setTimeout(function () { rdMemberSilentRenew(tries + 1); }, 500); return; }
+        rdMemberLandedSignedOut();
+        return;
+      }
+      try {
+        google.accounts.id.initialize({
+          client_id: RD_ADMIN_CLIENT_ID,
+          callback: function (resp) {
+            const t = (resp && resp.credential) || '';
+            if (!t) { rdMemberLandedSignedOut(); return; }
+            rdMemberRemember(t);
+            memberVerify(true).then(function () {
+              if (rdMemberSignedIn()) rdMemberLandedSignedIn();
+              else rdMemberLandedSignedOut();
+            });
+          },
+          auto_select: true,
+          cancel_on_tap_outside: true
+        });
+        rdGsiOwner = 'member';
+        google.accounts.id.prompt(function (note) {
+          if (note && note.isNotDisplayed && note.isNotDisplayed()) rdMemberLandedSignedOut();
+          else if (note && note.isSkippedMoment && note.isSkippedMoment()) rdMemberLandedSignedOut();
+        });
+      } catch (err) {
+        rdMemberLandedSignedOut();
+      }
+    }
+
+    /* Where a reload leaves the member, once we know whether they are in. */
+    function rdMemberLandedSignedIn() {
+      if (rdCurrentPageId === 'my-profile') openMyProfile('home');
+    }
+
+    function rdMemberLandedSignedOut() {
+      rdMemberPaintSignInLinks();
+      if (rdCurrentPageId === 'my-profile') openMemberSignIn('home');
     }
 
     function openMemberSignIn(backTo) {
@@ -1951,45 +2099,89 @@
                      'bg-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white', 'message-circle');
     }
 
+    /* One card per fact, the same shapes as My Profile. A signed in member
+       therefore reads another member's page in the layout they already know,
+       and the only difference between the two pages is that this one has no
+       Save button. */
+    function rdProfileCell(label, value, extra) {
+      return '<div class="p-3 bg-slate-50 rounded-xl border border-slate-100">' +
+        '<p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">' + label + '</p>' +
+        '<p class="font-bold ' + (extra || 'text-slate-900') + ' break-words">' +
+        escapeHtml(value || 'N/A') + '</p></div>';
+    }
+
+    function rdProfileSection(title, inner) {
+      if (!inner) return '';
+      return '<div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">' +
+        '<p class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">' + title + '</p>' +
+        '<div class="mt-3 space-y-3">' + inner + '</div></div>';
+    }
+
     function openAlumniProfileModal(a) {
       RD_MEMBER.lastProfileId = a.id;
       const mc = document.getElementById("profile-content");
-      mc.innerHTML = `
-        <div class="relative bg-gradient-to-br from-slate-900 to-blue-900 rounded-t-3xl p-6 sm:p-8 text-center">
-            <div class="relative z-10">
-               ${alumniAvatarMarkup(a, 'w-24 h-24 sm:w-28 sm:h-28 mx-auto border-4 border-white shadow-xl bg-white rounded-full')}
-               <h3 class="text-2xl sm:text-3xl font-extrabold text-white mt-4 tracking-tight">${escapeHtml(a.name)}</h3>
-               <p class="text-blue-200 font-medium text-sm mt-1">${escapeHtml(a.dept)} • Series '${escapeHtml(a.series)} ${a.batch ? `• Batch ${escapeHtml(a.batch)}` : ''}</p>
-               ${a.memberId ? `<p class="inline-flex items-center gap-1.5 mt-2.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-blue-100 text-[11px] font-bold font-mono tracking-wide">Member ID: ${escapeHtml(a.memberId)}</p>` : ''}
-               ${a.status ? `<span class="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full text-[11px] font-bold ${a.status === 'Alumni' ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/30' : 'bg-amber-500/20 text-amber-200 border border-amber-400/30'}">${alumniStatusLabel(a.status, 'w-3.5 h-3.5')}</span>` : ''}
-            </div>
-        </div>
-        <div class="p-6 bg-white rounded-b-3xl space-y-3 text-sm">
-           ${String(a.desig || '').trim() ? `<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-              <div class="w-10 h-10 shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><i data-lucide="briefcase" class="w-5 h-5"></i></div>
-              <div><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Designation</p><p class="font-extrabold text-slate-900">${escapeHtml(a.desig)}</p></div>
-           </div>` : ''}
-           ${String(a.org || '').trim() ? `<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-              <div class="w-10 h-10 shrink-0 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><i data-lucide="building-2" class="w-5 h-5"></i></div>
-              <div><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Organization</p><p class="font-bold text-slate-900">${escapeHtml(a.org)}</p></div>
-           </div>` : ''}
-           <div class="grid grid-cols-2 gap-3">
-               <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Blood Group</p>
-                  <p class="font-black text-rose-600 text-lg">${escapeHtml(a.blood)}</p>
-               </div>
-               <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Location</p>
-                  <p class="font-bold text-slate-900 line-clamp-1">${escapeHtml(a.loc)}</p>
-               </div>
-           </div>
-           ${rdMemberPrivateRows(a)}
+      const cover = normalizeAlumniImage(a.cover);
+      const sub = [a.dept, a.series ? "Series '" + a.series : '', a.batch ? 'Batch ' + a.batch : '']
+                    .filter(Boolean).join('  |  ');
 
-           ${a.former_pos ? `<div class="p-3 bg-amber-50 rounded-xl border border-amber-100"><p class="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">${escapeHtml(rdPositionCardLabel(a.status))}</p><p class="font-bold text-amber-900">${escapeHtml(a.former_pos)}</p></div>`:''}
-        </div>
-      `;
+      const head = `
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+          <div class="rd-cover h-32 sm:h-44 relative${cover ? ' rd-cover-photo' : ''}"${cover ? ` style="background-image:url(&quot;${escapeHtml(cover)}&quot;)"` : ''}>
+            ${cover ? '' : rdProudCoverMarkup()}
+          </div>
+          <div class="px-5 pb-5 -mt-12">
+            ${alumniAvatarMarkup(a, 'w-24 h-24 rounded-2xl border-4 border-white shadow-lg bg-white', 'text-2xl')}
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-3">${escapeHtml(a.name)}</h2>
+            ${sub ? `<p class="text-sm text-slate-500 font-bold">${escapeHtml(sub)}</p>` : ''}
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+              ${a.memberId ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold font-mono tracking-wide">Member ID: ${escapeHtml(a.memberId)}</span>` : ''}
+              ${a.status ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${a.status === 'Alumni' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-blue-50 text-blue-700 border border-blue-200'}">${alumniStatusLabel(a.status, 'w-3.5 h-3.5')}</span>` : ''}
+            </div>
+          </div>
+        </div>`;
+
+      const idCard = rdProfileSection('Rangdhanu Identity',
+        `<div class="grid grid-cols-2 gap-3">
+           ${rdProfileCell('Department', a.dept)}
+           ${rdProfileCell('Series', a.series)}
+           ${rdProfileCell('Batch', a.batch)}
+           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+             <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Blood Group</p>
+             <p class="font-black text-rose-600 text-lg">${escapeHtml(a.blood)}</p>
+           </div>
+         </div>` +
+        (a.former_pos
+          ? `<div class="p-3 bg-amber-50 rounded-xl border border-amber-100"><p class="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">${escapeHtml(rdPositionCardLabel(a.status))}</p><p class="font-bold text-amber-900 break-words">${escapeHtml(a.former_pos)}</p></div>`
+          : ''));
+
+      /* An empty job draws nothing at all -- a member who has not filled the
+         work fields in should not read four boxes saying N/A. */
+      const work = rdProfileSection('Work',
+        `${String(a.desig || '').trim() ? `<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="w-10 h-10 shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><i data-lucide="briefcase" class="w-5 h-5"></i></div>
+            <div class="min-w-0"><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Designation</p><p class="font-extrabold text-slate-900 break-words">${escapeHtml(a.desig)}</p></div>
+         </div>` : ''}
+         ${String(a.org || '').trim() ? `<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="w-10 h-10 shrink-0 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+            <div class="min-w-0"><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Organization</p><p class="font-bold text-slate-900 break-words">${escapeHtml(a.org)}</p></div>
+         </div>` : ''}
+         <div class="grid grid-cols-2 gap-3">
+           ${String(a.emp_type || '').trim() ? rdProfileCell('Employment Type', a.emp_type) : ''}
+           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+             <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Location</p>
+             <p class="font-bold text-slate-900 break-words">${escapeHtml(a.loc)}</p>
+           </div>
+         </div>`);
+
+      const contact = rdProfileSection('Contact', rdMemberPrivateRows(a));
+
+      mc.innerHTML = head + idCard + work + contact;
       openSubPage('profile', 'alumni');
       lucide.createIcons();
+      /* A picture the browser already has fires its load event before this
+         markup exists, so the sweep is what makes it appear. Without it the
+         photo stayed transparent on this page while the directory showed it. */
+      rdPhotoSweep(mc);
     }
     function closeAlumniModal() { goBackFromSubPage('profile'); }
     

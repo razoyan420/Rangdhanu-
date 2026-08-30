@@ -60,7 +60,7 @@
   try {
     var id = (location.hash || '').replace('#', '').trim();
     if (!id || id === 'home' || !/^[a-z0-9-]+$/.test(id)) return;
-    var LANDS_ON = {"notice":"home","event-detail":"events","profile":"alumni","my-profile":"alumni","photo":"home","notice-file":"noticeboard","ec-message":"committee","pdacc-updates":"prokoushali"};
+    var LANDS_ON = {"notice":"home","event-detail":"events","profile":"alumni","photo":"home","notice-file":"noticeboard","ec-message":"committee","pdacc-updates":"prokoushali"};
     var target = LANDS_ON[id] || id;
     if (target === 'home') return;
     var s = document.createElement('style');
@@ -220,7 +220,7 @@
       <button class="nav-btn premium-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')"><span>Notice</span></button>
       <button class="nav-btn premium-nav-item" data-page="cgpa" onclick="switchPage('cgpa')"><span>CGPA</span></button>
       <span class="ml-auto inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-slate-500">DUET, Gazipur</span>
-      <button id="nav-member-btn" type="button" class="nav-btn premium-nav-item" onclick="rdMemberNavClick()"><span id="nav-member-text">Sign In</span></button>
+      <button id="nav-member-btn" type="button" class="nav-btn premium-nav-item" data-page="my-profile" onclick="rdMemberNavClick()"><span id="nav-member-text">Sign In</span></button>
       <button class="nav-cta ml-3" onclick="switchPage('register')"><i class="w-4 h-4" data-lucide="user-plus"></i>Membership Application</button>
     </div>
   </nav>
@@ -234,10 +234,17 @@
     <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')">Executive Committee</button>
     <button class="mobile-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')">Notice Board</button>
     <button class="mobile-nav-item" data-page="cgpa" onclick="switchPage('cgpa')">CGPA Calculator</button>
-    <button id="mobile-member-item" type="button" class="mobile-nav-item" onclick="rdMemberNavClick()">Sign In</button>
+    <button id="mobile-member-item" type="button" class="mobile-nav-item" data-page="my-profile" onclick="rdMemberNavClick()">Sign In</button>
     <button class="w-full mt-3 py-3 rounded-xl text-white font-extrabold inline-flex items-center justify-center gap-2" style="background:#0ea5e9;box-shadow:0 10px 26px -10px rgba(14,165,233,.7);" onclick="switchPage('register')"><i class="w-5 h-5" data-lucide="user-plus"></i>Membership Application</button>
   </div>
 </header>
+
+<!-- One line, no backdrop, nothing to close. Sign in used to send the
+     member to the whole notice page for this. -->
+<div id="rd-flash" class="rd-flash hidden" role="status" aria-live="polite">
+  <i data-lucide="badge-check" class="w-4 h-4 shrink-0"></i>
+  <span id="rd-flash-text"></span>
+</div>
 
 <main class="flex-grow">
   
@@ -1236,8 +1243,8 @@
       </div>
     </div>
     <section class="py-8 sm:py-12 bg-slate-50 min-h-[70vh]">
-      <div class="max-w-md mx-auto px-4">
-        <div id="profile-content" class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden"></div>
+      <div class="max-w-2xl mx-auto px-4">
+        <div id="profile-content" class="space-y-4"></div>
       </div>
     </section>
   </div>
