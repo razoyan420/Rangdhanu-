@@ -33,8 +33,3 @@
 !slide-pdacc.jpg
 !robots.txt
 !sitemap.xml
-
-# 3. temporary: loader.io reads this one file to prove the site is ours before
-#    it will run a load test. It holds nothing but its own token. Delete the
-#    file and this line together once the test is done.
-!loaderio-*.txt
