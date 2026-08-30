@@ -3149,8 +3149,12 @@
         leadBox.innerHTML = leaders.map(m => ecLeaderCard(m, RD_EC.session)).join('');
         /* items-start, exactly like the home grid: opening "See more" on
            one message must not stretch the card sitting next to it. */
-        leadBox.className = 'grid gap-6 items-start max-w-6xl mx-auto mb-10' +
-          (leaders.length > 1 ? ' lg:grid-cols-2' : '');
+        /* One message reads at the same width as the Director's message and
+           the full message page. Two sitting side by side need a little more,
+           but nowhere near the whole screen. */
+        leadBox.className = leaders.length > 1
+          ? 'grid gap-6 items-start max-w-5xl mx-auto mb-10 lg:grid-cols-2'
+          : 'grid gap-6 items-start max-w-3xl mx-auto mb-10';
       }
       if (memHead) memHead.classList.toggle('hidden', !rest.length);
       grid.innerHTML = rest.map(ecMemberCard).join('');
