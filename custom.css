@@ -370,3 +370,53 @@
       #mobile-member-btn,#mobile-menu-btn{padding:.55rem;}
       #mobile-member-btn svg,#mobile-menu-btn svg{width:1.35rem;height:1.35rem;}
     }
+
+    /* MY PROFILE cover. Drawn here, not uploaded: one deep navy field with a
+       faint diagonal weave and a soft light from the top left. One hue only --
+       the name is not a colour word and the page must not read as a flag. It
+       looks finished on its own, so most members will leave it alone. */
+    .rd-cover{
+      background-color:#0f172a;
+      background-image:
+        radial-gradient(120% 90% at 12% 0%,rgba(56,132,255,.38) 0%,rgba(15,23,42,0) 62%),
+        repeating-linear-gradient(135deg,rgba(255,255,255,.05) 0 1px,rgba(255,255,255,0) 1px 9px);
+      background-size:cover,auto;
+      background-position:center;
+    }
+    /* An uploaded cover replaces the drawing, so the two never show through
+       each other. */
+    .rd-cover.rd-cover-photo{
+      background-image:none;
+      background-color:#0f172a;
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+    }
+
+    .rd-cover-btn,.rd-photo-btn{
+      position:absolute;display:inline-flex;align-items:center;gap:.4rem;
+      cursor:pointer;font-size:.75rem;font-weight:700;
+      background:rgba(255,255,255,.92);color:#0f172a;
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:9999px;box-shadow:0 2px 8px rgba(15,23,42,.18);
+      transition:background .15s ease;
+    }
+    .rd-cover-btn{right:.75rem;bottom:.75rem;padding:.45rem .8rem;}
+    .rd-photo-btn{right:-.35rem;bottom:-.35rem;padding:.45rem;}
+    .rd-cover-btn:hover,.rd-photo-btn:hover{background:#fff;}
+
+    /* "Who can see this" sits under its own field, small enough to stay out of
+       the way and close enough that nobody mistakes which field it governs. */
+    .rd-vis-row{
+      display:flex;align-items:center;gap:.4rem;margin-top:.4rem;
+      font-size:.7rem;font-weight:700;color:#64748b;
+    }
+    .rd-vis-select{
+      flex:1 1 auto;min-width:0;
+      border:1px solid #e2e8f0;border-radius:.6rem;
+      padding:.25rem 1.5rem .25rem .5rem;
+      font-size:.7rem;font-weight:700;color:#334155;
+      background:#f8fafc;cursor:pointer;
+      text-overflow:ellipsis;
+    }
+    .rd-vis-select:focus{outline:none;border-color:#93c5fd;background:#fff;}

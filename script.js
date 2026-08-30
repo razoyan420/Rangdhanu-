@@ -102,6 +102,7 @@
       'my-info':      { parent: 'alumni', needsData: false },
       'profile':      { parent: 'alumni', needsData: true  },
       'member-signin': { parent: 'alumni', needsData: false },
+      'my-profile':   { parent: 'alumni', needsData: true  },
       'photo':        { parent: 'home',   needsData: true  },
       'notice-file':  { parent: 'noticeboard', needsData: true  },
       'committee-new': { parent: 'committee', needsData: false },
@@ -1589,6 +1590,7 @@
       try { if (rdGsiReady()) google.accounts.id.disableAutoSelect(); } catch (err) { /* nothing to undo */ }
       rdMemberPaintSignInLinks();
       showToast('You are signed out.', 'info', 'Signed out');
+      if (rdCurrentPageId === 'my-profile') switchPage('alumni');
       if (RD_MEMBER.lastProfileId && rdCurrentPageId === 'profile') openAlumniModal(RD_MEMBER.lastProfileId);
     }
 
@@ -1660,13 +1662,217 @@
       else openMemberSignIn(rdCurrentPageId);
     }
 
-    /* The own row is shaped the same way the directory rows are, so a PENDING
-       member sees the same card even though the public feed leaves them out. */
+    /* My Profile is the member's own page now, not a read-only card. A PENDING
+       member reaches it too: the server answers from the member's own row, and
+       that row exists long before the public feed carries it. */
     function rdMemberMyProfile() {
       if (!rdMemberSignedIn()) { openMemberSignIn(rdCurrentPageId); return; }
-      const mine = rdAlumniShape([RD_MEMBER.me])[0];
-      if (!mine || !mine.memberId) { openMemberSignIn(rdCurrentPageId); return; }
-      openAlumniProfileModal(mine);
+      openMyProfile(rdCurrentPageId);
+    }
+
+    /* ================= MY PROFILE ======================================
+       Every edit sits on this one page, so a signed in member never needs the
+       old "Update your information" walk -- Member ID, mobile, a code in the
+       mail -- to fix a phone number. It is a real page, not a modal.
+
+       Who can see what is decided field by field, and the choice is honoured on
+       the server: an "Only me" field is never sent to another member's browser,
+       so there is nothing in the page to uncover. */
+    let RD_MYP = { me: null, busy: false };
+
+    const RD_MYP_FIELDS = [
+      ['myp-mobile', 'Mobile Number'],
+      ['myp-whatsapp', 'WhatsApp Number'],
+      ['myp-email', 'Email'],
+      ['myp-blood', 'Blood Group'],
+      ['myp-employment', 'Employment Type'],
+      ['myp-organization', 'Current Organization / Company'],
+      ['myp-designation', 'Current Designation'],
+      ['myp-former', 'Former Position at Rangdhanu / PDACC']
+    ];
+
+    function rdMypSet(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.value = value == null ? '' : String(value);
+    }
+
+    /* The default cover is drawn by the stylesheet, so a member who never
+       uploads one still has a finished looking page. */
+    function rdMypCover(url) {
+      const box = document.getElementById('myp-cover');
+      if (!box) return;
+      if (url) {
+        box.classList.add('rd-cover-photo');
+        box.style.backgroundImage = 'url("' + url + '")';
+      } else {
+        box.classList.remove('rd-cover-photo');
+        box.style.backgroundImage = '';
+      }
+    }
+
+    function rdMypFace(url) {
+      const img = document.getElementById('myp-photo');
+      if (!img) return;
+      img.onerror = function () { this.onerror = null; this.src = 'logo.png'; };
+      img.src = url || 'logo.png';
+    }
+
+    function rdMypStatus(status) {
+      const s = String(status || '').toUpperCase();
+      if (s === 'PENDING') {
+        return '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold">' +
+               '<i data-lucide="clock" class="w-3.5 h-3.5"></i> Pending</span>' +
+               '<p class="text-xs text-slate-500 mt-2 leading-relaxed">Your application is with the Association. You can keep your information up to date while you wait.</p>';
+      }
+      if (s === 'APPROVED') {
+        return '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">' +
+               '<i data-lucide="badge-check" class="w-3.5 h-3.5"></i> Approved member</span>';
+      }
+      return s ? '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold">' +
+                 escapeHtml(s) + '</span>' : '';
+    }
+
+    function rdMypLocked(m) {
+      const box = document.getElementById('myp-locked');
+      if (!box) return;
+      const cell = (label, value) =>
+        '<div class="p-3 bg-slate-50 rounded-xl border border-slate-100">' +
+        '<p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">' + label + '</p>' +
+        '<p class="font-bold text-slate-900 break-words">' + escapeHtml(value || 'N/A') + '</p></div>';
+      box.innerHTML = cell('Member ID', m['Member ID']) +
+                      cell('Department', m['Department']) +
+                      cell('Series', m['Series']) +
+                      cell('Batch', m['Batch']);
+    }
+
+    function rdMypPaint(m) {
+      if (!m) return;
+      const name = document.getElementById('myp-name');
+      if (name) name.textContent = m['Full Name (English)'] || 'My Profile';
+      const sub = document.getElementById('myp-sub');
+      if (sub) sub.textContent = [m['Member ID'], m['Department'], m['Series']].filter(Boolean).join('  |  ');
+      const st = document.getElementById('myp-status');
+      if (st) st.innerHTML = rdMypStatus(m['Status']);
+
+      rdMypFace(m['Passport Size Image']);
+      rdMypCover(m['Cover Photo']);
+      rdMypLocked(m);
+
+      RD_MYP_FIELDS.forEach(([id, header]) => rdMypSet(id, m[header]));
+
+      /* Own picker names, so the registration form's three pickers keep their
+         own state and neither page can overwrite the other. */
+      rdAddrInit('mypPermanent', m['Permanent Address'] || '');
+      rdAddrInit('mypPresent', m['Present Address'] || '');
+      rdAddrInit('mypWork', m['Work Location (Division / Country)'] || '');
+
+      const vis = m.visibility || {};
+      document.querySelectorAll('[data-myp-vis]').forEach(sel => {
+        const field = sel.getAttribute('data-myp-vis');
+        sel.value = String(vis[field] || 'MEMBER').toUpperCase() === 'ONLY_ME' ? 'ONLY_ME' : 'MEMBER';
+      });
+
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
+
+    async function openMyProfile(backTo) {
+      if (!rdMemberSignedIn()) { openMemberSignIn(rdCurrentPageId); return; }
+      openSubPage('my-profile', backTo || rdCurrentPageId);
+      rdMemberMsg('myp-msg', '');
+      rdMemberMsg('myp-photo-msg', '');
+      /* The sign in answer already carries the row, so the page is filled in
+         before the second call returns and nobody watches an empty form. */
+      rdMypPaint(RD_MEMBER.me);
+      try {
+        const r = await apiGet('memberprofile', rdMemberParams());
+        if (r && r.member) { RD_MYP.me = r.member; rdMypPaint(r.member); }
+      } catch (err) {
+        rdMemberMsg('myp-msg', friendlyError(err).msg);
+      }
+    }
+
+    async function rdMypSave(e) {
+      e.preventDefault();
+      if (RD_MYP.busy) return false;
+      const form = e.target, btn = document.getElementById('myp-save-btn');
+      const fd = new FormData(form);
+
+      const mobile = String(fd.get('mobile') || '').trim();
+      clearFieldErrors(form);
+      if (!mobile || !isValidBdMobile(mobile)) {
+        setFieldError(form, 'mobile', 'Mobile ' + RD_MOBILE_RULE, true);
+        return false;
+      }
+      const wa = String(fd.get('whatsapp') || '').trim();
+      if (wa && !isValidBdMobile(wa)) {
+        setFieldError(form, 'whatsapp', 'WhatsApp ' + RD_MOBILE_RULE, true);
+        return false;
+      }
+
+      const visibility = {};
+      document.querySelectorAll('[data-myp-vis]').forEach(sel => {
+        visibility[sel.getAttribute('data-myp-vis')] = sel.value;
+      });
+
+      const payload = {
+        mobile: mobile,
+        whatsapp: wa,
+        email: String(fd.get('email') || '').trim(),
+        permanentAddress: String(fd.get('permanentAddress') || '').trim(),
+        presentAddress: String(fd.get('presentAddress') || '').trim(),
+        blood: String(fd.get('blood') || '').trim(),
+        employmentType: String(fd.get('employmentType') || '').trim(),
+        organization: String(fd.get('organization') || '').trim(),
+        designation: String(fd.get('designation') || '').trim(),
+        workLocation: String(fd.get('workLocation') || '').trim(),
+        formerPosition: String(fd.get('formerPosition') || '').trim(),
+        visibility: visibility
+      };
+
+      RD_MYP.busy = true;
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+      rdMemberMsg('myp-msg', 'Saving...', 'wait');
+      try {
+        const r = await apiPost('membersaveprofile', Object.assign({}, payload, rdMemberParams()));
+        if (r && r.member) { RD_MYP.me = r.member; RD_MEMBER.me = r.member; rdMypPaint(r.member); }
+        /* The directory answer is cached for ten minutes, so it is dropped here
+           -- otherwise the member would keep seeing the old line on the alumni
+           page and think the save had failed. */
+        rdFeedForget('alumni');
+        RD_MEMBER.contacts = null;
+        rdMemberMsg('myp-msg', 'Saved.', 'ok');
+        showToast('Your profile is up to date.', 'success', 'Saved');
+      } catch (err) {
+        rdMemberMsg('myp-msg', friendlyError(err).msg);
+      } finally {
+        RD_MYP.busy = false;
+        if (btn) { btn.disabled = false; btn.textContent = 'Save changes'; }
+      }
+      return false;
+    }
+
+    /* Both pictures take the same road. The file is compressed in the browser
+       first, so a phone camera photo never turns into a size error. */
+    async function rdMypPhoto(input, kind) {
+      const file = input && input.files && input.files[0];
+      if (input) input.value = '';
+      if (!file) return;
+      const cover = kind === 'cover';
+      rdMemberMsg('myp-photo-msg', cover ? 'Uploading the cover...' : 'Uploading the photo...', 'wait');
+      try {
+        const payload = await filePayload(file, cover ? 1600 : 1200);
+        const r = await apiPost('membersavephoto',
+                                Object.assign({ kind: cover ? 'cover' : 'photo', file: payload }, rdMemberParams()));
+        const url = (r && r.url) || '';
+        if (cover) rdMypCover(url); else rdMypFace(url);
+        const header = cover ? 'Cover Photo' : 'Passport Size Image';
+        if (RD_MYP.me) RD_MYP.me[header] = url;
+        if (RD_MEMBER.me) RD_MEMBER.me[header] = url;
+        rdFeedForget('alumni');
+        rdMemberMsg('myp-photo-msg', cover ? 'The cover is saved.' : 'The photo is saved.', 'ok');
+      } catch (err) {
+        rdMemberMsg('myp-photo-msg', friendlyError(err).msg);
+      }
     }
 
     function rdMemberPaintSignInLinks() {
