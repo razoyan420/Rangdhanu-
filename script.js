@@ -1477,7 +1477,11 @@
        anything; only a revoked account falls through to the sign in page. */
     const RD_MEMBER_KEY = 'rd_member_token';
     const RD_MEMBER_KEEP = 'rd_member_keep';
-    let RD_MEMBER = { token: '', email: '', me: null, contacts: null, busy: false };
+    let RD_MEMBER = { token: '', email: '', me: null, contacts: null, busy: false,
+                      /* A Member ID typed before Google had answered. The code
+                         is sent as soon as the token arrives, so Send code is
+                         never a press that does nothing. */
+                      pendingLinkId: '' };
 
     function rdMemberParams() { return RD_MEMBER.token ? { memberToken: RD_MEMBER.token } : {}; }
     function rdMemberSignedIn() { return !!(RD_MEMBER.token && RD_MEMBER.me); }
@@ -1583,10 +1587,14 @@
         if (r && r.status === 'NO_MATCH') {
           RD_MEMBER.me = null;
           RD_MEMBER.email = r.email || '';
+          rdMemberPaintLinkBox();
           if (!quiet) {
             rdMemberMsg('member-signin-msg',
               (r.email || 'This email') + ' is not on our list. Enter your Member ID below to match it once.');
           }
+          /* He pressed Send code before there was a token. That press is
+             finished here rather than asking him to press it again. */
+          if (RD_MEMBER.pendingLinkId) memberLinkStart();
           return;
         }
         await memberSignedIn(r, quiet);
@@ -1609,6 +1617,7 @@
       if (quiet) { rdMemberPaintSignInLinks(); return; }
       rdMemberMsg('member-signin-msg', 'You are signed in.', 'ok');
       rdMemberPaintSignInLinks();
+      rdMemberPaintLinkBox();
       /* No page of its own for this. A member who signs in is taken to the
          thing they signed in for -- the profile they were reading, or their own
          page -- and the confirmation is the one line under the header. */
@@ -1641,7 +1650,9 @@
       RD_MEMBER.email = '';
       RD_MEMBER.contacts = null;
       try { if (rdGsiReady()) google.accounts.id.disableAutoSelect(); } catch (err) { /* nothing to undo */ }
+      RD_MEMBER.pendingLinkId = '';
       rdMemberPaintSignInLinks();
+      rdMemberPaintLinkBox();
       rdFlash('Signed out');
       if (rdCurrentPageId === 'my-profile') switchPage('alumni');
       if (RD_MEMBER.lastProfileId && rdCurrentPageId === 'profile') openAlumniModal(RD_MEMBER.lastProfileId);
@@ -1649,16 +1660,75 @@
 
     /* ---------- the email did not match: six-digit code ------------------ */
 
-    async function memberLinkStart() {
-      if (!RD_MEMBER.token) {
-        rdMemberMsg('member-link-msg', 'Sign in with the Google button above first.');
+    /* Two states, and the card says which one it is in. Signed in and matched
+       there is nothing to link, so it goes away entirely. */
+    function rdMemberPaintLinkBox() {
+      const box = document.getElementById('member-link-box');
+      if (!box) return;
+
+      if (rdMemberSignedIn()) { box.classList.add('hidden'); return; }
+      box.classList.remove('hidden');
+
+      const ready = !!RD_MEMBER.token;
+      const send = document.getElementById('member-link-send');
+      const step = document.getElementById('member-link-step');
+      const codeBox = document.getElementById('member-code-box');
+
+      /* The button is never disabled: in the first state it opens Google, which
+         is the very thing the member has to do next. */
+      if (send) send.textContent = ready ? 'Send code' : 'Continue with Google';
+
+      if (step) {
+        step.textContent = ready
+          ? 'Signed in as ' + (RD_MEMBER.email || 'your Google account') +
+            '. Enter your Member ID and the code goes to the email on your application.'
+          : 'Step 1 of 2: Google sign in. Type your Member ID and press the button, it opens Google for you.';
+        step.className = 'text-xs font-bold mt-3 ' + (ready ? 'text-emerald-700' : 'text-slate-500');
+      }
+
+      if (!ready && codeBox) codeBox.classList.add('hidden');
+    }
+
+    /* Google's own sign in, asked for from inside the card. The card's button
+       used to send the member back up the page to find another button. */
+    function rdMemberAskGoogle(tries) {
+      tries = tries || 0;
+      if (!rdGsiReady()) {
+        if (tries < 6) { setTimeout(function () { rdMemberAskGoogle(tries + 1); }, 500); return; }
+        rdMemberMsg('member-link-msg', 'Google sign in did not load. Check your connection and try again.');
         return;
       }
-      const id = (document.getElementById('member-link-id') || {}).value || '';
-      if (!id.trim()) { rdMemberMsg('member-link-msg', 'Enter your Member ID.'); return; }
+      rdDrawMemberGsiButton();
+      const fallback = 'Use the Google button at the top of this card, then press Send code again.';
+      try {
+        google.accounts.id.prompt(function (note) {
+          const shut = note && ((note.isNotDisplayed && note.isNotDisplayed()) ||
+                                (note.isSkippedMoment && note.isSkippedMoment()));
+          if (shut && RD_MEMBER.pendingLinkId) rdMemberMsg('member-link-msg', fallback);
+        });
+      } catch (err) {
+        rdMemberMsg('member-link-msg', fallback);
+      }
+    }
+
+    async function memberLinkStart() {
+      const id = ((document.getElementById('member-link-id') || {}).value || '').trim();
+      if (!id) { rdMemberMsg('member-link-msg', 'Enter your Member ID.'); return; }
+
+      if (!RD_MEMBER.token) {
+        /* This used to be the end of the road -- one red line and nothing else.
+           The ID is kept and Google is opened; memberVerify sends the code the
+           moment the token comes back. */
+        RD_MEMBER.pendingLinkId = id;
+        rdMemberMsg('member-link-msg', 'Opening Google sign in. The code is sent right after.', 'wait');
+        rdMemberAskGoogle();
+        return;
+      }
+
+      RD_MEMBER.pendingLinkId = '';
       rdMemberMsg('member-link-msg', 'Sending the code...', 'wait');
       try {
-        const r = await apiPost('memberlinkstart', Object.assign({ memberId: id.trim() }, rdMemberParams()));
+        const r = await apiPost('memberlinkstart', Object.assign({ memberId: id }, rdMemberParams()));
         if (r && r.status !== 'OK') throw new Error(r.message || 'The code could not be sent.');
         const box = document.getElementById('member-code-box');
         if (box) box.classList.remove('hidden');
@@ -2050,6 +2120,7 @@
       openSubPage('member-signin', backTo || rdCurrentPageId);
       rdMemberMsg('member-signin-msg', '');
       rdMemberMsg('member-link-msg', '');
+      rdMemberPaintLinkBox();
       if (!rdDrawMemberGsiButton()) setTimeout(rdDrawMemberGsiButton, 700);
     }
 
