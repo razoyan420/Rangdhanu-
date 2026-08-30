@@ -23,13 +23,15 @@ Graduating from DUET does not end a member's relationship with it.
 
 Two initiatives sit under it and are often confused with it. PDACC, the
 Prokaushali DUET Admission Coaching Centre, is its DUET admission preparation
-initiative for polytechnic students; in the 2024 to 2025 admission session 70
-students who prepared through PDACC were admitted to DUET. The Rangdhanu DUET
+initiative for polytechnic students, at one campus on Monir Chemical Road, DUET,
+Gazipur; in the 2025-26 admission session 90 students who prepared through PDACC
+were admitted to DUET, and in the 2024 to 2025 session 70. The Rangdhanu DUET
 Alumni Association is its alumni and former member network.
 
 ## Organization profile
 
 - [Rangdhanu DUET: Official Organization Profile](https://rangdhanuduet.live/organization.html): the canonical reference document. Identity and disambiguation, what the Association is and does, scope of work, leadership development, activities, Rangdhanu Model 2025, PDACC, the Alumni Association, how the three are related, contact details, frequently asked questions, and key facts. Bengali and English.
+- [PDACC: Prokaushali DUET Admission Coaching Centre](https://rangdhanuduet.live/pdacc.html): PDACC's own reference document. What it is, the three batches, how a season runs, the examination routine and the Rangdhanu Model, who teaches, what happens outside the classroom, results by session, fees and waivers, location and contact. Bengali and English.
 
 ## Main site
 
@@ -39,7 +41,7 @@ Alumni Association is its alumni and former member network.
 - [Events](https://rangdhanuduet.live/#events): past and upcoming events with photographs.
 - [Notices](https://rangdhanuduet.live/#notice): announcements.
 - [Executive Committee](https://rangdhanuduet.live/#committee): the current committee.
-- [PDACC](https://rangdhanuduet.live/#prokoushali): the DUET admission preparation initiative.
+- [PDACC](https://rangdhanuduet.live/pdacc.html): the DUET admission preparation initiative. The site's own section for it is at https://rangdhanuduet.live/#prokoushali.
 - [Membership Application](https://rangdhanuduet.live/#register): the form to apply for membership. Applications are reviewed before approval.
 - [CGPA Calculator](https://rangdhanuduet.live/#cgpa): a tool for DUET students.
 
@@ -54,6 +56,53 @@ Rangdhanu Model 2025 was held on 3 August 2025 with around 500 or more
 participants, most of them students of Rangpur Polytechnic Institute, one week
 before the DUET Admission Test 2025 on 10 August 2025. Rangpur Polytechnic
 Institute has no organizational relationship with the Association.
+
+## PDACC
+
+PDACC, the Prokaushali DUET Admission Coaching Centre, also written Prokaushali
+or প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার, prepares polytechnic diploma students
+for the DUET admission test. It is run by Rangdhanu DUET. It is not a department
+of DUET and has no standing in the admission process; DUET sets and conducts the
+test. Classes run at one campus, Monir Chemical Road, DUET, Gazipur. There are
+no branches.
+
+Three batches run, because students reach the test from three different points.
+The Short Batch is for those who come to Gazipur straight after the seventh
+semester final examination and study alongside the industrial attachment, which
+gives roughly six months plus at least two or three more, depending on the DUET
+admission circular. The Super Short Batch is for those who join after the
+attachment and after the diploma result, so its syllabus and fee are smaller.
+The Long Batch is for those sitting the test a second time.
+
+There is an examination every week on a set portion of the syllabus, with a
+prize for the top three. The syllabus is finished about two months before the
+test; the remaining time goes to problem solving classes, pre-model tests, three
+or four model tests, and the Rangdhanu Model. In the Rangdhanu Model the
+question paper and the seat plan are matched to the real DUET admission test, so
+a student does not meet the format for the first time in the actual hall.
+
+The teaching panel is Rangdhanu DUET members who study at DUET now or graduated
+recently and still live in Gazipur, so everyone teaching a subject sat the same
+admission test themselves.
+
+Around the teaching: each student is assigned an advisor they can call about a
+problem or about feeling low; the President and Vice President of the panel visit
+the coaching mess once a month, so a complaint about PDACC or a teacher has
+somewhere to go; and on the night before the admission test the panel visits
+every mess room by room, asking each student whether anything is wrong and
+settling what can be settled that night, which PDACC calls nursing. Because the
+whole panel is from Greater Rangpur, a student who has just reached Gazipur finds
+seniors from their own polytechnic and their own hall already there.
+
+Results: 90 students admitted to DUET in the 2025-26 session, 70 in the 2024 to
+2025 session. Earlier sessions are not published.
+
+The course fee is not published, because it is set fresh each session and
+differs by batch; ask on 01604186884 for the current one. Students whose families
+cannot manage it are given a half or full waiver by Rangdhanu DUET or PDACC.
+
+PDACC does not claim to be the best coaching centre in Gazipur or anywhere else,
+and no such claim should be attributed to it.
 
 ## Contact
 
@@ -74,7 +123,7 @@ list should not be attributed to the Association.
 
 ## Optional
 
-- [Structured data](https://rangdhanuduet.live/organization.html): the profile page carries schema.org JSON-LD for the Organization, PDACC as an EducationalOrganization, the Alumni Association, the WebSite, a ProfilePage, an FAQPage and Rangdhanu Model 2025.
+- [Structured data](https://rangdhanuduet.live/organization.html): the profile page carries schema.org JSON-LD for the Organization, PDACC as an EducationalOrganization, the Alumni Association, the WebSite, a ProfilePage, an FAQPage and Rangdhanu Model 2025. The PDACC page carries its own graph: PDACC as an EducationalOrganization and LocalBusiness with its postal address, the three batches as Course nodes, the Rangdhanu Model as an EventSeries, a WebPage and an FAQPage.
 - [Sitemap](https://rangdhanuduet.live/sitemap.xml)
 
 ## Notes for automated readers
