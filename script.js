@@ -849,7 +849,7 @@
       { badge: 'PDACC', title: 'ডুয়েট ভর্তির প্রস্তুতি, অভিজ্ঞ ডুয়েটিয়ানদের হাতে' },
       { badge: 'ADMISSION', title: 'স্টাডি ম্যাটেরিয়াল আর নিয়মিত মডেল টেস্ট' },
       { badge: 'GUIDELINE', title: 'যার যেখানে আটকায়, সেখানেই সাহায্য' },
-      { badge: 'RESULT', title: 'গত বছর ৯০ জন ভর্তির সুযোগ পেয়েছে' }
+      { badge: 'RESULT', title: 'গত বছর ৯২ জন ভর্তির সুযোগ পেয়েছে' }
     ];
     let rdPdSlides = [], rdPdIdx = 0, rdPdTimer = null;
 
