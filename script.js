@@ -1072,20 +1072,132 @@
       return RD_PDSTATS;
     }
 
+    /* ---------- PDACC: the chance record ---------------------------------
+       The chart and the department rows are written from the same feed the
+       journey figures come from, so an admin edits them in the panel and the
+       page follows. Bengali digits are kept exactly as they were typed; the
+       bar heights need a number, so a small reader pulls one out. */
+    const RD_BN_DIGITS = '০১২৩৪৫৬৭৮৯';
+
+    function rdPdToNum(v) {
+      let out = '';
+      for (const ch of String(v == null ? '' : v)) {
+        const i = RD_BN_DIGITS.indexOf(ch);
+        out += i >= 0 ? String(i) : ch;
+      }
+      const n = parseFloat(out.replace(/[^0-9.]/g, ''));
+      return isFinite(n) ? n : 0;
+    }
+
+    function rdPdBn(n) {
+      return String(n).replace(/[0-9]/g, d => RD_BN_DIGITS[Number(d)]);
+    }
+
+    function renderPdaccChance(ch) {
+      const chart = document.getElementById('pd-chance-chart');
+      if (!chart || !ch) return;
+      const series = Array.isArray(ch.series) ? ch.series.filter(x => x && x.label) : [];
+      const depts = Array.isArray(ch.depts) ? ch.depts.filter(x => x && x.label) : [];
+
+      if (series.length) {
+        const nums = series.map(x => rdPdToNum(x.count));
+        const top = Math.max.apply(null, nums.concat([1]));
+        const lead = nums.indexOf(top);
+        chart.style.setProperty('--pd-n', String(series.length));
+        chart.innerHTML = series.map(function (x, i) {
+          const h = Math.max(8, Math.round(88 * nums[i] / top));
+          return '<div class="rd-pd-col' + (i === lead ? ' lead' : '') +
+            '" style="--h:' + h + '%"><span class="rd-pd-val">' +
+            escapeHtml(String(x.count || '')) + '</span>' +
+            '<div class="rd-pd-bar" style="--d:' + (0.05 + i * 0.08).toFixed(2) + 's"></div></div>';
+        }).join('');
+        chart.setAttribute('aria-label',
+          'সিরিজ অনুযায়ী ' +
+          'চান্সপ্রাপ্তি: ' +
+          series.map(x => String(x.label) + ' ' + String(x.count) +
+            ' জন').join(', '));
+
+        const axis = document.getElementById('pd-chance-axis');
+        if (axis) {
+          axis.style.setProperty('--pd-n', String(series.length));
+          axis.innerHTML = series.map(x =>
+            '<div><b>' + escapeHtml(String(x.label)) + '</b><span>' +
+            escapeHtml(String(x.sub || '')) + '</span></div>').join('');
+        }
+      }
+
+      const rows = document.getElementById('pd-chance-rows');
+      const dsec = document.getElementById('pd-chance-dept');
+      if (dsec) dsec.hidden = !depts.length;
+      if (rows && depts.length) {
+        const dn = depts.map(x => rdPdToNum(x.count));
+        const dtop = Math.max.apply(null, dn.concat([1]));
+        rows.innerHTML = depts.map(function (x, i) {
+          const w = Math.max(6, Math.round(100 * dn[i] / dtop));
+          return '<div class="rd-pd-row"><div class="rd-pd-row-n">' +
+            escapeHtml(String(x.label)) + '<small>' + escapeHtml(String(x.sub || '')) +
+            '</small></div><div class="rd-pd-track"><div class="rd-pd-fill" style="--w:' +
+            w + '%;--d:' + (0.05 + i * 0.07).toFixed(2) + 's"></div></div>' +
+            '<div class="rd-pd-row-v">' + escapeHtml(String(x.count || '')) + '</div></div>';
+        }).join('');
+        const sum = document.getElementById('pd-chance-sum');
+        const total = dn.reduce((a, b) => a + b, 0);
+        if (sum && total > 0) {
+          sum.textContent = 'সর্বশেষ ফলাফলের বিভাগভিত্তিক হিসাব। যোগফল ' +
+            rdPdBn(total) + '।';
+        }
+      }
+    }
+
+
+    /* ---------- PDACC: the 27th year ribbon -------------------------------
+       The number is not typed into the page any more. The sheet holds the
+       count and the admission session it was true for; every session that has
+       started since adds one. A session is taken to start in July, which is
+       when DUET admission work begins, so the figure turns over with the
+       season rather than on 1 January.
+
+       Written as two steps on purpose: rdPd27Season() is the only place the
+       July rule lives, and rdPd27Apply() is the only place the DOM is
+       touched. */
+    function rdPd27Season(now) {
+      const d = now || new Date();
+      return d.getMonth() >= 6 ? d.getFullYear() : d.getFullYear() - 1;
+    }
+
+    function rdPd27Count(years, yearsFrom, now) {
+      const base = rdPdToNum(years);
+      if (!base) return 0;
+      const from = parseInt(String(yearsFrom || '').replace(/[^0-9]/g, ''), 10);
+      if (!isFinite(from) || from < 1980) return base;
+      const gained = rdPd27Season(now) - from;
+      return gained > 0 ? base + gained : base;
+    }
+
+    function rdPd27Apply(d) {
+      const n = document.getElementById('pd27-n');
+      const t = document.getElementById('pd27-t');
+      if (!n || !t) return;
+      const total = rdPd27Count(d.years, d.yearsFrom);
+      if (!total) return;
+      const bn = rdPdBn(total);
+      n.textContent = bn;
+      t.textContent = 'সাফল্যের ' + bn + ' বছরে পদার্পণ';
+    }
+
+    /* The block this used to write is off the page: its big figure, the
+       sentence under it and the lead bar of the chance chart were all saying the
+       same number, so the chart kept it. The five texts are still in the sheet
+       and still travel in the feed, they just have nothing to fill. */
     function applyPdaccStats(d) {
-      const put = function (id, v) {
-        const el = document.getElementById(id);
-        if (el && String(v == null ? '' : v).trim()) el.textContent = String(v).trim();
-      };
-      put('pd-journey-kicker', d.kicker);
-      put('pd-journey-title', d.title);
-      put('pd-journey-figure', d.figure);
-      put('pd-journey-unit', d.unit);
-      put('pd-journey-note', d.note);
+      rdPd27Apply(d);
+      if (d.chance) renderPdaccChance(d.chance);
     }
 
     async function loadPdaccStats() {
-      if (!document.getElementById('pd-journey-figure')) return;
+      /* Keyed on the chart, since the figure block it used to look for is
+         gone. The ribbon at the top of the page rides on the same fetch. */
+      if (!document.getElementById('pd-chance-chart')) return;
       try { applyPdaccStats(await fetchPdaccStats()); }
       catch (err) { console.warn('[rd] pdaccstats:', err); }
     }
@@ -5285,6 +5397,31 @@ f.reset();
       box.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    /* The PDACC nav strip is on two pages now: the PDACC page and the
+       Admission guide sub-page. Pressed from the guide, a jump has to bring
+       the PDACC page back first, and the scroll has to wait for that page to
+       be the visible one. That is also why the guide needs no Back button:
+       every other button on the strip returns here. */
+    function pdaccGo(id) {
+      if (rdCurrentPageId !== 'prokoushali') {
+        switchPage('prokoushali');
+        requestAnimationFrame(() => pdaccJump(id));
+        return;
+      }
+      pdaccJump(id);
+    }
+
+    /* About and the committee button are on the strip too, so they need the
+       same treatment. */
+    function pdaccAboutGo() {
+      if (rdCurrentPageId !== 'prokoushali') {
+        switchPage('prokoushali');
+        requestAnimationFrame(pdaccAbout);
+        return;
+      }
+      pdaccAbout();
+    }
+
     /* ================= ADMIN DASHBOARD ===============================
        Three record types, one renderer. Everything the admin can press here
        maps onto an API that already existed; authentication stays with the
@@ -6841,6 +6978,22 @@ f.reset();
        endpoint the PDACC page reads, so what is shown here is exactly what a
        visitor sees. The figure is a free text box, not a number box: the page
        carries Bengali digits, and a number box would fight them. */
+    /* The chart is edited as plain lines, one row per line, three fields split
+       by a pipe: label | small line under it | the figure. That is the shortest
+       thing to type on a phone, and it keeps Bengali digits untouched. */
+    function rdPdLines(list) {
+      return (Array.isArray(list) ? list : []).map(x =>
+        [String(x.label || ''), String(x.sub || ''), String(x.count || '')]
+          .join(' | ')).join('\n');
+    }
+
+    function rdPdParseLines(text) {
+      return String(text || '').split('\n').map(function (line) {
+        const bits = line.split('|').map(x => x.trim());
+        return { label: bits[0] || '', sub: bits[1] || '', count: bits[2] || '' };
+      }).filter(x => x.label);
+    }
+
     async function adminPdStatsLoad() {
       if (RD_PDSTATS) return;
       try { await fetchPdaccStats(); renderAdmin(); }
@@ -6858,27 +7011,36 @@ f.reset();
           'Fetching what the PDACC page is showing right now.', 'empty');
       }
       const d = RD_PDSTATS;
+      const ch = d.chance || {};
       const box = function (id, label, val, max, ph) {
         return '<div><label class="form-label" for="' + id + '">' + label + '</label>' +
           '<input id="' + id + '" class="form-input" maxlength="' + max + '" placeholder="' +
           escapeHtml(ph) + '" value="' + escapeHtml(String(d[val] == null ? '' : d[val])) + '"></div>';
       };
       const inner =
-        '<div class="mt-5">' + box('pd-sk', 'Small heading above', 'kicker', 60, 'A Proven Journey') + '</div>' +
-        '<div class="mt-4">' + box('pd-st', 'Heading *', 'title', 120, 'Last year’s result') + '</div>' +
-        '<div class="mt-4 grid sm:grid-cols-2 gap-4">' +
-          box('pd-sf', 'The figure *', 'figure', 20, '90') +
-          box('pd-su', 'What the figure counts *', 'unit', 40, 'students') +
+        /* The ribbon at the top of the PDACC page. Two boxes rather than one
+           so it can move on its own: the count, and the admission session that
+           count belonged to. Leave the session year empty and the number stays
+           exactly as written. */
+        '<div class="mt-5 grid sm:grid-cols-2 gap-4">' +
+          box('pd-sy', 'Years completed, top of the page', 'years', 6, '27') +
+          box('pd-syf', 'The session that count was for', 'yearsFrom', 9, '2026') +
         '</div>' +
-        '<div class="mt-4"><label class="form-label" for="pd-sn">The line under it *</label>' +
-          '<textarea id="pd-sn" rows="3" maxlength="500" class="form-input" placeholder="One sentence about the season.">' +
-            escapeHtml(String(d.note == null ? '' : d.note)) + '</textarea></div>' +
+        '<p class="text-xs text-slate-500 mt-2">This is the line above the PDACC menu. Write the count and the year of the admission session it belongs to, and the page adds one for every session that starts after it, each July. Leave the year empty to freeze the number.</p>' +
+        '<div class="mt-4"><label class="form-label" for="pd-sser">The chart, one series per line *</label>' +
+          '<textarea id="pd-sser" rows="8" class="form-input font-mono text-xs" placeholder="25 series | 2025-26 | 92">' +
+            escapeHtml(rdPdLines(ch.series)) + '</textarea>' +
+          '<p class="text-xs text-slate-500 mt-2">One line for each series, newest first: label, then the session, then how many got in. Separate the three with a pipe.</p></div>' +
+        '<div class="mt-4"><label class="form-label" for="pd-sdep">The department rows, one per line</label>' +
+          '<textarea id="pd-sdep" rows="8" class="form-input font-mono text-xs" placeholder="Civil | Civil | 26">' +
+            escapeHtml(rdPdLines(ch.depts)) + '</textarea>' +
+          '<p class="text-xs text-slate-500 mt-2">The same three fields. Leave this box empty and the whole department block stays off the page; fill it and the bar widths and the total are worked out from the figures.</p></div>' +
         '<div class="mt-5 flex flex-wrap gap-2">' +
           '<button id="pd-ssave" type="button" onclick="adminPdStatsSave()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-extrabold cursor-pointer">' +
             '<i data-lucide="save" class="w-4 h-4"></i> Save the figures</button>' +
         '</div>';
       return adminPanelShell('trending-up', 'A Proven Journey',
-        'The block on the right of the PDACC page. Write the figure the same way it should read on the page — Bengali digits stay Bengali.',
+        'The chance record on the PDACC page, and the line above its menu. Write the figures the same way they should read on the page: Bengali digits stay Bengali.',
         inner);
     }
 
@@ -6889,13 +7051,28 @@ f.reset();
         return;
       }
       const val = id => String((document.getElementById(id) || {}).value || '').trim();
-      const data = { kicker: val('pd-sk'), title: val('pd-st'), figure: val('pd-sf'),
-                     unit: val('pd-su'), note: val('pd-sn') };
-      if (!data.title || !data.figure || !data.unit || !data.note) {
-        showToast('Please fill the heading, the figure, what it counts, and the line under it.',
-          'error', 'Something is missing', { backTo: 'admin' });
+      /* The first five are not on screen any more, so they are sent back
+         exactly as they were read. The sheet keeps them, and the backend, which
+         still asks for them, is happy without an edit. */
+      const was = RD_PDSTATS || {};
+      const keep = k => String(was[k] == null ? '' : was[k]).trim();
+      const data = { kicker: keep('kicker'), title: keep('title'), figure: keep('figure'),
+                     unit: keep('unit'), note: keep('note'),
+                     years: val('pd-sy'), yearsFrom: val('pd-syf') };
+      data.series = rdPdParseLines(val('pd-sser'));
+      data.depts = rdPdParseLines(val('pd-sdep'));
+      if (!data.series.length) {
+        showToast('Please keep at least one series line in the chart.',
+          'error', 'The chart is empty', { backTo: 'admin' });
         return;
       }
+      /* Those five have no box to fill any more. If the sheet was never
+         seeded they would be empty and the backend would refuse, so a word is
+         put in rather than letting the save fail with nothing to act on. */
+      data.title  = data.title  || 'PDACC';
+      data.figure = data.figure || '0';
+      data.unit   = data.unit   || '-';
+      data.note   = data.note   || '-';
       RD_ADMIN.busy = 'pdstats';
       const btn = document.getElementById('pd-ssave');
       if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }

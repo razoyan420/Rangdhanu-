@@ -1,9 +1,7 @@
-    @font-face {
-      font-family: 'Kalpurush';
-      src: url('https://cdn.jsdelivr.net/gh/Shahidul-Shakib/kalpurush-font@master/Kalpurush.woff2') format('woff2'),
-           url('https://cdn.jsdelivr.net/gh/Shahidul-Shakib/kalpurush-font@master/Kalpurush.ttf') format('truetype');
-      font-weight: normal; font-style: normal; font-display: swap;
-    }
+    /* Kalpurush is named in the stacks below as a local fallback only.
+       The @font-face that used to sit here pointed at a jsdelivr repo that
+       has gone, so both files came back 404 on every load. Bengali text is
+       served by Noto Sans Bengali from Google Fonts, loaded in index.html. */
     body, * { font-family: 'Noto Sans Bengali', 'Plus Jakarta Sans', 'Kalpurush', sans-serif; }
     .rd-detail-btn{transition:background-color .18s,color .18s,transform .12s;}
     .rd-detail-btn:hover,.rd-detail-btn:focus-visible,.rd-detail-btn:active{background:#2563eb;color:#fff;}
@@ -255,7 +253,26 @@
     .rd-pd-navbtn.is-fb:hover{background:#dbeafe;}
     /* The nav stays on screen while the PDACC page scrolls, so every important
        page is one tap away. It sits under the site header, never over it. */
-    .rd-pd-nav{transition:box-shadow .3s ease,background .3s ease;}
+    /* The strip stays under the site header while the page scrolls. The offset
+       lives here rather than in the markup as a Tailwind arbitrary offset:
+       style.css is a prebuilt file and never carried that value, so the
+       computed top was `auto` and a sticky box with no offset never sticks.
+       86px clears the 81px site header. */
+    .rd-pd-nav{position:sticky;top:86px;
+      transition:box-shadow .3s ease,background .3s ease;}
+    /* From xl up the header shows its second row, the `.nav-strip` menu, and is
+       130px tall instead of 81px. Without this the strip parks behind it. */
+    @media (min-width:1280px){
+      .rd-pd-nav{top:135px;}
+    }
+    /* The ribbon sits under the strip, so it scrolls away with the page. It
+       gets a little air above it now that the strip is no longer over it. */
+    .rd-pd-nav + .rd-pd27{margin-top:2px}
+    /* The Admission guide is the exception: it has its own tab strip that
+       already sticks at 74px, and two bars stacked would take a third of a
+       phone screen. So the PDACC strip scrolls away there. The way back is not
+       lost -- the site header stays on screen and carries PDACC in its menu. */
+    #pdacc-nav-sub{position:static;}
     .rd-pd-navbtn.is-key{border-color:transparent;color:#fff;
       background:linear-gradient(135deg,#4338ca,#1e1b4b);}
     .rd-pd-navbtn.is-key:hover{color:#fff;border-color:transparent;
@@ -1093,6 +1110,12 @@
   .rd-ad-nav{top:66px;border-radius:14px}
   .rd-ad-card::before{top:14px;right:14px;font-size:.76rem}
 }
+/* From xl up the site header grows a second row -- the `.nav-strip` menu -- so
+   it is 130px tall there, not 81px. Every sticky bar under it needs the taller
+   offset or it hides behind the header. */
+@media (min-width:1280px){
+  .rd-ad-nav{top:135px}
+}
 @media (prefers-reduced-motion:reduce){
   .rd-ad-nav a,.rd-ad-card::before{transition:none}
   .rd-ad-nav a:hover{transform:none}
@@ -1124,3 +1147,177 @@
   .rd-pd-seat:hover{transform:none}
   .rd-pd-seat .rd-pd-ring{animation:none;opacity:0}
 }
+
+/* ============ PDACC: the record, the batches and the season ============ */
+.rd-pd{--pd-ink:#1e1b4b;--pd-key:#4338ca;--pd-key2:#6366f1;--pd-soft:#eef2ff;
+  --pd-line:#e2e8f7;font-family:'Noto Sans Bengali','Plus Jakarta Sans',sans-serif}
+
+/* Soft wash behind the section. Indigo and teal on purpose: RANGDHANU is the
+   association's name, not a palette. */
+.rd-pd-wash{position:relative;isolation:isolate}
+.rd-pd-wash::before{content:'';position:absolute;inset:0;z-index:-1;
+  background:
+    radial-gradient(60% 50% at 12% 0%,rgba(99,102,241,.13),transparent 70%),
+    radial-gradient(55% 45% at 92% 8%,rgba(13,148,136,.10),transparent 72%),
+    linear-gradient(180deg,#fbfcff 0%,#f6f8ff 55%,#ffffff 100%)}
+
+.rd-pd-card{background:#fff;border:1px solid var(--pd-line);border-radius:20px;
+  padding:26px 24px;box-shadow:0 1px 2px rgba(30,27,75,.04),0 12px 30px -18px rgba(30,27,75,.18);
+  transition:transform .45s cubic-bezier(.22,1,.36,1),box-shadow .45s,border-color .45s}
+.rd-pd-card:hover{transform:translateY(-3px);border-color:#c9d3f2;
+  box-shadow:0 2px 4px rgba(30,27,75,.05),0 26px 50px -22px rgba(30,27,75,.28)}
+
+/* Typography: a brush stroke that draws itself under the heading on hover. Used
+   only on card headings, so it stays a highlight rather than a habit. */
+.rd-pd-h{font-size:clamp(1.15rem,2.4vw,1.45rem);font-weight:800;color:var(--pd-ink);
+  letter-spacing:-.01em;position:relative;display:inline-block;padding-bottom:.28em}
+.rd-pd-h::after{content:'';position:absolute;left:0;right:0;bottom:.06em;height:.34em;
+  border-radius:99px;background:linear-gradient(90deg,rgba(99,102,241,.34),rgba(13,148,136,.26));
+  transform:scaleX(.16);transform-origin:left center;
+  transition:transform .6s cubic-bezier(.22,1,.36,1)}
+.rd-pd-card:hover .rd-pd-h::after{transform:scaleX(1)}
+.rd-pd-sub{color:#5b6480;font-size:.95rem;line-height:1.8;margin-top:.5rem}
+
+/* ------------------------------------------------------- the column chart */
+.rd-pd-chart{margin-top:24px;display:grid;gap:8px;align-items:end;
+  grid-template-columns:repeat(7,minmax(0,1fr));min-height:270px;
+  padding:8px 4px 0;position:relative;border-bottom:1px solid var(--pd-line)}
+.rd-pd-col{position:relative;height:100%}
+.rd-pd-val{position:absolute;left:0;right:0;bottom:var(--h);margin-bottom:7px;text-align:center;
+  font-family:'Space Grotesk','Noto Sans Bengali',sans-serif;font-weight:700;
+  font-size:clamp(1rem,2.4vw,1.35rem);color:var(--pd-ink);line-height:1;
+  transition:color .35s,transform .35s cubic-bezier(.22,1,.36,1)}
+.rd-pd-bar{position:absolute;bottom:0;left:0;right:0;margin:0 auto;
+  width:100%;max-width:64px;height:var(--h);
+  border-radius:12px 12px 4px 4px;
+  background:linear-gradient(180deg,#818cf8,#4338ca);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
+  transform-origin:bottom center;
+  animation:rd-pd-rise .95s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--d,0s);
+  transition:filter .35s,box-shadow .35s}
+.rd-pd-col.lead .rd-pd-bar{background:linear-gradient(180deg,#34d399,#0f766e)}
+.rd-pd-col.lead .rd-pd-val{color:#0f766e}
+.rd-pd-col:hover .rd-pd-bar{filter:saturate(1.15) brightness(1.06);
+  box-shadow:0 18px 30px -18px rgba(30,27,75,.55),inset 0 1px 0 rgba(255,255,255,.4)}
+.rd-pd-col:hover .rd-pd-val{transform:translateY(-3px)}
+@keyframes rd-pd-rise{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.rd-pd-axis{display:grid;gap:8px;grid-template-columns:repeat(7,minmax(0,1fr));
+  padding:10px 4px 0;text-align:center}
+.rd-pd-axis b{display:block;font-size:.86rem;font-weight:700;color:var(--pd-ink)}
+.rd-pd-axis span{display:block;font-size:.7rem;font-weight:600;color:#98a0bb;margin-top:.15em}
+
+/* -------------------------------------------------- department distribution */
+.rd-pd-rows{display:grid;gap:10px;margin-top:18px}
+.rd-pd-row{display:grid;grid-template-columns:132px 1fr 46px;align-items:center;gap:12px}
+.rd-pd-row-n{font-size:.9rem;font-weight:700;color:var(--pd-ink)}
+.rd-pd-row-n small{display:block;font-weight:500;color:#8b93ad;font-size:.74rem}
+.rd-pd-track{height:10px;border-radius:99px;background:#eef1f9;overflow:hidden}
+.rd-pd-fill{height:100%;border-radius:99px;width:var(--w);
+  background:linear-gradient(90deg,var(--pd-key2),var(--pd-key));
+  animation:rd-pd-grow 1s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--d,0s)}
+@keyframes rd-pd-grow{from{width:0}to{width:var(--w)}}
+.rd-pd-row-v{text-align:right;font-family:'Space Grotesk','Noto Sans Bengali',sans-serif;
+  font-weight:700;color:var(--pd-ink)}
+/* ----------------------------------------------------------------- batches */
+.rd-pd-grid3{display:grid;gap:14px;margin-top:18px;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.rd-pd-batch{border:1px solid var(--pd-line);border-radius:14px;padding:18px;background:#fff;
+  transition:transform .4s cubic-bezier(.22,1,.36,1),box-shadow .4s,border-color .4s}
+.rd-pd-batch:hover{transform:translateY(-3px);border-color:#c3cef0;
+  box-shadow:0 16px 32px -20px rgba(30,27,75,.32)}
+.rd-pd-batch h4{font-size:1.02rem;font-weight:800;color:var(--pd-ink);
+  position:relative;display:inline-block;padding-bottom:.2em}
+.rd-pd-batch h4::after{content:'';position:absolute;left:0;bottom:0;height:.3em;width:100%;
+  border-radius:99px;background:rgba(99,102,241,.28);
+  transform:scaleX(.18);transform-origin:left;
+  transition:transform .55s cubic-bezier(.22,1,.36,1)}
+.rd-pd-batch:hover h4::after{transform:scaleX(1)}
+.rd-pd-batch p{margin-top:.5rem;font-size:.9rem;line-height:1.85;color:#5b6480}
+
+/* ------------------------------------------------------------------ season */
+.rd-pd-season{margin-top:20px;display:grid;gap:0;counter-reset:pdstep}
+.rd-pd-step{position:relative;padding:0 0 22px 30px;border-left:2px dotted #cdd6ee}
+.rd-pd-step:last-child{border-left-color:transparent;padding-bottom:0}
+.rd-pd-step::before{counter-increment:pdstep;content:counter(pdstep, bengali);
+  position:absolute;left:-14px;top:-2px;width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;background:#fff;
+  border:2px solid var(--pd-key2);color:var(--pd-key);font-size:.76rem;
+  font-weight:800;line-height:1;
+  transition:transform .35s,background .35s,color .35s}
+.rd-pd-step:hover::before{transform:scale(1.12);background:var(--pd-key2);color:#fff}
+.rd-pd-step h5{font-size:.95rem;font-weight:800;color:var(--pd-ink)}
+.rd-pd-step p{font-size:.88rem;line-height:1.85;color:#5b6480;margin-top:.25rem}
+.rd-pd-step em{font-style:normal;font-weight:700;color:#0f766e}
+
+/* ------------------------------------------------------------------- facts */
+.rd-pd-facts{display:grid;gap:12px;margin-top:18px;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.rd-pd-fact{display:flex;gap:12px;padding:14px;border-radius:12px;background:var(--pd-soft);
+  border:1px solid #dfe5f8;transition:background .35s,transform .35s}
+.rd-pd-fact:hover{background:#e7ecfe;transform:translateY(-2px)}
+.rd-pd-fact svg{flex:0 0 20px;width:20px;height:20px;color:var(--pd-key);margin-top:2px}
+.rd-pd-fact p{font-size:.88rem;line-height:1.8;color:#454e6b}
+
+@media (max-width:640px){
+  .rd-pd-chart,.rd-pd-axis{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+  .rd-pd-chart{min-height:210px}
+  .rd-pd-axis b{font-size:.74rem}
+  .rd-pd-axis span{font-size:.6rem}
+  .rd-pd-row{grid-template-columns:104px 1fr 40px}
+}
+
+/* The chart columns are laid out from the number of series the admin has
+   saved, so the count is a custom property rather than a fixed seven. */
+.rd-pd-chart,.rd-pd-axis{grid-template-columns:repeat(var(--pd-n,7),minmax(0,1fr))}
+@media (max-width:640px){
+  .rd-pd-chart,.rd-pd-axis{grid-template-columns:repeat(var(--pd-n,7),minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:reduce){
+  .rd-pd-fill{animation:none;width:var(--w)}
+  .rd-pd-bar{animation:none}
+  .rd-pd-card,.rd-pd-batch,.rd-pd-fact,.rd-pd-val{transition:none}
+  .rd-pd-card:hover,.rd-pd-batch:hover,.rd-pd-fact:hover{transform:none}
+  .rd-pd-col:hover .rd-pd-val{transform:none}
+  .rd-pd-step::before,.rd-pd-step:hover::before{transition:none;transform:none}
+}
+
+/* ============ PDACC: the 27th year ribbon ============ */
+/* The page opens on the one figure PDACC states about itself: it has entered
+   its 27th year. It sits above the nav strip, so it has to stay a thin line,
+   not a card. The numeral is carried in a gradient and a slow shine crosses
+   the strip once every few seconds. */
+.rd-pd27{position:relative;overflow:hidden;display:inline-flex;align-items:center;
+  gap:9px;margin:0 0 10px;padding:6px 15px 6px 9px;border-radius:9999px;
+  background:linear-gradient(120deg,#0b1220,#131f3a 55%,#0b1220);
+  border:1px solid rgba(129,140,248,.3);
+  box-shadow:0 8px 22px -14px rgba(15,23,42,.7);
+  transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s}
+.rd-pd27:hover{transform:translateY(-1px);
+  box-shadow:0 14px 30px -14px rgba(49,46,129,.75)}
+.rd-pd27-glow{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,transparent 36%,rgba(165,180,252,.26) 50%,transparent 64%);
+  transform:translateX(-120%);animation:rd-pd27-sweep 6.5s ease-in-out 1.2s infinite}
+@keyframes rd-pd27-sweep{0%{transform:translateX(-120%)}
+  55%,100%{transform:translateX(120%)}}
+.rd-pd27-n{position:relative;flex:0 0 auto;display:flex;align-items:center;
+  justify-content:center;width:26px;height:26px;border-radius:9999px;
+  background:rgba(99,102,241,.18);border:1px solid rgba(165,180,252,.4);
+  font-size:.78rem;font-weight:800;line-height:1;
+  background-clip:padding-box;color:#c7d2fe}
+.rd-pd27-t{position:relative;font-size:.76rem;font-weight:800;letter-spacing:.01em;
+  background:linear-gradient(100deg,#e0e7ff,#a5b4fc 55%,#67e8f9);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  white-space:nowrap}
+@media (max-width:420px){
+  .rd-pd27-t{white-space:normal;line-height:1.45}
+}
+@media (prefers-reduced-motion:reduce){
+  .rd-pd27-glow{animation:none;opacity:0}
+  .rd-pd27,.rd-pd27:hover{transition:none;transform:none}
+}
+
+/* The strip is on the Admission guide too. There, the guide's own button is
+   the page you are standing on, so it is a label rather than a control: same
+   look, no pointer, no hover. */
+.rd-pd-navbtn.is-here{cursor:default;opacity:.95}
+.rd-pd-navbtn.is-here:hover{color:#fff;border-color:transparent}

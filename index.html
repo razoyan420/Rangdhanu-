@@ -500,9 +500,10 @@
   <div class="page-view" id="page-prokoushali">
     <section class="pt-5 md:pt-6 pb-14 md:pb-20 bg-[#f8fafc] border-t border-slate-200 min-h-[75vh]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- The page's own little nav. The crest on the left, the jump
-             buttons in the middle, and the one outward link on the right. -->
-        <nav id="pdacc-nav" class="rd-pd-nav sticky top-[70px] z-30 mb-5 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur-md shadow-sm px-3 sm:px-5 py-3 flex flex-wrap items-center gap-2 sm:gap-3">
+        <!-- The page's own little nav. The crest on the left, and the three
+             buttons that actually go somewhere on the right. The rest of the
+             page is found by scrolling, so it needs no button here. -->
+        <nav id="pdacc-nav" class="rd-pd-nav z-30 mb-5 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur-md shadow-sm px-3 sm:px-5 py-3 flex flex-wrap items-center gap-2 sm:gap-3">
           <span class="flex items-center gap-2.5 min-w-0 mr-auto">
             <span class="rd-pd-crest"><img id="pdacc-nav-logo" src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
             <span class="min-w-0">
@@ -510,15 +511,22 @@
               <span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার</span>
             </span>
           </span>
-          <button type="button" onclick="pdaccJump('pdacc-updates-box')" class="rd-pd-navbtn"><i data-lucide="newspaper" class="w-3.5 h-3.5"></i> Latest update</button>
-          <button type="button" onclick="pdaccAbout()" class="rd-pd-navbtn"><i data-lucide="info" class="w-3.5 h-3.5"></i> About</button>
-          <button type="button" onclick="pdaccJump('pdacc-leadership')" class="rd-pd-navbtn"><i data-lucide="quote" class="w-3.5 h-3.5"></i> Director Message</button>
-          <button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-navbtn is-key"><i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> Admission guide</button>
-          <button type="button" onclick="pdaccJump('pdacc-contacts')" class="rd-pd-navbtn"><i data-lucide="bed-double" class="w-3.5 h-3.5"></i> Seat booking</button>
-          <button type="button" onclick="pdaccViewLastCommittee()" class="rd-pd-navbtn"><i data-lucide="users" class="w-3.5 h-3.5"></i> Committee</button>
-          <button type="button" onclick="openPdaccUpdates()" class="rd-pd-navbtn"><i data-lucide="layout-list" class="w-3.5 h-3.5"></i> All updates</button>
-          <a href="https://www.facebook.com/pdaccduet" target="_blank" rel="noopener" class="rd-pd-navbtn is-fb"><i data-lucide="facebook" class="w-3.5 h-3.5"></i> Facebook</a>
+          <button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PDACC Home</button>
+          <button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-navbtn is-key">Admission guide</button>
+          <button type="button" onclick="openPdaccUpdates()" class="rd-pd-navbtn">All updates</button>
         </nav>
+        <!-- PDACC states this about itself on its own June 2026 poster:
+             it has entered its 27th year. The founding year is published
+             nowhere, so only the figure is shown. The two spans are filled
+             from the PDACC Stats sheet, so a new season needs no code change:
+             the admin writes the number once with the session it belongs to,
+             and the page counts on from there. What is typed below is the
+             fallback that stays on screen if the feed never arrives. -->
+        <div class="rd-pd27">
+          <span class="rd-pd27-glow" aria-hidden="true"></span>
+          <span class="rd-pd27-n" id="pd27-n">২৭</span>
+          <span class="rd-pd27-t" id="pd27-t">সাফল্যের ২৭ বছরে পদার্পণ</span>
+        </div>
         <!-- The PDACC bar. Its pictures live in the RANGDHANU PDACC folder on
              Drive and are controlled from the very same admin tab as the home
              one. The two bars are separate on purpose: a home picture never
@@ -581,54 +589,6 @@
           <h2 class="text-4xl sm:text-5xl font-extrabold text-slate-950 mt-5 tracking-tight">Prokoushali <span class="text-indigo-600">DUET Admission Coaching Centre</span></h2>
           <p class="text-slate-600 text-base sm:text-lg mt-5 leading-8 max-w-3xl mx-auto">পলিটেকনিক শিক্ষার্থীদের ডুয়েট ভর্তি পরীক্ষার প্রস্তুতিকে আরও গোছানো ও লক্ষ্যভিত্তিক করার উদ্দেশ্যে রংধনুর উদ্যোগে পরিচালিত একটি বিশেষায়িত কোচিং সেন্টার। ডুয়েটের বর্তমান শিক্ষার্থীদের অভিজ্ঞতা, নিয়মিত অনুশীলন, প্রশ্ন সমাধান ও মডেল টেস্টের মাধ্যমে শিক্ষার্থীদের ভর্তি পরীক্ষার জন্য প্রস্তুত করা হয়।</p>
         </div>
-        <div class="rounded-[30px] bg-slate-950 text-white p-7 sm:p-10 md:p-12 shadow-2xl relative overflow-hidden mb-8">
-          <div class="absolute -right-24 -top-24 w-80 h-80 rounded-full bg-indigo-600/20 blur-3xl"></div><div class="absolute -left-24 -bottom-24 w-72 h-72 rounded-full bg-blue-500/10 blur-3xl"></div>
-          <div class="relative grid lg:grid-cols-12 gap-10 items-center">
-            <div class="lg:col-span-7"><h3 class="text-3xl font-extrabold mt-4 leading-tight">কে পড়ায়, কীভাবে চলে</h3><p class="text-slate-300 mt-5 leading-8">PDACC-এর মূল লক্ষ্য হলো পলিটেকনিক শিক্ষার্থীদের ডুয়েট ভর্তি পরীক্ষার জন্য একটি নির্দিষ্ট ও বাস্তবভিত্তিক প্রস্তুতির পথ তৈরি করা। যারা নিজেরাই এই ভর্তি পরীক্ষার মধ্য দিয়ে ডুয়েটে এসেছে, তারাই নিজেদের অভিজ্ঞতা থেকে পড়াশোনা, প্রস্তুতি ও পরীক্ষার কৌশল নিয়ে শিক্ষার্থীদের গাইড করে।</p></div>
-            <div class="lg:col-span-5 grid sm:grid-cols-2 lg:grid-cols-1 gap-3">
-              <div class="rd-tile-dark rounded-2xl bg-white/5 border border-white/10 p-5"><div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-500/15 text-indigo-300 flex items-center justify-center"><i class="w-5 h-5" data-lucide="target"></i></div><div><h4 class="font-extrabold">Admission Focus</h4><p class="text-xs text-slate-400 mt-1 leading-5">PDACC-এর প্রস্তুতি সম্পূর্ণভাবে ডুয়েট ভর্তি পরীক্ষাকে কেন্দ্র করে সাজানো।</p></div></div></div>
-              <div class="rd-tile-dark rounded-2xl bg-white/5 border border-white/10 p-5"><div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-300 flex items-center justify-center"><i class="w-5 h-5" data-lucide="users"></i></div><div><h4 class="font-extrabold">Mentorship</h4><p class="text-xs text-slate-400 mt-1 leading-5">বর্তমানে ডুয়েটে অধ্যয়নরত শিক্ষার্থীদের কাছ থেকে সরাসরি পরামর্শ ও বাস্তব অভিজ্ঞতার ভিত্তিতে দিকনির্দেশনা পাওয়া যায়।</p></div></div></div>
-              <div class="rd-tile-dark rounded-2xl bg-white/5 border border-white/10 p-5"><div class="flex gap-3"><div class="w-10 h-10 rounded-xl rd-pd-chip-emerald flex items-center justify-center"><i class="w-5 h-5" data-lucide="lightbulb"></i></div><div><h4 class="font-extrabold">Experience Based Guidance</h4><p class="text-xs text-slate-400 mt-1 leading-5">যারা নিজেরাই এই পথ পেরিয়ে এসেছে, তাদের অভিজ্ঞতা থেকে প্রস্তুতির ভুল-ত্রুটি, সময় ব্যবস্থাপনা ও পরীক্ষাকেন্দ্রিক দিকগুলো সম্পর্কে বাস্তব ধারণা নেওয়ার সুযোগ।</p></div></div></div>
-            </div>
-          </div>
-        </div>
-        <div class="grid lg:grid-cols-3 gap-5 mb-8">
-          <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="clipboard-check"></i></div><h3 class="font-extrabold text-slate-950 mt-5">মডেল টেস্ট ও অনুশীলন</h3><p class="text-sm text-slate-600 mt-2 leading-6">নিয়মিত মডেল টেস্ট ও অনুশীলনের মাধ্যমে শিক্ষার্থীরা নিজেদের প্রস্তুতির অবস্থান যাচাই করতে পারে এবং পরীক্ষার পরিবেশের সঙ্গে ধীরে ধীরে অভ্যস্ত হয়ে ওঠে।</p></div>
-          <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="notebook-tabs"></i></div><h3 class="font-extrabold text-slate-950 mt-5">স্টাডি সাপোর্ট</h3><p class="text-sm text-slate-600 mt-2 leading-6">প্রয়োজনীয় স্টাডি ম্যাটেরিয়াল, প্রশ্ন সমাধান এবং বিষয়ভিত্তিক অনুশীলনের মাধ্যমে প্রস্তুতিকে আরও গোছানো ও ধারাবাহিক করা।</p></div>
-          <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center"><i class="w-5 h-5" data-lucide="compass"></i></div><h3 class="font-extrabold text-slate-950 mt-5">গাইডলাইন ও মেন্টরশিপ</h3><p class="text-sm text-slate-600 mt-2 leading-6">ভর্তি পরীক্ষার প্রস্তুতির পুরো পথটি যারা নিজেরা পেরিয়ে এসেছে, তাদের অভিজ্ঞতা থেকে পাওয়া বাস্তব পরামর্শ ও দিকনির্দেশনা।</p></div>
-        </div>
-        <div class="grid lg:grid-cols-12 gap-6">
-          <div class="lg:col-span-7 rounded-3xl bg-white border border-slate-200 p-7 sm:p-9 shadow-sm">
-            <span class="text-indigo-700 text-xs font-extrabold section-kicker uppercase">Our Approach</span>
-            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 mt-3">প্রস্তুতির চারটি স্তম্ভ</h3>
-            <div class="mt-7 grid sm:grid-cols-2 gap-4">
-              <div class="rd-tile p-4 rounded-2xl bg-slate-50 border border-slate-200"><strong class="text-slate-900">০১. পরিকল্পনা</strong><p class="text-sm text-slate-600 mt-1.5 leading-6">পরীক্ষার ধরন ও সময় অনুযায়ী প্রস্তুতির রুটিন তৈরি।</p></div>
-              <div class="rd-tile p-4 rounded-2xl bg-slate-50 border border-slate-200"><strong class="text-slate-900">০২. অনুশীলন</strong><p class="text-sm text-slate-600 mt-1.5 leading-6">প্রশ্ন সমাধান, revision ও model test-এর ধারাবাহিক চর্চা।</p></div>
-              <div class="rd-tile p-4 rounded-2xl bg-slate-50 border border-slate-200"><strong class="text-slate-900">০৩. মূল্যায়ন</strong><p class="text-sm text-slate-600 mt-1.5 leading-6">নিজের প্রস্তুতির দুর্বল জায়গা শনাক্ত করে উন্নতি করা।</p></div>
-              <div class="rd-tile p-4 rounded-2xl bg-slate-50 border border-slate-200"><strong class="text-slate-900">০৪. মেন্টরশিপ</strong><p class="text-sm text-slate-600 mt-1.5 leading-6">অভিজ্ঞ DUET শিক্ষার্থীদের কাছ থেকে প্রয়োজনীয় দিকনির্দেশনা নেওয়া।</p></div>
-            </div>
-          </div>
-          <div class="lg:col-span-5 rounded-3xl bg-indigo-50 border border-indigo-100 p-7 sm:p-9">
-            <span id="pd-journey-kicker" class="text-indigo-700 text-xs font-extrabold section-kicker uppercase">A Proven Journey</span>
-            <h3 id="pd-journey-title" class="text-2xl sm:text-3xl font-extrabold text-slate-950 mt-3">গত বছরের ফলাফল</h3>
-            <div class="mt-6 flex items-end gap-3"><span id="pd-journey-figure" class="text-5xl font-extrabold text-indigo-700">৯২</span><span id="pd-journey-unit" class="text-sm font-bold text-slate-700 pb-2">শিক্ষার্থী</span></div>
-            <p id="pd-journey-note" class="text-slate-600 leading-7 mt-3">DUET-এর ২৫ সিরিজে PDACC-এর ৯২ জন শিক্ষার্থী ভর্তির সুযোগ পেয়েছে।</p>
-          </div>
-        </div>
-
-        <!-- The guide is the thing a candidate came for, so it is offered
-             before the messages and the contact strip. -->
-        <div class="max-w-4xl mx-auto mb-12">
-          <button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-guide">
-            <span class="rd-pd-guide-i"><i data-lucide="graduation-cap" class="w-6 h-6"></i></span>
-            <span class="min-w-0">
-              <strong>DUET ভর্তি পরীক্ষা কীভাবে হয়</strong>
-              <em>মার্ক ডিস্ট্রিবিউশন, প্রার্থী বাছাই, আসন, যোগ্যতা, কোন টেকনোলজি থেকে কোন বিভাগ আর পুরো সিলেবাস, সবটা প্রস্পেক্টাস ধরে।</em>
-            </span>
-            <i data-lucide="arrow-right" class="w-5 h-5 shrink-0"></i>
-          </button>
-        </div>
-
         <div id="pdacc-leadership" class="mt-12 hidden">
           <div class="max-w-4xl mx-auto text-center">
             <span class="rd-pd-crest is-big mx-auto mb-4 shadow-sm"><img src="pdacc-logo.png" alt="PDACC crest" loading="lazy" decoding="async" onerror="rdPdLogoFallback(this)"></span>
@@ -643,6 +603,123 @@
             </button>
           </div>
         </div>
+        <!-- The guide is the thing a candidate came for, so it is offered
+             before the messages and the contact strip. -->
+        <div class="max-w-4xl mx-auto mb-12">
+          <button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-guide">
+            <span class="rd-pd-guide-i"><i data-lucide="graduation-cap" class="w-6 h-6"></i></span>
+            <span class="min-w-0">
+              <strong>DUET ভর্তি পরীক্ষা কীভাবে হয়</strong>
+              <em>মার্ক ডিস্ট্রিবিউশন, প্রার্থী বাছাই, আসন, যোগ্যতা, কোন টেকনোলজি থেকে কোন বিভাগ আর পুরো সিলেবাস, সবটা প্রস্পেক্টাস ধরে।</em>
+            </span>
+            <i data-lucide="arrow-right" class="w-5 h-5 shrink-0"></i>
+          </button>
+        </div>
+
+        <div class="rounded-[30px] bg-slate-950 text-white p-7 sm:p-10 md:p-12 shadow-2xl relative overflow-hidden mb-8">
+          <div class="absolute -right-24 -top-24 w-80 h-80 rounded-full bg-indigo-600/20 blur-3xl"></div><div class="absolute -left-24 -bottom-24 w-72 h-72 rounded-full bg-blue-500/10 blur-3xl"></div>
+          <div class="relative grid lg:grid-cols-12 gap-10 items-center">
+            <div class="lg:col-span-7"><h3 class="text-3xl font-extrabold mt-4 leading-tight">কে পড়ায়, কীভাবে চলে</h3><p class="text-slate-300 mt-5 leading-8">PDACC-এর মূল লক্ষ্য হলো পলিটেকনিক শিক্ষার্থীদের ডুয়েট ভর্তি পরীক্ষার জন্য একটি নির্দিষ্ট ও বাস্তবভিত্তিক প্রস্তুতির পথ তৈরি করা। যারা নিজেরাই এই ভর্তি পরীক্ষার মধ্য দিয়ে ডুয়েটে এসেছে, তারাই নিজেদের অভিজ্ঞতা থেকে পড়াশোনা, প্রস্তুতি ও পরীক্ষার কৌশল নিয়ে শিক্ষার্থীদের গাইড করে।</p></div>
+            <div class="lg:col-span-5 grid sm:grid-cols-2 lg:grid-cols-1 gap-3">
+              <div class="rd-tile-dark rounded-2xl bg-white/5 border border-white/10 p-5"><div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-500/15 text-indigo-300 flex items-center justify-center"><i class="w-5 h-5" data-lucide="target"></i></div><div><h4 class="font-extrabold">Admission Focus</h4><p class="text-xs text-slate-400 mt-1 leading-5">PDACC-এর প্রস্তুতি সম্পূর্ণভাবে ডুয়েট ভর্তি পরীক্ষাকে কেন্দ্র করে সাজানো।</p></div></div></div>
+              <div class="rd-tile-dark rounded-2xl bg-white/5 border border-white/10 p-5"><div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-300 flex items-center justify-center"><i class="w-5 h-5" data-lucide="users"></i></div><div><h4 class="font-extrabold">Mentorship</h4><p class="text-xs text-slate-400 mt-1 leading-5">বর্তমানে ডুয়েটে অধ্যয়নরত শিক্ষার্থীদের কাছ থেকে সরাসরি পরামর্শ ও বাস্তব অভিজ্ঞতার ভিত্তিতে দিকনির্দেশনা পাওয়া যায়।</p></div></div></div>
+              <div class="rd-tile-dark rounded-2xl bg-white/5 border border-white/10 p-5"><div class="flex gap-3"><div class="w-10 h-10 rounded-xl rd-pd-chip-emerald flex items-center justify-center"><i class="w-5 h-5" data-lucide="lightbulb"></i></div><div><h4 class="font-extrabold">Experience Based Guidance</h4><p class="text-xs text-slate-400 mt-1 leading-5">যারা নিজেরাই এই পথ পেরিয়ে এসেছে, তাদের অভিজ্ঞতা থেকে প্রস্তুতির ভুল-ত্রুটি, সময় ব্যবস্থাপনা ও পরীক্ষাকেন্দ্রিক দিকগুলো সম্পর্কে বাস্তব ধারণা নেওয়ার সুযোগ।</p></div></div></div>
+            </div>
+          </div>
+        </div>
+        <!-- One box across the row now. The figure that used to sit beside
+             it said the same thing three times over: the chance chart below
+             carries the same number with every series next to it. -->
+        <div class="grid lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-12 rounded-3xl bg-white border border-slate-200 p-7 sm:p-9 shadow-sm">
+            <span class="text-indigo-700 text-xs font-extrabold section-kicker uppercase">Our Approach</span>
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 mt-3">প্রস্তুতির চারটি স্তম্ভ</h3>
+            <div class="mt-7 grid sm:grid-cols-2 gap-4">
+              <div class="rd-tile p-4 rounded-2xl bg-slate-50 border border-slate-200"><strong class="text-slate-900">০১. পরিকল্পনা</strong><p class="text-sm text-slate-600 mt-1.5 leading-6">পরীক্ষার ধরন ও সময় অনুযায়ী প্রস্তুতির রুটিন তৈরি।</p></div>
+              <div class="rd-tile p-4 rounded-2xl bg-slate-50 border border-slate-200"><strong class="text-slate-900">০২. অনুশীলন</strong><p class="text-sm text-slate-600 mt-1.5 leading-6">প্রশ্ন সমাধান, revision ও model test-এর ধারাবাহিক চর্চা।</p></div>
+              <div class="rd-tile p-4 rounded-2xl bg-slate-50 border border-slate-200"><strong class="text-slate-900">০৩. মূল্যায়ন</strong><p class="text-sm text-slate-600 mt-1.5 leading-6">নিজের প্রস্তুতির দুর্বল জায়গা শনাক্ত করে উন্নতি করা।</p></div>
+              <div class="rd-tile p-4 rounded-2xl bg-slate-50 border border-slate-200"><strong class="text-slate-900">০৪. মেন্টরশিপ</strong><p class="text-sm text-slate-600 mt-1.5 leading-6">অভিজ্ঞ DUET শিক্ষার্থীদের কাছ থেকে প্রয়োজনীয় দিকনির্দেশনা নেওয়া।</p></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- The record, the batches and the season. The numbers in the chart and
+             in the department rows are rewritten by renderPdaccChance() from the
+             PDACC Stats feed, so an admin changes them from the panel; what is
+             written here is the last saved season, never a placeholder. -->
+        <div class="rd-pd mt-12 grid gap-6">
+
+          <section class="rd-pd-card">
+            <h3 class="rd-pd-h">চান্সপ্রাপ্তির রেকর্ড</h3>
+            <p class="rd-pd-sub">PDACC থেকে প্রস্তুতি নিয়ে DUET-এ ভর্তির সুযোগ পাওয়া শিক্ষার্থীর সংখ্যা, সিরিজ ও সেশন ধরে।</p>
+            <div class="rd-pd-chart" id="pd-chance-chart" role="img" aria-label="সিরিজ অনুযায়ী চান্সপ্রাপ্তি: ২৫ সিরিজ ৯২ জন, ২৪ সিরিজ ৮৪ জন, ২৩ সিরিজ ৮৯ জন, ২২ সিরিজ ৮১ জন, ২১ সিরিজ ৮৭ জন, ২০ সিরিজ ৭২ জন, ১৯ সিরিজ ৫৮ জন">
+              <div class="rd-pd-col lead" style="--h:88%"><span class="rd-pd-val">৯২</span><div class="rd-pd-bar" style="--d:.05s"></div></div>
+              <div class="rd-pd-col" style="--h:80%"><span class="rd-pd-val">৮৪</span><div class="rd-pd-bar" style="--d:.13s"></div></div>
+              <div class="rd-pd-col" style="--h:85%"><span class="rd-pd-val">৮৯</span><div class="rd-pd-bar" style="--d:.21s"></div></div>
+              <div class="rd-pd-col" style="--h:77%"><span class="rd-pd-val">৮১</span><div class="rd-pd-bar" style="--d:.29s"></div></div>
+              <div class="rd-pd-col" style="--h:83%"><span class="rd-pd-val">৮৭</span><div class="rd-pd-bar" style="--d:.37s"></div></div>
+              <div class="rd-pd-col" style="--h:69%"><span class="rd-pd-val">৭২</span><div class="rd-pd-bar" style="--d:.45s"></div></div>
+              <div class="rd-pd-col" style="--h:55%"><span class="rd-pd-val">৫৮</span><div class="rd-pd-bar" style="--d:.53s"></div></div>
+            </div>
+            <div class="rd-pd-axis" id="pd-chance-axis">
+              <div><b>২৫ সিরিজ</b><span>২০২৫-২৬</span></div>
+              <div><b>২৪ সিরিজ</b><span>২০২৪-২৫</span></div>
+              <div><b>২৩ সিরিজ</b><span>২০২৩-২৪</span></div>
+              <div><b>২২ সিরিজ</b><span>২০২২-২৩</span></div>
+              <div><b>২১ সিরিজ</b><span>২০২১-২২</span></div>
+              <div><b>২০ সিরিজ</b><span>২০২০-২১</span></div>
+              <div><b>১৯ সিরিজ</b><span>২০১৯-২০</span></div>
+            </div>
+          </section>
+
+          <section class="rd-pd-card" id="pd-chance-dept" hidden>
+            <h3 class="rd-pd-h">সর্বশেষ সিরিজে কোন বিভাগে কতজন</h3>
+            <p class="rd-pd-sub" id="pd-chance-sum">সর্বশেষ ফলাফলের বিভাগভিত্তিক হিসাব।</p>
+            <div class="rd-pd-rows" id="pd-chance-rows"></div>
+          </section>
+
+          <section class="rd-pd-card">
+            <h3 class="rd-pd-h">কোন ব্যাচ কার জন্য</h3>
+            <div class="rd-pd-grid3">
+              <div class="rd-pd-batch"><h4>শর্ট ব্যাচ</h4>
+                <p>৭ম সেমিস্টার শেষ হওয়ার পর, ইন্টার্নশিপের সময়টা ধরে এই ব্যাচ চলে। ইন্টার্নশিপ মানে একটি প্রতিষ্ঠানে হাতে-কলমে প্র্যাকটিক্যাল ধরনের ট্রেনিং, তাই তখন ডিপ্লোমার ক্লাস-পরীক্ষার চাপ থাকে না। সেই সময়টা কাজে লাগিয়ে ভর্তি পরীক্ষার পুরো প্রস্তুতি এই ব্যাচেই হয়ে যায়।</p></div>
+              <div class="rd-pd-batch"><h4>লং ব্যাচ</h4>
+                <p>যারা প্রথমবার ভর্তি পরীক্ষা দিয়ে চান্স পায়নি, তাদের জন্য। DUET-এ দ্বিতীয়বার পরীক্ষা দেওয়ার সুযোগ থাকে, আর এই ব্যাচে পুরো সিলেবাস আবার গোড়া থেকে ধরা হয়।</p></div>
+              <div class="rd-pd-batch"><h4>সুপার শর্ট</h4>
+                <p>পরীক্ষার আগের অল্প সময়ের জন্য। বাছাই করা সংক্ষিপ্ত সিলেবাস, বেশি পরীক্ষা আর দ্রুত রিভিশনের ওপর জোর।</p></div>
+            </div>
+          </section>
+
+          <section class="rd-pd-card">
+            <h3 class="rd-pd-h">একটি সিজন যেভাবে চলে</h3>
+            <p class="rd-pd-sub">ভর্তি থেকে ফলাফল পর্যন্ত পুরো পথটা, ধাপে ধাপে।</p>
+            <div class="rd-pd-season">
+              <div class="rd-pd-step"><h5>ভর্তি ও অ্যাডভাইসর</h5><p>ব্যাচে ভর্তির পর প্রত্যেক শিক্ষার্থীর জন্য একজন অ্যাডভাইসর থাকেন। তিনি DUET-এ পড়া বড় ভাই বা আপু, যিনি পুরো সিজন ধরে ওই শিক্ষার্থীর পড়াশোনা, দুর্বল জায়গা আর পরীক্ষার ফল ধরে খোঁজ রাখেন।</p></div>
+              <div class="rd-pd-step"><h5>ক্লাস ও প্রশ্ন সমাধান</h5><p>নন-ডিপার্টমেন্ট (পদার্থবিজ্ঞান, রসায়ন, গণিত, ইংরেজি) আর নিজের ডিপার্টমেন্টের বিষয়, দুটোই ধরে ক্লাস, সঙ্গে আগের বছরের প্রশ্ন সমাধান।</p></div>
+              <div class="rd-pd-step"><h5>বিষয়ভিত্তিক পরীক্ষা</h5><p>প্রতিটি বিষয়ের ওপর আলাদা করে পরীক্ষা হয়, যাতে বিষয় ধরে ধরে দুর্বলতা বেরিয়ে আসে।</p></div>
+              <div class="rd-pd-step"><h5>সাপ্তাহিক পরীক্ষা, আগের দিন নার্সিং</h5><p>পুরো সপ্তাহে যা পড়ানো হয়, সেটাই সাপ্তাহিক পরীক্ষার সিলেবাস। <em>প্রতি সপ্তাহে এই পরীক্ষার আগের দিন নার্সিং সেশন হয়</em>, যেখানে সপ্তাহের পড়া ধরে ধরে ঝালাই করা হয় আর যে জায়গাগুলোতে শিক্ষার্থী আটকে আছে সেগুলো আলাদা করে দেখানো হয়।</p></div>
+              <div class="rd-pd-step"><h5>প্রি-মডেল টেস্ট <em>Pre Model</em></h5><p>DUET-এ সাধারণত নন-ডিপার্টমেন্ট (পদার্থবিজ্ঞান, রসায়ন, গণিত, ইংরেজি) আর ডিপার্টমেন্ট, দুই অংশ মিলিয়ে পরীক্ষা হয়। প্রি-মডেলে সাধারণত এর যেকোনো একটা অংশ নেওয়া হয়।</p></div>
+              <div class="rd-pd-step"><h5>কোচিংয়ের মডেল টেস্ট</h5><p>রংধনু মডেলের আগে কোচিংয়ে ২ থেকে ৩টি মডেল টেস্ট হয়। এগুলোতেও পুরো সিলেবাস থাকে, তাই শেষ ধাপের আগেই পূর্ণ প্রস্তুতিটা কয়েকবার যাচাই হয়ে যায়।</p></div>
+              <div class="rd-pd-step"><h5>রংধনু মডেল</h5><p>DUET ভর্তি পরীক্ষার আদলে মডেল টেস্ট। এখানে অন্য কোচিংয়ের শিক্ষার্থীরাও পরীক্ষা দেয়, তাই নিজের অবস্থান মোটামুটি বোঝা যায়।</p></div>
+              <div class="rd-pd-step"><h5>পরীক্ষার দিনে হেল্প ডেস্ক</h5><p>ভর্তি পরীক্ষার দিন PDACC-র হেল্প ডেস্ক বসে। শিক্ষার্থীদের পরীক্ষাকেন্দ্রে নিয়ে আসা, অনুপ্রেরণা দেওয়া আর সেদিন যেকোনো সমস্যা হলে হেল্প ডেস্ক থেকেই সহায়তা করা হয়।</p></div>
+              <div class="rd-pd-step"><h5>ভর্তি পরীক্ষা ও ফলাফল</h5><p>DUET-এর নিজের ভর্তি পরীক্ষা, এরপর বিভাগভিত্তিক মেধাতালিকা।</p></div>
+            </div>
+          </section>
+
+          <section class="rd-pd-card">
+            <h3 class="rd-pd-h">যা আগে জানা দরকার</h3>
+            <div class="rd-pd-facts">
+              <div class="rd-pd-fact">
+                <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.8v8.4M8.6 11h6.8" stroke-linecap="round"/></svg>
+                <p>ভর্তি পরীক্ষার প্রশ্ন করে ও পরীক্ষা নেয় DUET নিজেই। PDACC প্রস্তুতির জায়গা, শিক্ষার্থীরা এখানে পড়ে আর পরীক্ষা দেয় DUET-এ।</p></div>
+              <div class="rd-pd-fact">
+                <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z" stroke-linejoin="round"/></svg>
+                <p>কোর্স ফী স্থির নয়, ব্যাচ ও সময় ধরে বদলায়। মেধা ও প্রয়োজনের ভিত্তিতে ফী কমানোর সুযোগ আছে। সঠিক ফী জানতে সরাসরি যোগাযোগ করতে হবে।</p></div>
+            </div>
+          </section>
+
+        </div>
+
         <!-- Facebook, the Director's own number and the seat booking, in one
              strip. Each button appears only once there is somebody behind it,
              so a visitor is never handed a dead button. -->
@@ -665,7 +742,7 @@
           <div class="flex justify-center mb-4"><span class="rd-pd-crest is-big shadow-sm"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span></div>
           <span class="inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold uppercase tracking-widest"><i class="w-3.5 h-3.5" data-lucide="newspaper"></i> Latest update</span>
           <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 font-display tracking-tight">Every update</h2>
-          <p class="text-slate-600 text-sm mt-2 leading-relaxed">প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার — every notice and every piece of news published so far, fifteen to a page.</p>
+          <p class="text-slate-600 text-sm mt-2 leading-relaxed">প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার. Every notice and every piece of news published so far, fifteen to a page.</p>
         </div>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6" id="pdacc-updates-list"></div>
         <nav id="pdacc-updates-pager" class="mt-9 flex flex-wrap items-center justify-center gap-2" aria-label="PDACC update pagination"></nav>
@@ -675,11 +752,22 @@
 
   <!-- ================= SUB-PAGE: DUET ADMISSION GUIDE ================= -->
   <div class="page-view" id="page-pdacc-admission">
-    <div class="subpage-bar">
-      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-        <button type="button" onclick="goBackFromSubPage('pdacc-admission')" class="subpage-back"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
-        <span class="text-sm font-bold text-slate-500 truncate min-w-0">PDACC · DUET ভর্তি গাইড</span>
-      </div>
+    <!-- No Back button here on purpose: the PDACC strip below is the way
+         back, and every button on it except this page's own returns to
+         the PDACC page. -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
+        <nav id="pdacc-nav-sub" class="rd-pd-nav z-30 mb-6 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur-md shadow-sm px-3 sm:px-5 py-3 flex flex-wrap items-center gap-2 sm:gap-3">
+          <span class="flex items-center gap-2.5 min-w-0 mr-auto">
+            <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+            <span class="min-w-0">
+              <strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PDACC</strong>
+              <span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার</span>
+            </span>
+          </span>
+          <button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PDACC Home</button>
+          <span class="rd-pd-navbtn is-key is-here" aria-current="page">Admission guide</span>
+          <button type="button" onclick="openPdaccUpdates()" class="rd-pd-navbtn">All updates</button>
+        </nav>
     </div>
     <div class="rd-ad">
       <div class="rd-ad-wrap">
