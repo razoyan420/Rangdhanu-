@@ -110,7 +110,10 @@
       'notice-file':  { parent: 'noticeboard', needsData: true  },
       'committee-new': { parent: 'committee', needsData: false },
       'ec-message':   { parent: 'committee', needsData: true  },
-      'pdacc-updates': { parent: 'prokoushali', needsData: true  }
+      'pdacc-updates': { parent: 'prokoushali', needsData: true  },
+      /* The admission guide is plain markup: every number is in the page
+         already, so a reload can land straight on it. */
+      'pdacc-admission': { parent: 'prokoushali', needsData: false }
     };
     const rdSubReturn = {};
     const rdSubFrom = {};
@@ -168,6 +171,7 @@
           loadPdaccStats();
         }
         if (pageId === 'pdacc-updates') loadPdacc();
+        if (pageId === 'pdacc-admission') rdAdInit();
         if (pageId === 'admin') adminEnterPage();
       } catch (err) { console.error('page loader failed:', err); }
     }
@@ -858,11 +862,11 @@
     const RD_PD_HERO_COPY = [
       { kicker: 'Welcome to',
         title:  'PDACC',
-        sub:    'Prokaushali DUET Admission Coaching Centre',
+        sub:    'Prokoushali DUET Admission Coaching Centre',
         sub2:   'প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার' },
       { kicker: 'স্বাগতম',
         title:  'প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার',
-        sub:    'Prokaushali DUET Admission Coaching Centre',
+        sub:    'Prokoushali DUET Admission Coaching Centre',
         sub2:   'রংধনুর একটি অঙ্গ সংগঠন' }
     ];
     let rdPdHeroIdx = 0, rdPdHeroTimer = null;
@@ -905,7 +909,7 @@
          draws the poster and the caption for it, no image element at all. */
       return [{
         src: RD_PDACC_FIRST, local: RD_PDACC_FIRST, crest: true,
-        alt: 'Prokaushali DUET Admission Coaching Centre', badge: 'PDACC',
+        alt: 'Prokoushali DUET Admission Coaching Centre', badge: 'PDACC',
         title: 'প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার'
       }];
     }
@@ -3064,6 +3068,7 @@
 
     function renderPdaccDirector() {
       renderPdaccContacts();
+      renderPdaccSeatPill();
       const sec = document.getElementById('pdacc-leadership');
       const card = document.getElementById('pdacc-director-card');
       const label = document.getElementById('pdacc-committee-btn-label');
@@ -3095,6 +3100,34 @@
     /* Facebook is always there. A phone number and a seat-booking profile only
        appear once the committee sheet actually carries them -- a dead tel:
        link or a profile page with nobody on it is worse than no button. */
+    /* The pill's number is never written in the markup: it is read out of the
+       committee list each time the feed lands. Senior Residential Director of
+       the newest PDACC session first, the Director when that seat is empty, and
+       no pill at all when neither carries a number. */
+    function rdPdSeatContact() {
+      const res = (typeof ecSeniorResidentialDirector === 'function')
+        ? ecSeniorResidentialDirector() : null;
+      const dir = (typeof ecLatestDirector === 'function') ? ecLatestDirector() : null;
+      for (const hit of [res, dir]) {
+        const phone = hit && hit.member ? String(hit.member.mobile || '').trim() : '';
+        if (phone) return { phone: phone, member: hit.member, session: hit.session };
+      }
+      return null;
+    }
+
+    function renderPdaccSeatPill() {
+      const pill = document.getElementById('pdacc-seat-pill');
+      if (!pill) return;
+      const hit = rdPdSeatContact();
+      if (!hit) { pill.hidden = true; pill.classList.remove('is-on'); return; }
+      pill.href = 'tel:' + hit.phone.replace(/[^0-9+]/g, '');
+      pill.hidden = false;
+      pill.classList.add('is-on');
+      const who = String(hit.member.fullName || '').trim();
+      pill.setAttribute('aria-label', 'Seat booking: call ' + (who || hit.phone));
+      pill.setAttribute('title', who ? who + ' - ' + hit.phone : hit.phone);
+    }
+
     function renderPdaccContacts() {
       const box = document.getElementById('pdacc-contacts');
       if (!box) return;
@@ -3125,6 +3158,223 @@
           '</button>');
       }
       box.innerHTML = parts.join('');
+    }
+
+    /* ---------- PDACC: the DUET admission guide ------------------------
+       The tabs, the technology dropdown and the marks simulation. Every
+       figure is already in the markup, so this only wires the behaviour,
+       and it runs once, the first time the guide is opened. */
+    let rdAdReady = false;
+    function rdAdInit() {
+      if (rdAdReady) return;
+      if (!document.getElementById('rdAdSim')) return;
+      rdAdReady = true;
+  /* ------------------------------------------------------------------ tabs */
+  (function(){
+    document.documentElement.classList.add('rd-js');
+    var tabs = document.querySelectorAll('.rd-ad-tab');
+    function show(set, id){
+      document.querySelectorAll('.rd-ad-tab[data-set="'+set+'"]').forEach(function(t){
+        var on = t.getAttribute('aria-controls') === id;
+        t.classList.toggle('on', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      document.querySelectorAll('.rd-ad-panes[data-set="'+set+'"] .rd-ad-pane2').forEach(function(p){
+        p.classList.remove('on');
+        if (p.id === id) { void p.offsetWidth; p.classList.add('on'); }
+      });
+      var hint = document.getElementById('h-' + set);
+      if (hint) hint.hidden = true;
+    }
+    tabs.forEach(function(t){
+      t.addEventListener('click', function(){ show(t.dataset.set, t.getAttribute('aria-controls')); });
+    });
+    window.rdAdShowDept = function(paneId){
+      show('p2', paneId);
+      var tab = document.getElementById('t-' + paneId);
+      if (tab) tab.scrollIntoView({block:'center', behavior:'smooth'});
+    };
+  })();
+
+  /* ------------------------------------------------- the marks simulation */
+  (function(){
+    var box = document.getElementById('rdAdSim');
+    if (!box) return;
+    var S = [
+      ['পদার্থবিজ্ঞান', 'Physics', 15, 25],
+      ['রসায়ন', 'Chemistry', 15, 25],
+      ['গণিত', 'Mathematics', 15, 25],
+      ['ইংরেজি', 'English', 15, 15],
+      ['টেকনিক্যাল, ২য় পত্র', 'Technical', 60, 90]
+    ];
+    function bn(n){
+      return String(n).replace(/[0-9]/g, function(d){ return '০১২৩৪৫৬৭৮৯'[+d]; });
+    }
+    S.forEach(function(r, i){
+      var row = document.createElement('div');
+      row.className = 'rd-ad-sim-row';
+      row.innerHTML =
+        '<div class="rd-ad-sim-lab"><b>' + r[0] + '</b><em>' + r[1] + '</em></div>' +
+        '<input class="rd-ad-sim-range" type="range" min="0" max="100" step="5" value="60" ' +
+          'id="rdAdSimR' + i + '" aria-label="' + r[0] + ' কত শতাংশ পারবেন">' +
+        '<div class="rd-ad-sim-val"><span class="rd-ad-sim-pc" id="rdAdSimP' + i + '">৬০%</span>' +
+          '<span>MCQ <b id="rdAdSimM' + i + '">০</b>/' + bn(r[2]) + '</span>' +
+          '<span>লিখিত <b id="rdAdSimW' + i + '">০</b>/' + bn(r[3]) + '</span></div>';
+      box.appendChild(row);
+    });
+    var total = document.getElementById('rdAdSimTotal');
+    var oMcq = document.getElementById('rdAdSimMcq');
+    var oWri = document.getElementById('rdAdSimWri');
+    var gate = document.getElementById('rdAdSimGate');
+    function calc(){
+      var m = 0, w = 0, engPc = 0;
+      S.forEach(function(r, i){
+        var pc = +document.getElementById('rdAdSimR' + i).value;
+        var sm = Math.round(r[2] * pc / 100), sw = Math.round(r[3] * pc / 100);
+        if (i === 3) engPc = pc;
+        m += sm; w += sw;
+        document.getElementById('rdAdSimP' + i).textContent = bn(pc) + '%';
+        document.getElementById('rdAdSimM' + i).textContent = bn(sm);
+        document.getElementById('rdAdSimW' + i).textContent = bn(sw);
+      });
+      oMcq.textContent = bn(m);
+      oWri.textContent = bn(w);
+      total.textContent = bn(m + w);
+      if (engPc < 20) {
+        gate.className = 'rd-ad-sim-gate bad';
+        gate.textContent = 'ইংরেজি MCQ-তে ' + bn(engPc) + '% মানে ২০%-এর কম, এই অবস্থায় লিখিত খাতা দেখা হয় না।';
+      } else {
+        gate.className = 'rd-ad-sim-gate ok';
+        gate.textContent = 'ইংরেজি MCQ-তে ' + bn(engPc) + '%, ২০%-এর শর্ত পার হয়েছে।';
+      }
+    }
+    box.addEventListener('input', calc);
+    calc();
+  })();
+
+  /* -------------------------------------------------- technology finder */
+  (function(){
+    var D = {
+      ce : {bn:'সিভিল', en:'Civil Engineering', seats:'১২০', pane:'p2-ce'},
+      eee: {bn:'ইলেকট্রিক্যাল অ্যান্ড ইলেকট্রনিক', en:'EEE', seats:'১২০', pane:'p2-eee'},
+      me : {bn:'মেকানিক্যাল, IPE ও MME', en:'ME · IPE · MME', seats:'১২০ + ৩০ + ৩০', pane:'p2-me',
+             note:'তিন বিভাগের পরীক্ষা একটিই, আবেদনও একটি'},
+      cse: {bn:'কম্পিউটার সায়েন্স অ্যান্ড ইঞ্জিনিয়ারিং', en:'CSE', seats:'১২০', pane:'p2-cse'},
+      te : {bn:'টেক্সটাইল', en:'Textile Engineering', seats:'১২০', pane:'p2-te'},
+      arc: {bn:'আর্কিটেকচার', en:'Architecture', seats:'৩০', pane:'p2-arc'},
+      che: {bn:'কেমিক্যাল', en:'Chemical Engineering', seats:'৩০', pane:'p2-che'},
+      fe : {bn:'ফুড', en:'Food Engineering', seats:'৩০', pane:'p2-fe'}
+    };
+    var T = [
+      ['সিভিল','civil',['ce']],
+      ['সার্ভেয়িং','surveying',['ce']],
+      ['সিভিল (উড)','civil wood',['ce']],
+      ['কনস্ট্রাকশন','construction',['ce']],
+      ['এনভায়রনমেন্টাল','environmental',['ce','che'],'সিভিলে আবেদনের ক্ষেত্রে নির্ধারিত ঐচ্ছিক বিষয়সমূহে পাশ থাকতে হবে।'],
+      ['ইলেকট্রিক্যাল','electrical',['eee']],
+      ['ইলেক্ট্রোমেডিকেল','electromedical',['eee']],
+      ['ইলেকট্রনিক্স','electronics',['eee','cse']],
+      ['টেলিকমিউনিকেশন','telecommunication',['eee']],
+      ['ইনস্ট্রুমেন্টেশন অ্যান্ড প্রসেস কন্ট্রোল','instrumentation and process control',['eee','me','che']],
+      ['মেকানিক্যাল','mechanical',['me','che']],
+      ['পাওয়ার','power',['me','che']],
+      ['রেফ্রিজারেশন অ্যান্ড এয়ারকন্ডিশনিং','refrigeration and air conditioning',['me','che','fe']],
+      ['অটোমোবাইল','automobile',['me','che']],
+      ['মেকাট্রনিক্স','mechatronics',['me','che']],
+      ['সিরামিক','ceramic',['me','che']],
+      ['গ্লাস','glass',['me','che']],
+      ['শিপ বিল্ডিং','ship building',['me','che']],
+      ['মেরিন','marine',['me','che']],
+      ['মাইনিং এবং মাইন সার্ভে','mining and mine survey',['me','che']],
+      ['কম্পিউটার সায়েন্স অ্যান্ড টেকনোলজি','computer science and technology',['cse']],
+      ['কম্পিউটার','computer',['cse']],
+      ['ডাটা টেলিকমিউনিকেশন অ্যান্ড নেটওয়ার্কিং','data telecommunication and networking',['cse']],
+      ['গ্রাফিক্স ডিজাইন','graphics design',['cse']],
+      ['প্রিন্টিং','printing',['cse']],
+      ['টেক্সটাইল','textile',['te']],
+      ['টেক্সটাইল (অ্যাপারেল ম্যানুফ্যাকচারিং)','textile apparel manufacturing',['te']],
+      ['টেক্সটাইল (ফ্যাশন ডিজাইন)','textile fashion design',['te']],
+      ['টেক্সটাইল (ইয়ার্ন ম্যানুফ্যাকচারিং)','textile yarn manufacturing',['te']],
+      ['টেক্সটাইল (ফেব্রিক ম্যানুফ্যাকচারিং)','textile fabric manufacturing',['te']],
+      ['টেক্সটাইল (জুট প্রোডাক্ট ম্যানুফ্যাকচারিং)','textile jute product manufacturing',['te']],
+      ['টেক্সটাইল (ওয়েট প্রসেসিং)','textile wet processing',['te']],
+      ['টেক্সটাইল (মার্চেন্ডাইজিং অ্যান্ড মার্কেটিং)','textile merchandising and marketing',['te']],
+      ['টেক্সটাইল (মেশিন ডিজাইন অ্যান্ড মেইনটেন্যান্স)','textile machine design and maintenance',['te']],
+      ['জুট','jute',['te']],
+      ['গার্মেন্টস অ্যান্ড প্যাটার্ন মেকিং','garments and pattern making',['te']],
+      ['আর্কিটেকচার','architecture',['arc']],
+      ['আর্কিটেকচার অ্যান্ড ইন্টেরিয়র ডিজাইন','architecture and interior design',['arc']],
+      ['কেমিক্যাল','chemical',['che']],
+      ['ফুড','food',['fe']],
+      ['এগ্রিকালচার','agriculture',['fe']]
+    ];
+
+    var q = document.getElementById('rdAdTechQ');
+    var sel = document.getElementById('rdAdTechSel');
+    var res = document.getElementById('rdAdRes');
+    var clear = document.getElementById('rdAdTechClear');
+    var count = document.getElementById('rdAdTechCount');
+    if (!q || !sel || !res) return;
+
+    var bnDigit = function(n){ return String(n).replace(/[0-9]/g, function(d){ return '০১২৩৪৫৬৭৮৯'[+d]; }); };
+    count.textContent = bnDigit(T.length) + 'টি টেকনোলজি তালিকায় আছে।';
+
+    function fill(list){
+      sel.innerHTML = '';
+      var head = document.createElement('option');
+      head.value = '';
+      head.textContent = list.length
+        ? 'টেকনোলজি বাছুন'
+        : 'এই নামে কোনো টেকনোলজি নেই';
+      sel.appendChild(head);
+      list.forEach(function(t){
+        var o = document.createElement('option');
+        o.value = String(T.indexOf(t));
+        o.textContent = t[0] + '  (' + t[1] + ')';
+        sel.appendChild(o);
+      });
+      sel.disabled = !list.length;
+      count.textContent = list.length === T.length
+        ? bnDigit(T.length) + 'টি টেকনোলজি তালিকায় আছে।'
+        : bnDigit(list.length) + 'টি টেকনোলজি মিলেছে।';
+    }
+
+    function pick(t){
+      var html = '<div class="rd-ad-resh"><b>' + t[0] + '</b><span>এই টেকনোলজি থেকে ' +
+        bnDigit(t[2].length) + 'টি বিভাগে পরীক্ষা দেওয়া যায়</span></div><div class="rd-ad-cards">';
+      t[2].forEach(function(k, i){
+        var d = D[k];
+        html += '<article class="rd-ad-dcard" style="--d:' + (i * 0.07) + 's">' +
+          '<b>' + d.bn + '</b><em>' + d.en + '</em>' +
+          '<span class="rd-ad-dseat">' + d.seats + ' আসন</span>' +
+          (d.note ? '<span class="rd-ad-dnote">' + d.note + '</span>' : '') +
+          '<button type="button" class="rd-ad-dgo" onclick="rdAdShowDept(\'' + d.pane + '\')">২য় পত্রের সিলেবাস দেখুন</button>' +
+          '</article>';
+      });
+      html += '</div>';
+      if (t[3]) html += '<p class="rd-ad-rnote">' + t[3] + '</p>';
+      res.innerHTML = html;
+    }
+
+    function filter(){
+      var v = q.value.trim();
+      clear.hidden = !v;
+      var list = v ? T.filter(function(t){
+        return t[0].indexOf(v) > -1 || t[1].indexOf(v.toLowerCase()) > -1;
+      }) : T;
+      fill(list);
+      if (list.length === 1) { sel.value = String(T.indexOf(list[0])); pick(list[0]); }
+      else { res.innerHTML = ''; }
+    }
+
+    sel.addEventListener('change', function(){
+      if (sel.value === '') { res.innerHTML = ''; return; }
+      pick(T[+sel.value]);
+    });
+    q.addEventListener('input', filter);
+    clear.addEventListener('click', function(){ q.value = ''; q.focus(); filter(); });
+    fill(T);
+  })();
     }
 
     function pdaccViewLastCommittee() {
