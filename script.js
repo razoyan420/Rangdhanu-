@@ -5948,7 +5948,7 @@ f.reset();
         empty: 'border-slate-200 bg-white text-slate-600'
       };
       return '<div class="rounded-3xl border ' + (map[tone] || map.empty) + ' p-8 text-center">' +
-        '<div class="w-14 h-14 mx-auto rounded-2xl bg-white/70 border border-current/10 flex items-center justify-center mb-4">' +
+        '<div class="w-14 h-14 mx-auto rounded-2xl bg-white/70 border border-black/5 flex items-center justify-center mb-4">' +
         '<i data-lucide="' + icon + '" class="w-7 h-7"></i></div>' +
         '<p class="font-extrabold">' + escapeHtml(title) + '</p>' +
         '<p class="mt-2 text-sm font-semibold leading-relaxed max-w-md mx-auto opacity-80">' + escapeHtml(body) + '</p>' +
@@ -7080,7 +7080,21 @@ f.reset();
         const r = await apiPost('savepdaccstats', { data: data });
         RD_ADMIN.busy = '';
         RD_PDSTATS = r.stats || data;
-        showToast(r.message || 'The figures are saved.', 'success', 'Saved', { backTo: 'admin' });
+        /* The department rows are the newest series split up, so they should add
+           up to it. A typo there would put a wrong figure on a public page, so
+           the save reports the difference instead of accepting it in silence.
+           It is a report, not a refusal: the rows are already saved, and a
+           season that really does not add up is his call, not the form's. */
+        const dsum = data.depts.reduce((a, x) => a + rdPdToNum(x.count), 0);
+        const newest = rdPdToNum((data.series[0] || {}).count);
+        if (data.depts.length && dsum !== newest) {
+          showToast('The rows are saved. One thing to check: the departments add up to ' +
+            rdPdBn(dsum) + ', while the newest series says ' + rdPdBn(newest) +
+            '. Open the form again if one of them is a typo.',
+            'success', 'Saved, with a figure to check', { backTo: 'admin' });
+        } else {
+          showToast(r.message || 'The figures are saved.', 'success', 'Saved', { backTo: 'admin' });
+        }
         renderAdmin();
       } catch (err) {
         console.warn('[rd] savepdaccstats:', err);

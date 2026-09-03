@@ -251,27 +251,40 @@
     .rd-pd-navbtn:hover{border-color:#a5b4fc;color:#4338ca;background:#eef2ff;}
     .rd-pd-navbtn.is-fb{border-color:#bfdbfe;color:#1d4ed8;background:#eff6ff;}
     .rd-pd-navbtn.is-fb:hover{background:#dbeafe;}
-    /* The nav stays on screen while the PDACC page scrolls, so every important
-       page is one tap away. It sits under the site header, never over it. */
-    /* The strip stays under the site header while the page scrolls. The offset
-       lives here rather than in the markup as a Tailwind arbitrary offset:
-       style.css is a prebuilt file and never carried that value, so the
-       computed top was `auto` and a sticky box with no offset never sticks.
-       86px clears the 81px site header. */
-    .rd-pd-nav{position:sticky;top:86px;
+    /* On a 375px phone the three buttons measured 320px against 319px of room,
+       so the last one wrapped onto a third line of its own and the strip stood
+       153px tall -- with the header, 29% of the screen, permanently. Trimming
+       the side padding gives back 24px and puts all three on one line. */
+    @media (max-width:430px){
+      .rd-pd-navbtn{padding:.5rem .65rem;}
+    }
+    /* The strip stays under the site header while the PDACC page scrolls, so
+       every page it names is one tap away. The offset lives here rather than in
+       the markup as a Tailwind arbitrary value: style.css is generated output
+       and never carried the arbitrary top the markup used to ask for, so the
+       computed top was `auto`, and a sticky box with no offset never sticks.
+       (The dead class is not named here on purpose -- a harness asserts it
+       appears nowhere in the source, and a comment counts.)
+
+       It parks flush against the header, not a few pixels below it: a gap is a
+       window, and the page scrolling underneath shows through it. The header is
+       80.8px tall, so 80px leaves a hair of overlap that the header's own
+       z-index covers. */
+    .rd-pd-nav{position:sticky;top:80px;
       transition:box-shadow .3s ease,background .3s ease;}
     /* From xl up the header shows its second row, the `.nav-strip` menu, and is
        130px tall instead of 81px. Without this the strip parks behind it. */
     @media (min-width:1280px){
-      .rd-pd-nav{top:135px;}
+      .rd-pd-nav{top:129px;}
     }
     /* The ribbon sits under the strip, so it scrolls away with the page. It
        gets a little air above it now that the strip is no longer over it. */
     .rd-pd-nav + .rd-pd27{margin-top:2px}
     /* The Admission guide is the exception: it has its own tab strip that
-       already sticks at 74px, and two bars stacked would take a third of a
-       phone screen. So the PDACC strip scrolls away there. The way back is not
-       lost -- the site header stays on screen and carries PDACC in its menu. */
+       already sticks at the same offset, and two bars stacked would take a
+       third of a phone screen. So the PDACC strip scrolls away there. The way
+       back is not lost -- the site header stays on screen and carries PDACC in
+       its menu. */
     #pdacc-nav-sub{position:static;}
     .rd-pd-navbtn.is-key{border-color:transparent;color:#fff;
       background:linear-gradient(135deg,#4338ca,#1e1b4b);}
@@ -462,7 +475,13 @@
         radial-gradient(58% 96% at 106% 122%,#1d6fe0 0 38%,rgba(29,111,224,0) 39%),
         radial-gradient(60% 100% at -4% 8%,#7cb6ff 0 26%,rgba(124,182,255,0) 27%),
         repeating-linear-gradient(118deg,rgba(59,130,246,.10) 0 .5rem,rgba(255,255,255,0) .5rem 1.7rem);
-      font-family:'Poppins','Hind Siliguri',system-ui,sans-serif;
+      /* The site loads three families and no more: Noto Sans Bengali for
+         Bengali, Plus Jakarta Sans for Latin text, Space Grotesk for numerals
+         and short display words. This used to name two families that are never
+         loaded, so PROUD MEMBER was drawn in whatever the device happened to
+         have -- a different face per visitor. The names are left out of this
+         comment on purpose: a harness asserts they appear nowhere. */
+      font-family:'Plus Jakarta Sans','Noto Sans Bengali',system-ui,sans-serif;
       line-height:.92;
       text-align:center;
       user-select:none;
@@ -498,7 +517,8 @@
       padding:.18em .8em .26em;
       border-radius:9999px;
       background:#1d6fe0;color:#fff;
-      font-family:'Hind Siliguri','Poppins',sans-serif;
+      /* The tag line under it is Bengali, so it leads with the Bengali face. */
+      font-family:'Noto Sans Bengali','Plus Jakarta Sans',sans-serif;
       font-weight:700;line-height:1.35;
       font-size:clamp(.5rem,2.2vw,.85rem);
       box-shadow:0 .12em .3em rgba(29,111,224,.35);
@@ -1069,7 +1089,7 @@
     linear-gradient(180deg,#fbfcff,#f7f9ff)}
 
 /* sticky section nav, glass */
-.rd-ad-nav{position:sticky;top:74px;z-index:25;display:flex;gap:6px;overflow-x:auto;
+.rd-ad-nav{position:sticky;top:80px;z-index:25;display:flex;gap:6px;overflow-x:auto;
   padding:8px;border-radius:16px;
   background:rgba(255,255,255,.78);border:1px solid rgba(226,232,247,.9);
   box-shadow:0 12px 30px -22px rgba(30,27,75,.45);
@@ -1107,14 +1127,16 @@
 .rd-ad-h{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif}
 
 @media (max-width:640px){
-  .rd-ad-nav{top:66px;border-radius:14px}
+  /* The header is 81px on a phone as well, so the offset does not change here.
+     It used to say 66px, which parked this strip 15px behind the header. */
+  .rd-ad-nav{border-radius:14px}
   .rd-ad-card::before{top:14px;right:14px;font-size:.76rem}
 }
 /* From xl up the site header grows a second row -- the `.nav-strip` menu -- so
    it is 130px tall there, not 81px. Every sticky bar under it needs the taller
    offset or it hides behind the header. */
 @media (min-width:1280px){
-  .rd-ad-nav{top:135px}
+  .rd-ad-nav{top:129px}
 }
 @media (prefers-reduced-motion:reduce){
   .rd-ad-nav a,.rd-ad-card::before{transition:none}
