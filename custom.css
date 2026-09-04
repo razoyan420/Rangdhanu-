@@ -1343,3 +1343,992 @@
    look, no pointer, no hover. */
 .rd-pd-navbtn.is-here{cursor:default;opacity:.95}
 .rd-pd-navbtn.is-here:hover{color:#fff;border-color:transparent}
+
+
+/* =====================================================================
+   MEMBER PROFILE, MEMBER DIRECTORY AND MEMBERSHIP APPLICATION
+   Moved here from work/profile-preview4.* once the design was approved.
+   Hand written, so style.css never has to be rebuilt for it: a Tailwind
+   class the CLI never scanned produces no rule at all, and a profile is
+   not the place to find that out.
+   ===================================================================== */
+/* ---- the shell ------------------------------------------------------- */
+/* The credential spans the full width, because the cover is the hero and a
+   cover squeezed into a 23rem column would undo the whole point of matching
+   the Facebook ratio. Below it the page splits: the record on the left, the
+   reference facts parked in a sticky rail on the right. One long stack of
+   equal cards was what made a full profile tiring to read. */
+.rd-mp-grid{display:grid;gap:1rem}
+.rd-mp-grid>.rd-mp,.rd-mp-grid>.rd-mp-todo{grid-column:1/-1}
+/* A grid item will not shrink below its own min-content unless it is told it
+   may. Without this, one long unbreakable string anywhere on the page -- a
+   paper URL, an institute name with no spaces -- sets the width of the whole
+   column and the card runs off the side of a phone. */
+.rd-mp-grid>*{min-width:0}
+@media (min-width:900px){
+  .rd-mp-grid{grid-template-columns:minmax(0,1fr) 20.5rem;align-items:start}
+  .rd-mp-side{position:sticky;top:1rem}
+}
+/* My Profile paints the page in one call and can wrap each column in a div. The
+   public profile is assembled from five separate strings, so there is nothing
+   to wrap them in: its sections sit directly in the grid instead, and is-side
+   is what picks the narrow column. Dense placement is what lets the first side
+   section share a row with the top of the wide column rather than queueing up
+   after the last section in it. */
+.rd-mp-grid{grid-auto-flow:row dense}
+@media (min-width:900px){
+  .rd-mp-grid>.rd-mp-sec{grid-column:1}
+  .rd-mp-grid>.rd-mp-sec.is-side{grid-column:2}
+}
+.rd-mp{position:relative;background:var(--mp-paper);border:1px solid var(--mp-line);
+  border-radius:1.25rem;overflow:hidden;box-shadow:var(--mp-e3);color:var(--mp-ink)}
+/* Edge to edge on a phone. A 16px gutter each side costs 32px of cover
+   width, and the cover is the one thing here that wants every pixel. */
+@media (max-width:639px){
+  .rd-mp{margin-left:-1rem;margin-right:-1rem;border-radius:0;border-left:0;border-right:0}
+}
+
+/* ---- the cover ------------------------------------------------------ */
+/* 851/315 is the Facebook profile cover ratio and the default artwork is
+   drawn to it (2659x984 = 2.7027). Because the box ratio and the picture
+   ratio agree, object-fit never has anything to crop: the wordmark is whole
+   at 320px and at 1280px alike, which a fixed h-32/h-44 pair could not do. */
+.rd-mp-cover{position:relative;aspect-ratio:851/315;background:#1e1b4b;overflow:hidden}
+.rd-mp-cover>img{width:100%;height:100%;object-fit:cover;display:block;
+  object-position:var(--rd-cover-pos,50% 50%)}
+/* A thin wash along the bottom, but only under an uploaded photo. The default
+   artwork is light and finished, and dimming its lower third made it look
+   dirty. A member's own photo can be any brightness, so that one keeps it. */
+.rd-mp-cover-photo::after{content:'';position:absolute;inset:auto 0 0 0;height:34%;
+  background:linear-gradient(to top,rgba(30,27,75,.3),rgba(30,27,75,0));pointer-events:none}
+
+.rd-mp-cbtns{position:absolute;right:.6rem;bottom:.6rem;z-index:2;
+  display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.4rem}
+.rd-mp-cbtn{display:inline-flex;align-items:center;gap:.35rem;cursor:pointer;
+  font-size:.72rem;font-weight:800;line-height:1;padding:.5rem .7rem;border-radius:9999px;
+  background:rgba(255,255,255,.94);color:var(--mp-ink);border:1px solid rgba(30,27,75,.08);
+  box-shadow:0 2px 8px rgba(30,27,75,.22);transition:background .15s ease}
+.rd-mp-cbtn:hover{background:#fff}
+.rd-mp-cbtn i{width:.95rem;height:.95rem}
+.rd-mp-cbtn-lbl{display:none}
+@media (min-width:420px){.rd-mp-cbtn-lbl{display:inline}}
+/* ---- reposition ----------------------------------------------------- */
+/* A strip inside the card, under the cover, in the page flow, not a layer
+   over the page. The site has no modals and this must not become the first
+   one. Drag the picture itself; the strip only saves or cancels. */
+.rd-mp-cover.is-pos{cursor:grab;touch-action:none}
+.rd-mp-cover.is-pos:active{cursor:grabbing}
+.rd-mp-cover.is-pos::after{display:none}
+.rd-mp-posbar{display:none;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.7rem .9rem;
+  background:linear-gradient(125deg,#1e1b4b,#312e81 60%,#0f766e);color:#fff;
+  font-size:.75rem;font-weight:700}
+.rd-mp.is-pos .rd-mp-posbar{display:flex}
+/* The avatar normally rides up over the cover. While the cover is being
+   repositioned it would ride up over this bar instead and cover Save, so the
+   overlap is dropped for as long as the bar is on screen. */
+.rd-mp.is-pos .rd-mp-face{margin-top:.9rem}
+.rd-mp-posbar>span{flex:1 1 100%;opacity:.85}
+.rd-mp-posacts{display:flex;gap:.5rem;margin-left:auto}
+@media (min-width:480px){.rd-mp-posbar>span{flex:1 1 10rem}}
+.rd-mp-posbtn{border:0;border-radius:9999px;padding:.45rem .9rem;font:inherit;cursor:pointer}
+.rd-mp-posbtn-ok{background:#fff;color:var(--mp-ink)}
+.rd-mp-posbtn-no{background:rgba(255,255,255,.16);color:#fff}
+
+/* ---- the credential -------------------------------------------------- */
+/* The signature of the page. The old head was a social card: picture, name,
+   grey boxes. This one is an issued credential -- the body's name in spaced
+   capitals above, the seal watermarked behind, the member number set in the
+   site's numeral face on a hairline rule. Nothing here repeats a fact that
+   is already stated somewhere else on the page. */
+.rd-mp-id{position:relative;padding:0 1.15rem 1.25rem}
+@media (min-width:640px){.rd-mp-id{padding:0 1.5rem 1.5rem}}
+/* No seal watermark here. It was drawn and then cut: the cover already carries
+   the logo and the wordmark, so a second faint logo 20px below it was the same
+   duplication this redesign is meant to remove. The credential reads as issued
+   from the spaced capitals, the status tick and the engraved data line, which
+   is type doing the work instead of an image. */
+.rd-mp-eyebrow{position:relative;padding-top:.9rem;font-size:.58rem;font-weight:800;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--mp-mute);line-height:1.5}
+@media (min-width:640px){.rd-mp-eyebrow{font-size:.62rem}}
+/* ---- the face ------------------------------------------------------- */
+/* Overlaps the cover by a little under half its height, the way a real
+   profile does, and it is a circle. The old rounded square at 96px read as a
+   list thumbnail rather than a face. */
+.rd-mp-face{position:relative;width:7rem;height:7rem;margin-top:-3rem}
+@media (min-width:640px){.rd-mp-face{width:8.5rem;height:8.5rem;margin-top:-3.75rem}}
+.rd-mp-face>img,.rd-mp-mono{width:100%;height:100%;border-radius:9999px;object-fit:cover;
+  background:#fff;border:4px solid #fff;box-shadow:var(--mp-e2);display:block}
+@media (min-width:640px){.rd-mp-face>img,.rd-mp-mono{border-width:5px}}
+/* Most members have no photo yet. logo.png in every circle made every one of
+   those pages identical, so a member with no picture gets initials on a tint
+   derived from the name instead: still anonymous, but no longer interchangeable. */
+.rd-mp-mono{display:flex;align-items:center;justify-content:center;
+  font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;
+  font-size:2.3rem;font-weight:800;letter-spacing:-.02em;color:#fff;
+  background:linear-gradient(140deg,hsl(var(--mp-h) 42% 42%),hsl(var(--mp-h) 46% 26%))}
+@media (min-width:640px){.rd-mp-mono{font-size:2.8rem}}
+/* Two Bengali letters are wider than two Latin ones at the same size and were
+   touching the ring, so the Bengali monogram is set a step down. */
+.rd-mp-mono:lang(bn){font-size:1.95rem;letter-spacing:0}
+@media (min-width:640px){.rd-mp-mono:lang(bn){font-size:2.35rem}}
+.rd-mp-facebtn{position:absolute;right:0;bottom:.15rem;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;padding:.5rem;
+  border-radius:9999px;background:#fff;color:var(--mp-ink);
+  border:1px solid rgba(30,27,75,.1);box-shadow:0 2px 8px rgba(30,27,75,.2)}
+.rd-mp-facebtn i{width:1rem;height:1rem}
+
+/* ---- name and headline ---------------------------------------------- */
+.rd-mp-name{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin-top:.7rem;
+  font-size:1.5rem;font-weight:800;letter-spacing:-.02em;line-height:1.25}
+/* Noto Sans Bengali sits smaller on the same font-size than Plus Jakarta
+   Sans does, so a Bengali name set at the Latin size reads a step too quiet.
+   It gets its own size rather than a shared one. */
+.rd-mp-name:lang(bn){font-size:1.62rem;line-height:1.35}
+@media (min-width:640px){
+  .rd-mp-name{font-size:1.9rem}
+  .rd-mp-name:lang(bn){font-size:2.05rem}
+}
+.rd-mp-name i{width:1.15rem;height:1.15rem;color:var(--mp-seal);flex:0 0 auto}
+/* One line instead of four rows. "Assistant Engineer, LGED" is what a member
+   wants to know first, and reading it off a Designation row and an
+   Organization row was work the page should have done itself. */
+.rd-mp-head{margin-top:.3rem;font-size:.92rem;font-weight:600;color:var(--mp-mute);
+  line-height:1.5;overflow-wrap:anywhere}
+.rd-mp-head b{font-weight:800;color:var(--mp-ink)}
+/* ---- the data rule --------------------------------------------------- */
+/* Member number, series, department and batch on one engraved line. These
+   are the four facts that place a member inside the Association, so they are
+   set as record rather than as four decorated pills. Tabular figures, so the
+   numbers line up between one member's page and the next. */
+.rd-mp-rule{margin-top:1rem;padding-top:.85rem;border-top:1px solid var(--mp-line);
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:.35rem 1.25rem}
+.rd-mp-fact{display:flex;flex-direction:column;gap:.15rem;min-width:0}
+.rd-mp-fact dt{font-size:.55rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--mp-mute)}
+.rd-mp-fact dd{margin:0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;
+  font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;
+  font-size:.95rem;font-weight:700;letter-spacing:.01em;color:var(--mp-ink)}
+/* A department is words, not a figure, so it keeps the text face. */
+.rd-mp-fact dd.is-word{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;
+  font-size:.88rem;font-weight:800;letter-spacing:0}
+.rd-mp-fact dd.is-blood{color:#9f1239}
+
+/* ---- the credential, at card width ----------------------------------- */
+/* On a phone the identity block is one column and the data line runs across the
+   bottom of it. Given 900px the same block has room to read like the thing it
+   is: photo and name on the left, the record in a panel on the right behind a
+   full-height hairline. Areas rather than wrappers, so the markup is the same at
+   both sizes and a missing headline or an empty data line just drops its row. */
+@media (min-width:900px){
+  .rd-mp-id{display:grid;column-gap:2.25rem;align-items:start;
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:'face rule' 'eyeb rule' 'name rule' 'head rule'
+                        'pill rule' 'acts rule' 'act2 rule'}
+  .rd-mp-face{grid-area:face}
+  .rd-mp-eyebrow{grid-area:eyeb}
+  .rd-mp-name{grid-area:name}
+  .rd-mp-head{grid-area:head;max-width:34rem}
+  .rd-mp-pillrow{grid-area:pill}
+  .rd-mp-acts{grid-area:acts}
+  .rd-mp-acts2{grid-area:act2}
+  .rd-mp-rule{grid-area:rule;align-self:stretch;margin-top:0;padding:1.15rem 0 .25rem 2.25rem;
+    border-top:0;border-left:1px solid var(--mp-line);
+    flex-direction:column;flex-wrap:nowrap;align-items:flex-start;
+    gap:.9rem;min-width:12.5rem}
+  .rd-mp-fact dd{font-size:1rem}
+}
+
+/* Status. Only two states can be true, and each is stated once. */
+.rd-mp-pillrow{margin-top:.5rem}
+.rd-mp-pill{display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .6rem;
+  border-radius:9999px;font-size:.68rem;font-weight:800;letter-spacing:.02em;white-space:nowrap}
+.rd-mp-pill i{width:.8rem;height:.8rem}
+.rd-mp-pill-ok{background:#effcfa;color:var(--mp-seal);border:1px solid #bdece5}
+.rd-mp-pill-wait{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+
+/* ---- the actions ----------------------------------------------------- */
+/* Reaching a member is what somebody opened this page to do, so it is the
+   first action on it. Call carries the Association's accent; WhatsApp keeps
+   its own green because that green is a brand mark and not decoration. */
+/* auto-fit, not 1fr 1fr: a member with no WhatsApp number leaves one button
+   here, and it should take the row rather than sit in half of it. */
+.rd-mp-acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));
+  gap:.5rem;margin-top:1.1rem}
+/* Full width is right on a phone, where the thumb needs the target. On a wide
+   card two 900px-wide buttons would just look like a mistake. */
+@media (min-width:640px){.rd-mp-acts{grid-template-columns:repeat(2,minmax(0,11rem))}}
+.rd-mp-act{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;
+  padding:.78rem 1rem;border-radius:.85rem;text-decoration:none;border:0;cursor:pointer;
+  font-family:inherit;font-size:.84rem;font-weight:800;line-height:1;white-space:nowrap;
+  transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
+.rd-mp-act i{width:1.05rem;height:1.05rem}
+.rd-mp-act:hover{filter:brightness(1.07)}
+.rd-mp-act:active{transform:translateY(1px)}
+/* White text on both at AA: #4338ca is 8.6:1, #047857 is 4.9:1. WhatsApp's
+   own #25d366 is 1.9:1 with white, so the darker green carries the label. */
+.rd-mp-act-call{background:var(--mp-key);color:#fff;box-shadow:var(--mp-e1)}
+.rd-mp-act-wa{background:#047857;color:#fff;box-shadow:var(--mp-e1)}
+.rd-mp-act-lock{background:#eef2ff;color:var(--mp-key);border:1px solid #dfe5f8;
+  grid-column:1/-1}
+/* The two things a member actually does with somebody else's page: put the
+   number in their phone, and pass the page on. Quieter than Call, because
+   they are useful rather than urgent. */
+.rd-mp-acts2{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem}
+@media (min-width:640px){.rd-mp-acts2{max-width:22.5rem}}
+.rd-mp-act2{flex:1 1 8rem;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;
+  padding:.62rem .8rem;border-radius:.85rem;cursor:pointer;text-decoration:none;
+  background:#fff;color:var(--mp-ink);border:1px solid var(--mp-line);
+  font-family:inherit;font-size:.76rem;font-weight:800;line-height:1;white-space:nowrap;
+  box-shadow:var(--mp-e1);transition:border-color .15s ease,color .15s ease}
+.rd-mp-act2:hover{border-color:#c3cef0;color:var(--mp-key)}
+.rd-mp-act2 i{width:.95rem;height:.95rem;color:var(--mp-key)}
+
+/* ---- the record ------------------------------------------------------ */
+.rd-mp-sec{background:#fff;border:1px solid var(--mp-line);border-radius:1.25rem;
+  padding:1.1rem 1.15rem 1.2rem;box-shadow:var(--mp-e1)}
+@media (min-width:640px){.rd-mp-sec{padding:1.3rem 1.45rem 1.4rem}}
+.rd-mp-main>.rd-mp-sec+.rd-mp-sec,.rd-mp-side>.rd-mp-sec+.rd-mp-sec{margin-top:1rem}
+.rd-mp-sech{display:flex;align-items:center;gap:.5rem;font-size:.62rem;font-weight:800;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--mp-mute)}
+.rd-mp-sech i{width:.9rem;height:.9rem;color:var(--mp-key);opacity:.75}
+.rd-mp-rows{margin-top:.3rem}
+.rd-mp-row{display:flex;align-items:flex-start;gap:.8rem;padding:.78rem 0}
+.rd-mp-row+.rd-mp-row{border-top:1px solid #f2f5fc}
+/* One accent, held at one weight. The old page had blue, rose, amber and
+   slate icon tints competing inside a single card. */
+.rd-mp-ico{width:2.25rem;height:2.25rem;border-radius:.7rem;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+  background:#eef2ff;color:var(--mp-key);border:1px solid #e4e9f8}
+.rd-mp-ico i{width:1.05rem;height:1.05rem}
+.rd-mp-ico-blood{background:#fef2f2;color:#e11d48;border-color:#fca5a5}
+.rd-mp-txt{min-width:0;flex:1 1 auto}
+.rd-mp-k{font-size:.58rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--mp-mute);margin-bottom:.2rem}
+.rd-mp-v{font-weight:700;color:var(--mp-ink);line-height:1.45;overflow-wrap:anywhere}
+.rd-mp-v-num{font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;
+  font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:700;letter-spacing:.02em}
+/* A fact nobody filled in draws nothing at all. The old page printed N/A. */
+/* ---- the Rangdhanu timeline ------------------------------------------ */
+/* The one place a numbered or ordered device is honest here: a member's life
+   in the Association really is a sequence, and the order carries information
+   (which series they came in on, what they held, when they became alumni).
+   Everywhere else the page uses plain rows. */
+.rd-mp-tl{position:relative;margin-top:.6rem;padding-left:1.4rem}
+.rd-mp-tl::before{content:'';position:absolute;left:.3rem;top:.55rem;bottom:.55rem;width:2px;
+  background:linear-gradient(180deg,var(--mp-key2),var(--mp-seal));border-radius:2px;opacity:.35}
+.rd-mp-tli{position:relative;padding:.55rem 0}
+.rd-mp-tli::before{content:'';position:absolute;left:-1.22rem;top:.95rem;width:.6rem;height:.6rem;
+  border-radius:9999px;background:#fff;border:2px solid var(--mp-key2)}
+.rd-mp-tli.is-now::before{background:var(--mp-seal);border-color:var(--mp-seal);
+  box-shadow:0 0 0 3px rgba(15,118,110,.16)}
+.rd-mp-tly{font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;
+  font-variant-numeric:tabular-nums;font-size:.66rem;font-weight:700;letter-spacing:.1em;
+  color:var(--mp-mute)}
+.rd-mp-tlv{font-size:.9rem;font-weight:800;color:var(--mp-ink);line-height:1.4;margin-top:.1rem}
+.rd-mp-tls{font-size:.76rem;font-weight:600;color:var(--mp-mute);line-height:1.5}
+
+/* ---- signed out, and empty ------------------------------------------- */
+/* One row in place of the private facts, not five empty ones. */
+.rd-mp-gate{text-align:center;padding:1.1rem .9rem;border-radius:1rem;
+  background:#eef2ff;border:1px solid #dfe5f8;margin-top:.6rem}
+.rd-mp-gate-ico{width:2.5rem;height:2.5rem;margin:0 auto;border-radius:9999px;
+  background:#fff;border:1px solid #c3cef0;color:var(--mp-key);
+  display:flex;align-items:center;justify-content:center}
+.rd-mp-gate-h{font-weight:800;color:var(--mp-ink);margin:.6rem 0 .2rem;font-size:.92rem}
+.rd-mp-gate-p{font-size:.78rem;color:var(--mp-mute);margin:0;line-height:1.6}
+/* An empty screen is an invitation to act, so on a member's own page the gaps
+   are named and counted instead of leaving the record looking broken. */
+.rd-mp-todo{margin-top:.7rem;padding:.9rem 1rem;border-radius:1rem;
+  background:linear-gradient(125deg,#eef2ff,#f7f9ff 55%,#effcfa);border:1px solid #dfe5f8}
+.rd-mp-todo-t{display:flex;align-items:center;justify-content:space-between;gap:.6rem;
+  font-size:.78rem;font-weight:800;color:var(--mp-ink)}
+.rd-mp-todo-n{font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;
+  font-variant-numeric:tabular-nums;color:var(--mp-key)}
+.rd-mp-bar{height:.3rem;border-radius:9999px;background:#dfe5f8;margin-top:.55rem;overflow:hidden}
+.rd-mp-bar>i{display:block;height:100%;border-radius:9999px;
+  background:linear-gradient(90deg,var(--mp-key2),var(--mp-seal))}
+.rd-mp-todo-l{margin:.55rem 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:.35rem}
+.rd-mp-todo-l li{font-size:.68rem;font-weight:700;color:var(--mp-mute);background:#fff;
+  border:1px solid var(--mp-line);border-radius:9999px;padding:.24rem .55rem}
+/* ---- the quality floor ----------------------------------------------- */
+/* A keyboard ring that looks designed rather than defaulted, on every
+   interactive thing the page draws. */
+.rd-mp-act:focus-visible,.rd-mp-act2:focus-visible,.rd-mp-cbtn:focus-visible,
+.rd-mp-posbtn:focus-visible,.rd-mp-facebtn:focus-visible{
+  outline:2px solid var(--mp-key);outline-offset:2px}
+.rd-mp-cbtn:focus-visible,.rd-mp-posbtn:focus-visible{outline-color:#fff}
+
+/* One entrance, once, on load: the cover settles, the name comes up behind it,
+   the record follows. Scattered hover effects would have been cheaper and would
+   have read as decoration. */
+@keyframes rdMpUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes rdMpFace{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+@keyframes rdMpFade{from{opacity:0}to{opacity:1}}
+.rd-mp-cover>img{animation:rdMpFade .5s ease both}
+.rd-mp-face{animation:rdMpFace .45s cubic-bezier(.2,.8,.2,1) .08s both}
+.rd-mp-eyebrow,.rd-mp-name,.rd-mp-head,.rd-mp-pillrow,.rd-mp-rule,
+.rd-mp-acts,.rd-mp-acts2{
+  animation:rdMpUp .45s cubic-bezier(.2,.8,.2,1) both}
+.rd-mp-name{animation-delay:.06s}
+.rd-mp-head{animation-delay:.1s}
+.rd-mp-pillrow{animation-delay:.12s}
+.rd-mp-rule{animation-delay:.14s}
+.rd-mp-acts{animation-delay:.18s}
+.rd-mp-acts2{animation-delay:.22s}
+.rd-mp-sec{animation:rdMpUp .45s cubic-bezier(.2,.8,.2,1) .16s both}
+@media (prefers-reduced-motion:reduce){
+  .rd-mp-cover>img,.rd-mp-face,.rd-mp-eyebrow,.rd-mp-name,.rd-mp-head,.rd-mp-pillrow,
+  .rd-mp-rule,.rd-mp-acts,.rd-mp-acts2,.rd-mp-sec,.rd-mp-todo{animation:none}
+  .rd-mp-act,.rd-mp-act2,.rd-mp-cbtn{transition:none}
+}
+/* =====================================================================
+   v3's dated record lived here: .rd-mp-led* for the year-column rows,
+   .rd-mp-grp* for a section holding more than one body, .rd-mp-nowtag for the
+   "still there" marker. All three are gone, replaced by the .rd-sv-* rail
+   further down, which draws service, work and education from one primitive and
+   gives each body a crest instead of a heading. Nothing emits the old class
+   names any more, so the rules came out rather than sitting here waiting to be
+   mistaken for live code.
+   ===================================================================== */
+/* ---- research -------------------------------------------------------- */
+/* The thesis is the one place on the page where a member writes a paragraph,
+   so it is the one place set as prose: a quoted headline, then body text at a
+   readable measure. */
+.rd-mp-th{margin:.1rem 0 0}
+.rd-mp-tht{font-size:1.05rem;line-height:1.4;font-weight:750;color:var(--mp-ink);margin:0;
+  padding-left:.9rem;border-left:2px solid var(--mp-key2)}
+@media (min-width:640px){.rd-mp-tht{font-size:1.15rem}}
+.rd-mp-thd{margin:.7rem 0 0;font-size:.88rem;line-height:1.7;color:#3f4763;max-width:44rem}
+.rd-mp-more{margin-top:.4rem;background:none;border:0;padding:0;font:inherit;font-size:.8rem;
+  font-weight:800;color:var(--mp-key);cursor:pointer;text-decoration:underline;
+  text-underline-offset:3px}
+.rd-mp-more:focus-visible{outline:2px solid var(--mp-key2);outline-offset:3px;border-radius:.2rem}
+/* Papers sit under the thesis when there is one, and a rule between them says
+   the list is a separate thing rather than more of the abstract. */
+.rd-mp-papers{margin-top:.1rem}
+.rd-mp-papers.has-th{margin-top:1.1rem;padding-top:1.1rem;border-top:1px solid var(--mp-line)}
+/* A paper is a link, and a link that leaves the site should say so before it is
+   tapped, not after. */
+.rd-mp-paper{display:flex;align-items:center;gap:.7rem;padding:.65rem .8rem;border-radius:.7rem;
+  border:1px solid var(--mp-line);background:var(--mp-paper);text-decoration:none;
+  transition:border-color .18s,transform .18s}
+.rd-mp-paper+.rd-mp-paper{margin-top:.45rem}
+.rd-mp-paper:hover{border-color:var(--mp-key2);transform:translateY(-1px)}
+.rd-mp-paper:focus-visible{outline:2px solid var(--mp-key2);outline-offset:2px}
+.rd-mp-paper i{width:1rem;height:1rem;color:var(--mp-key);flex:0 0 auto}
+/* A paper title wraps. It used to be one nowrap line with an ellipsis, which
+   cut most real titles in half on a phone and, worse, made the whole page grid
+   as wide as the longest title -- a nowrap line has no narrower size to fall
+   back to, so the column took its full width and the card overflowed. */
+.rd-mp-papert{min-width:0;font-size:.88rem;font-weight:700;color:var(--mp-ink);
+  line-height:1.4;overflow-wrap:anywhere}
+.rd-mp-paperh{margin-left:auto;font-size:.72rem;color:var(--mp-mute);white-space:nowrap;
+  font-family:'Space Grotesk',sans-serif;align-self:flex-start;padding-top:.1rem}
+@media (max-width:479px){.rd-mp-paperh{display:none}}
+/* =====================================================================
+   v3 -- the editor: one block per entry, added and removed in place
+   =====================================================================
+   The existing Social Media editor on this site already works this way, so
+   these rows deliberately copy its shape: a row per entry, a remove button on
+   the row itself, and one Add button at the foot that names what it adds.
+   Nothing here opens a modal, because the site does not have any. */
+.rd-rep{margin-top:.15rem}
+.rd-rep-row{position:relative;border:1px solid var(--mp-line);border-radius:1rem;
+  background:var(--mp-paper);padding:.9rem .9rem .95rem;box-shadow:var(--mp-e1)}
+.rd-rep-row+.rd-rep-row{margin-top:.6rem}
+.rd-rep-row.is-bad{border-color:#e11d48;background:#fff5f7}
+/* The number is not decoration: these entries are shown newest first on the
+   profile, and a member adding a fourth term needs to see at a glance how many
+   are already there. */
+.rd-rep-n{position:absolute;top:.55rem;right:2.6rem;font-family:'Space Grotesk',sans-serif;
+  font-size:.7rem;font-weight:600;color:#94a0bd;font-variant-numeric:tabular-nums}
+.rd-rep-del{position:absolute;top:.45rem;right:.45rem;width:1.9rem;height:1.9rem;
+  display:inline-flex;align-items:center;justify-content:center;border-radius:.6rem;
+  border:1px solid var(--mp-line);background:#fff;color:#7c869f;cursor:pointer;
+  transition:color .18s,border-color .18s,background .18s}
+.rd-rep-del:hover{color:#e11d48;border-color:#fecdd3;background:#fff1f2}
+.rd-rep-del:focus-visible{outline:2px solid var(--mp-key2);outline-offset:2px}
+.rd-rep-del i{width:.95rem;height:.95rem}
+.rd-rep-grid{display:grid;gap:.6rem;grid-template-columns:minmax(0,1fr)}
+@media (min-width:560px){.rd-rep-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rd-rep-f{min-width:0}
+.rd-rep-f.is-wide{grid-column:1/-1}
+/* Start and end year sit side by side at every width. Split across a
+   breakpoint they read as two unrelated questions. */
+.rd-rep-yy{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:.4rem}
+.rd-rep-dash{padding-bottom:.65rem;color:#94a0bd;font-weight:700}
+.rd-rep-l{display:block;font-size:.68rem;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:#6b7593;margin:0 0 .25rem}
+.rd-rep-i,.rd-rep-s{width:100%;box-sizing:border-box;border:1px solid #d7deee;border-radius:.6rem;
+  padding:.5rem .65rem;font:inherit;font-size:.88rem;color:var(--mp-ink);background:#fff;
+  transition:border-color .18s,box-shadow .18s}
+.rd-rep-i:focus,.rd-rep-s:focus{outline:0;border-color:var(--mp-key2);
+  box-shadow:0 0 0 3px rgba(99,102,241,.16)}
+.rd-rep-i.is-num{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums;
+  letter-spacing:.02em}
+.rd-rep-s{appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7593' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .55rem center;background-size:.9rem;
+  padding-right:1.9rem}
+.rd-rep-foot{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-top:.7rem}
+.rd-rep-add{display:inline-flex;align-items:center;gap:.4rem;border:1px dashed #b9c4de;
+  background:#fff;color:var(--mp-key);border-radius:.7rem;padding:.55rem .85rem;font:inherit;
+  font-size:.82rem;font-weight:800;cursor:pointer;transition:border-color .18s,background .18s}
+.rd-rep-add:hover:not(:disabled){border-color:var(--mp-key2);background:#f5f7ff}
+.rd-rep-add:disabled{opacity:.45;cursor:not-allowed}
+.rd-rep-add:focus-visible{outline:2px solid var(--mp-key2);outline-offset:2px}
+.rd-rep-add i{width:.95rem;height:.95rem}
+.rd-rep-note{font-size:.76rem;color:var(--mp-mute);line-height:1.5}
+.rd-rep-err{margin:.5rem 0 0;font-size:.8rem;font-weight:700;color:#be123c}
+.rd-rep-err.hidden{display:none}
+/* An empty group says what the group is for. A bare Add button does not. */
+.rd-rep-none{border:1px dashed #cfd8ea;border-radius:1rem;background:#fafbff;padding:.9rem 1rem;
+  font-size:.83rem;line-height:1.6;color:var(--mp-mute);margin:0}
+/* The editor's own card, so the mock reads like a page rather than a form dump */
+.rd-ed{background:#fff;border:1px solid var(--mp-line);border-radius:1.25rem;
+  padding:1.15rem 1.1rem 1.25rem;box-shadow:var(--mp-e2)}
+.rd-ed+.rd-ed{margin-top:1rem}
+@media (min-width:640px){.rd-ed{padding:1.3rem 1.45rem 1.4rem}}
+.rd-ed-h{display:flex;align-items:center;gap:.55rem;margin:0 0 .2rem;font-size:.74rem;
+  font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--mp-key)}
+.rd-ed-h i{width:1rem;height:1rem}
+.rd-ed-p{margin:.35rem 0 .9rem;font-size:.83rem;line-height:1.65;color:var(--mp-mute);
+  max-width:42rem}
+.rd-ed-ta{width:100%;box-sizing:border-box;border:1px solid #d7deee;border-radius:.7rem;
+  padding:.65rem .75rem;font:inherit;font-size:.88rem;line-height:1.65;color:var(--mp-ink);
+  min-height:6.5rem;resize:vertical;transition:border-color .18s,box-shadow .18s}
+.rd-ed-ta:focus{outline:0;border-color:var(--mp-key2);box-shadow:0 0 0 3px rgba(99,102,241,.16)}
+.rd-ed-count{margin:.3rem 0 0;font-size:.72rem;color:#94a0bd;text-align:right;
+  font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.rd-ed-save{margin-top:1.1rem;width:100%;border:0;border-radius:.85rem;padding:.85rem 1rem;
+  font:inherit;font-size:.9rem;font-weight:800;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,var(--mp-key),#312e81 65%,var(--mp-seal));
+  box-shadow:var(--mp-e2);transition:transform .18s,box-shadow .18s}
+.rd-ed-save:hover{transform:translateY(-1px);box-shadow:var(--mp-e3)}
+.rd-ed-save:focus-visible{outline:2px solid var(--mp-key2);outline-offset:3px}
+/* =====================================================================
+   v3 -- the directory card
+   =====================================================================
+   Eighteen of these sit on screen at once, which is the whole design problem:
+   anything loud on one card is loud eighteen times. So the card is quiet and
+   the rhythm does the work -- a status key-line down the left edge, a name, one
+   engraved data line, and a single precise object at the foot.
+
+   Three things from the current card are deliberately gone. The gradient blob
+   in the top right corner, because it decorated nothing. The scale-up on the
+   avatar, because eighteen cards twitching is not a hover state. And the
+   "Engineer" / "Organization" placeholders, because a member who has not filled
+   in a job should not be shown holding one. */
+.rd-dc{position:relative;display:flex;flex-direction:column;background:#fff;
+  border:1px solid var(--mp-line);border-radius:1.1rem;overflow:hidden;
+  box-shadow:var(--mp-e1);transition:box-shadow .22s,border-color .22s,transform .22s}
+.rd-dc:hover{border-color:#cdd6ef;box-shadow:var(--mp-e2);transform:translateY(-2px)}
+/* The key-line is the status. A colour alone never carries a fact, so the word
+   is printed too -- this is the redundancy, not the message. */
+.rd-dc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--mp-key2),var(--mp-key));border-radius:3px 0 0 3px}
+.rd-dc.is-alumni::before{background:linear-gradient(180deg,#14b8a6,var(--mp-seal))}
+.rd-dc.is-pending::before{background:linear-gradient(180deg,#fbbf24,#b45309)}
+.rd-dc-top{display:flex;align-items:flex-start;gap:.8rem;padding:.95rem 1rem .1rem 1.15rem}
+.rd-dc-face{position:relative;width:3.25rem;height:3.25rem;border-radius:.85rem;flex:0 0 auto;
+  overflow:hidden;background:#eef2ff;box-shadow:0 0 0 1px var(--mp-line),var(--mp-e1)}
+.rd-dc-face img{width:100%;height:100%;object-fit:cover;display:block}
+.rd-dc-mono{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:1.1rem;letter-spacing:.02em;
+  color:hsl(var(--mp-h) 45% 34%);background:hsl(var(--mp-h) 62% 94%)}
+.rd-dc-mono:lang(bn){font-size:.95rem;letter-spacing:0}
+.rd-dc-id{min-width:0;flex:1 1 auto;padding-top:.1rem}
+.rd-dc-name{margin:0;font-size:.98rem;font-weight:750;line-height:1.3;color:var(--mp-ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* The data line is the card's version of the credential's engraved rule: the
+   same three facts, the same numerals face, set small. */
+.rd-dc-meta{margin:.2rem 0 0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;
+  font-size:.74rem;font-weight:600;letter-spacing:.04em;color:var(--mp-key);
+  font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rd-dc-stat{margin:.3rem 0 0;font-size:.63rem;font-weight:800;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--mp-key)}
+.rd-dc.is-alumni .rd-dc-stat{color:var(--mp-seal)}
+.rd-dc.is-pending .rd-dc-stat{color:#b45309}
+/* The body sits between the head and the foot and is allowed to be empty. A
+   card with no job typed in simply becomes shorter -- align-items:stretch on the
+   grid keeps the row tidy without a placeholder sentence in every gap. */
+.rd-dc-body{padding:.7rem 1rem .2rem 1.15rem;min-width:0}
+.rd-dc-role{margin:0;font-size:.85rem;font-weight:700;line-height:1.4;color:var(--mp-ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rd-dc-org{margin:.12rem 0 0;font-size:.79rem;line-height:1.45;color:var(--mp-mute);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* One term of office, when there is one. It is the fact that makes an alumni
+   directory worth reading, and it was not on the card at all before. */
+.rd-dc-post{display:inline-flex;align-items:baseline;gap:.35rem;margin:.45rem 0 0;
+  padding:.14rem .45rem .18rem;border-radius:.4rem;background:#f2f5ff;
+  border:1px solid #e3e9fa;max-width:100%}
+.rd-dc-posty{font-family:'Space Grotesk',sans-serif;font-size:.66rem;font-weight:600;
+  color:var(--mp-key);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.rd-dc-postv{font-size:.7rem;font-weight:700;color:#3f4763;min-width:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.rd-dc-more{font-size:.66rem;font-weight:700;color:var(--mp-mute);margin-left:.35rem}
+
+/* ---- the action row -------------------------------------------------- */
+/* Three separate small buttons is what made this corner feel cheap: three
+   borders, three shadows, three radii, eighteen times over. One segmented
+   object instead -- a single border, hairlines inside it, and the primary
+   action holding the label. */
+.rd-dc-foot{margin-top:auto;padding:.85rem 1rem 1rem 1.15rem}
+.rd-dc-seg{display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;
+  border:1px solid #dde4f4;border-radius:.8rem;overflow:hidden;background:#fff}
+.rd-dc-seg.has-2{grid-template-columns:minmax(0,1fr) 2.65rem}
+.rd-dc-seg.has-3{grid-template-columns:minmax(0,1fr) 2.65rem 2.65rem}
+.rd-dc-seg>*{border:0;border-left:1px solid #dde4f4;background:transparent;font:inherit;
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  min-height:2.5rem;color:var(--mp-key);text-decoration:none;
+  transition:background .18s,color .18s}
+.rd-dc-seg>*:first-child{border-left:0}
+.rd-dc-seg>*:focus-visible{outline:2px solid var(--mp-key2);outline-offset:-2px}
+.rd-dc-seg i{width:1rem;height:1rem}
+/* The primary cell is the only place a gradient is allowed, and only on hover,
+   so at rest the whole grid is hairlines and the page stays calm. */
+.rd-dc-open{gap:.45rem;font-size:.83rem;font-weight:800;letter-spacing:.01em;
+  padding:0 .75rem;color:var(--mp-ink)}
+.rd-dc-open .rd-dc-arw{width:.9rem;height:.9rem;transition:transform .22s}
+.rd-dc:hover .rd-dc-open,.rd-dc-open:hover,.rd-dc-open:focus-visible{
+  background:linear-gradient(135deg,var(--mp-key),#312e81 70%,var(--mp-seal));color:#fff}
+.rd-dc:hover .rd-dc-open .rd-dc-arw{transform:translateX(3px)}
+.rd-dc-call:hover{background:#eef2ff}
+.rd-dc-wa{color:var(--mp-seal)}
+.rd-dc-wa:hover{background:#ecfdf5}
+/* The signed-out card keeps the same object with one cell in it, so the grid
+   does not change shape when a member signs in -- only what is inside it. */
+.rd-dc-gate{gap:.4rem;font-size:.8rem;font-weight:700;color:var(--mp-mute);padding:0 .7rem}
+.rd-dc-gate:hover{background:#f6f8fd;color:var(--mp-key)}
+@media (prefers-reduced-motion:reduce){
+  .rd-dc,.rd-dc-open,.rd-dc-arw,.rd-dc-seg>*,.rd-mp-paper{transition:none}
+  .rd-dc:hover{transform:none}
+  .rd-dc:hover .rd-dc-open .rd-dc-arw{transform:none}
+}
+:root{
+  --mp-ink:#0c2340;        /* navy ink, was indigo #1e1b4b */
+  --mp-key:#17416b;        /* structural navy, was #4338ca */
+  --mp-key2:#2b6296;
+  --mp-seal:#0f766e;       /* alumni status only */
+  --mp-mute:#5a6779;
+  --mp-line:#dde3ec;
+  --mp-paper:#fdfdfb;
+  --rd-navy:#0c2340;
+  --rd-navy2:#17416b;
+  --mp-brass:#a9772a;
+  --mp-brass2:#d9ab54;
+  --mp-brasspale:#f7f0e0;
+  --mp-e1:0 1px 2px rgba(12,35,64,.07);
+  --mp-e2:0 10px 26px -12px rgba(12,35,64,.26),inset 0 1px 0 rgba(255,255,255,.85);
+  --mp-e3:0 22px 52px -24px rgba(12,35,64,.4),inset 0 1px 0 rgba(255,255,255,.9);
+}
+/* ---- the navigation call to action ------------------------------------ */
+/* The live button is #0ea5e9 with a 26px coloured glow under it and weight
+   800. Bright fill plus soft coloured glow plus heavy type is the exact recipe
+   that reads as a free template, and because it sits in the brand row it drags
+   the whole bar down with it. Everything expensive about a real button is in
+   the edges instead: a 1px darker border, a 1px inner light on the top edge, a
+   short tight shadow, and one warm hairline that only lights on hover. */
+.nav-cta{position:relative;display:inline-flex;align-items:center;gap:.5rem;
+  padding:.6rem 1.05rem;border-radius:.6rem;font-size:.8rem;font-weight:700;
+  letter-spacing:.005em;color:#fff;text-decoration:none;white-space:nowrap;
+  border:1px solid #091b31;cursor:pointer;
+  background:linear-gradient(180deg,#1b4a78,var(--rd-navy));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 1px 2px rgba(12,35,64,.3);
+  transition:box-shadow .24s,transform .24s,filter .24s}
+.nav-cta>i,.nav-cta>svg{width:.95rem;height:.95rem;color:var(--mp-brass2)}
+.nav-cta::after{content:'';position:absolute;left:.75rem;right:.75rem;bottom:-1px;
+  height:1px;opacity:0;transition:opacity .24s;
+  background:linear-gradient(90deg,transparent,var(--mp-brass2),transparent)}
+.nav-cta:hover{transform:translateY(-1px);filter:brightness(1.08);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 7px 18px -7px rgba(12,35,64,.55)}
+.nav-cta:hover::after{opacity:1}
+.nav-cta:focus-visible{outline:2px solid var(--mp-brass2);outline-offset:2px}
+/* ---- the directory card, take two ------------------------------------- */
+/* v3 put a 3px coloured rail down the left edge and floated a rounded pill of
+   buttons inside the bottom padding. The rail is what every card on the web
+   already does, and the pill still read as furniture sitting on the card
+   rather than part of it.
+   This card is a nameplate. The head is a navy plate with the series and
+   department engraved into it in brass, and the finish of the rule under that
+   plate is the standing: polished brass for a member, patina for an alumnus,
+   unpolished grey while an application is still waiting. The action row is
+   flush to the bottom edge, so it is the card's own footer. */
+.rd-dc{position:relative;display:flex;flex-direction:column;background:var(--mp-paper);
+  border:1px solid var(--mp-line);border-radius:.85rem;overflow:hidden;
+  box-shadow:var(--mp-e1);transition:box-shadow .26s,border-color .26s,transform .26s}
+.rd-dc:hover{border-color:#c3cfe0;box-shadow:var(--mp-e2);transform:translateY(-3px)}
+.rd-dc::before{display:none}                 /* the old left rail is gone */
+
+.rd-dc-plate{position:relative;display:flex;align-items:center;gap:.6rem;
+  padding:.45rem .85rem .47rem;
+  background:linear-gradient(180deg,#164272,var(--rd-navy));
+  border-bottom:2px solid var(--mp-brass)}
+.rd-dc-plate::after{content:'';position:absolute;left:0;right:0;top:0;height:1px;
+  background:rgba(255,255,255,.15)}
+.rd-dc-pid{min-width:0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;
+  font-size:.7rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--mp-brass2);font-variant-numeric:tabular-nums;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rd-dc-pst{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;gap:.3rem;
+  font-size:.57rem;font-weight:800;
+  letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.7);
+  white-space:nowrap}
+/* alumniStatusLabel puts a glyph in front of the word. Left at its natural size
+   it stood a whole line taller than .57rem text and pushed the plate open. */
+.rd-dc-psti{width:.72rem;height:.72rem;flex:0 0 auto}
+/* Only the finish of the rule changes with standing, and the engraving stays
+   brass on every card. Colouring the engraved line as well meant an alumnus card
+   had two teal things on it, and since most of the roll is alumni the whole grid
+   read teal -- a status quietly turning into the brand colour. Polished brass is
+   a serving member, patina is an alumnus, unpolished grey is an application still
+   waiting. Three finishes of the same metal, and the word on the right says it
+   in plain English anyway. */
+.rd-dc.is-alumni .rd-dc-plate{border-bottom-color:#57a99b}
+.rd-dc.is-pending .rd-dc-plate{border-bottom-color:#8d9bad}
+
+.rd-dc-top{display:flex;align-items:flex-start;gap:.85rem;padding:.95rem .95rem .1rem}
+.rd-dc-face{width:3.4rem;height:3.4rem;border-radius:9999px;background:#eef2f8;
+  box-shadow:0 0 0 1px #fff,0 0 0 2px rgba(169,119,42,.32),var(--mp-e1);
+  transition:box-shadow .26s}
+.rd-dc:hover .rd-dc-face{box-shadow:0 0 0 1px #fff,0 0 0 2px var(--mp-brass),var(--mp-e1)}
+/* One monogram treatment for everybody. Nine tinted circles in a nine-card
+   grid was colour doing no work. */
+.rd-dc-mono{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.02rem;
+  letter-spacing:.03em;color:var(--rd-navy2);background:#eef2f8}
+.rd-dc-name{font-size:1rem;font-weight:750;color:var(--mp-ink)}
+.rd-dc-meta,.rd-dc-stat{display:none}        /* both now live on the plate */
+.rd-dc-body{padding:.65rem .95rem .55rem}
+.rd-dc-post{background:var(--mp-brasspale);border-color:rgba(169,119,42,.28)}
+.rd-dc-posty{color:#8a5f1c}
+.rd-dc-postv{color:#3d4757}
+
+/* ---- the card footer -------------------------------------------------- */
+/* Flush to the bottom edge, one hairline above it, no radius of its own. The
+   primary cell fills navy from the left on hover -- one hue travelling, which
+   is what the muddy three-stop gradient was reaching for and missing. */
+.rd-dc-foot{margin-top:auto;padding:0}
+.rd-dc-seg{position:relative;border:0;border-top:1px solid var(--mp-line);
+  border-radius:0;background:#f6f8fc}
+.rd-dc-seg::before{content:'';position:absolute;left:0;right:0;top:-1px;height:1px;
+  background:var(--mp-brass);transform:scaleX(0);transform-origin:left;
+  transition:transform .36s cubic-bezier(.16,1,.3,1)}
+.rd-dc:hover .rd-dc-seg::before{transform:none}
+.rd-dc-seg.has-2{grid-template-columns:minmax(0,1fr) 2.9rem}
+.rd-dc-seg.has-3{grid-template-columns:minmax(0,1fr) 2.9rem 2.9rem}
+.rd-dc-seg>*{border-left-color:var(--mp-line);min-height:2.7rem;color:var(--mp-key)}
+.rd-dc-seg>*:focus-visible{outline:2px solid var(--mp-brass);outline-offset:-2px}
+/* Signed out the control is one column and two rows, so the divider between its
+   cells runs across rather than down. Without this the sign in line carried a
+   left border and nothing above it, which read as a rendering fault. */
+.rd-dc-seg.is-gate>*+*{border-left:0;border-top:1px solid var(--mp-line)}
+.rd-dc-open{position:relative;overflow:hidden;color:var(--rd-navy);font-weight:750;
+  font-size:.84rem}
+.rd-dc-open::before{content:'';position:absolute;inset:0;transform:translateX(-101%);
+  background:linear-gradient(90deg,var(--rd-navy),var(--rd-navy2));
+  transition:transform .36s cubic-bezier(.16,1,.3,1)}
+.rd-dc-open>*{position:relative;z-index:1}
+.rd-dc:hover .rd-dc-open::before,.rd-dc-open:hover::before,
+.rd-dc-open:focus-visible::before{transform:none}
+.rd-dc:hover .rd-dc-open,.rd-dc-open:hover,.rd-dc-open:focus-visible{
+  background:none;color:#fff}
+.rd-dc:hover .rd-dc-open .rd-dc-arw{transform:translateX(3px)}
+.rd-dc-call:hover{background:#e9eef6;color:var(--rd-navy)}
+.rd-dc-wa:hover{background:#e8f7f3}
+.rd-dc-gate:hover{background:#eef2f8;color:var(--rd-navy2)}
+@media (prefers-reduced-motion:reduce){
+  .rd-dc-open::before,.rd-dc-seg::before,.rd-dc-face{transition:none}
+}
+/* ---- service record, with graphics ------------------------------------ */
+/* His words: "bortoman sudhu text ar text dekhteci, alada kono graphics hover
+   dekhtecina." Fair. v3 set the terms of office as a year column and a line of
+   text, which is honest and completely flat.
+   Each body now gets a crest -- a navy tile carrying its own icon -- and the
+   terms hang off a rail with one station dot each, hollow for a term served,
+   filled brass for the term being served now. A row lifts a faint tint on
+   hover and its dot grows. No images: the graphics are the geometry. */
+.rd-sv{display:grid;gap:.95rem}
+.rd-sv-grp{border:1px solid var(--mp-line);border-radius:.8rem;background:#fff;
+  overflow:hidden;box-shadow:var(--mp-e1);transition:box-shadow .24s,border-color .24s}
+.rd-sv-grp:hover{border-color:#c9d4e4;box-shadow:var(--mp-e2)}
+.rd-sv-h{display:flex;align-items:center;gap:.7rem;padding:.65rem .8rem;
+  background:linear-gradient(180deg,#f8fafd,#eff3f9);border-bottom:1px solid var(--mp-line)}
+.rd-sv-crest{position:relative;width:2.35rem;height:2.35rem;border-radius:.58rem;
+  flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  color:var(--mp-brass2);background:linear-gradient(180deg,#1a4b7c,var(--rd-navy));
+  box-shadow:inset 0 0 0 1px rgba(217,171,84,.4),0 2px 6px -2px rgba(12,35,64,.5)}
+.rd-sv-crest i,.rd-sv-crest svg{width:1.12rem;height:1.12rem}
+.rd-sv-ttl{min-width:0}
+.rd-sv-n{margin:0;font-size:.86rem;font-weight:800;color:var(--mp-ink);line-height:1.3}
+.rd-sv-c{margin:.08rem 0 0;font-family:'Space Grotesk',sans-serif;font-size:.64rem;
+  font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--mp-mute)}
+.rd-sv-list{list-style:none;margin:0;padding:.4rem .7rem .6rem .8rem}
+.rd-sv-t{position:relative;display:flex;align-items:baseline;gap:.7rem;
+  padding:.48rem .5rem .5rem 1.5rem;border-radius:.45rem;
+  transition:background .18s}
+.rd-sv-t:hover{background:#f3f7fc}
+.rd-sv-t::before{content:'';position:absolute;left:.3rem;top:0;bottom:0;width:1px;
+  background:var(--mp-line)}
+.rd-sv-t:first-child::before{top:.92rem}
+.rd-sv-t:last-child::before{bottom:auto;height:.92rem}
+.rd-sv-t:first-child:last-child::before{display:none}
+.rd-sv-t::after{content:'';position:absolute;left:0;top:.78rem;width:.62rem;height:.62rem;
+  border-radius:9999px;background:#fff;box-shadow:0 0 0 1.6px var(--mp-key2);
+  transition:transform .2s,box-shadow .2s}
+.rd-sv-t:hover::after{transform:scale(1.2)}
+.rd-sv-t.is-now::after{background:var(--mp-brass);
+  box-shadow:0 0 0 1.6px var(--mp-brass),0 0 0 4px rgba(169,119,42,.15)}
+.rd-sv-y{flex:0 0 auto;min-width:5.2rem;font-family:'Space Grotesk',sans-serif;
+  font-size:.74rem;font-weight:600;letter-spacing:.02em;color:var(--mp-key);
+  font-variant-numeric:tabular-nums}
+.rd-sv-p{min-width:0;font-size:.86rem;font-weight:700;line-height:1.4;color:var(--mp-ink)}
+.rd-sv-chip{margin-left:.42rem;display:inline-flex;align-items:center;
+  padding:.04rem .36rem .09rem;border-radius:.28rem;font-size:.59rem;font-weight:800;
+  letter-spacing:.09em;text-transform:uppercase;color:#815414;white-space:nowrap;
+  background:var(--mp-brasspale);border:1px solid rgba(169,119,42,.32)}
+/* Work and education borrow the same object, so the profile reads as one
+   system rather than three inventions. A group is a crest plus a rail; what
+   changes is which icon is on the crest and what hangs off the rail. */
+.rd-sv-org{display:block;font-size:.79rem;font-weight:500;color:var(--mp-steel,var(--mp-mute));
+  line-height:1.45;margin:.1rem 0 0}
+.rd-sv-t.has-sub{align-items:flex-start}
+.rd-sv-t.has-sub .rd-sv-y{padding-top:.08rem}
+
+/* ---- the membership application --------------------------------------- */
+/* Not one field removed, not one renamed. Eighteen questions in a single
+   column is what makes a person close the tab, so the same eighteen are dealt
+   out in five named steps: who you are, DUET, where you live, what you do,
+   and finish. Each step is one idea a person could say out loud, which is the
+   rule that decides where the cuts go -- not a field count. */
+.rd-reg{max-width:52rem;margin:0 auto}
+.rd-reg-card{background:#fff;border:1px solid var(--mp-line);border-radius:1rem;
+  overflow:hidden;box-shadow:var(--mp-e2)}
+.rd-reg-plate{position:relative;padding:1.15rem 1.3rem 1.2rem;
+  background:linear-gradient(160deg,#164272 0%,var(--rd-navy) 62%,#081a2e 100%);
+  border-bottom:2px solid var(--mp-brass)}
+.rd-reg-plate::after{content:'';position:absolute;left:0;right:0;top:0;height:1px;
+  background:rgba(255,255,255,.14)}
+.rd-reg-eyebrow{margin:0;font-family:'Space Grotesk',sans-serif;font-size:.64rem;
+  font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--mp-brass2)}
+.rd-reg-ttl{margin:.35rem 0 0;font-size:1.3rem;font-weight:750;color:#fff;
+  letter-spacing:-.01em;line-height:1.25}
+.rd-reg-sub{margin:.4rem 0 0;font-size:.82rem;line-height:1.55;color:rgba(255,255,255,.74);
+  max-width:34rem}
+
+/* The stepper. Named, because a number alone does not tell anybody what is
+   coming, and the count is spoken as well as drawn. */
+.rd-reg-steps{display:flex;margin:0;padding:0;list-style:none;background:#f7f9fc;
+  border-bottom:1px solid var(--mp-line);overflow:hidden}
+.rd-reg-step{flex:1 1 0;min-width:0;position:relative;padding:.7rem .5rem .72rem .95rem;
+  font-size:.72rem;font-weight:700;color:var(--mp-mute);background:transparent;
+  border:0;font-family:inherit;text-align:left;cursor:not-allowed;
+  transition:color .2s,background .2s}
+.rd-reg-step[data-open="1"]{cursor:pointer}
+.rd-reg-step[data-open="1"]:hover{background:#eef3f9;color:var(--rd-navy)}
+.rd-reg-step .rd-reg-sn{display:block;font-family:'Space Grotesk',sans-serif;
+  font-size:.6rem;font-weight:600;letter-spacing:.14em;color:#93a1b3;margin-bottom:.12rem}
+.rd-reg-step .rd-reg-sl{display:block;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap}
+.rd-reg-step::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:var(--mp-brass);transform:scaleX(0);transform-origin:left;
+  transition:transform .34s cubic-bezier(.16,1,.3,1)}
+.rd-reg-step[aria-current="step"]{color:var(--rd-navy);background:#fff}
+.rd-reg-step[aria-current="step"]::after{transform:none}
+.rd-reg-step[aria-current="step"] .rd-reg-sn{color:var(--mp-brass)}
+.rd-reg-step.is-done{color:var(--mp-key)}
+.rd-reg-step.is-done .rd-reg-sn{color:var(--mp-seal)}
+/* On a phone five labels will not fit, so the stepper becomes the one line
+   that matters -- where you are, out of how many, and what this step is called
+   -- over a rule that fills as real steps complete. It must not lie: the rule
+   is steps done over steps total, nothing else. */
+.rd-reg-mob{display:block;padding:.7rem .95rem .8rem;background:#f7f9fc;
+  border-bottom:1px solid var(--mp-line)}
+.rd-reg-mobn{margin:0;font-family:'Space Grotesk',sans-serif;font-size:.63rem;
+  font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--mp-brass)}
+.rd-reg-mobl{margin:.16rem 0 .5rem;font-size:.92rem;font-weight:750;color:var(--rd-navy)}
+.rd-reg-rule{height:3px;border-radius:3px;background:#dfe6ef;overflow:hidden}
+.rd-reg-rule>span{display:block;height:100%;border-radius:3px;
+  background:linear-gradient(90deg,var(--rd-navy2),var(--mp-brass));
+  transition:width .4s cubic-bezier(.16,1,.3,1)}
+@media (min-width:760px){.rd-reg-mob{display:none}}
+@media (max-width:759px){.rd-reg-steps{display:none}}
+
+/* ---- fields ------------------------------------------------------------ */
+/* A premium input is a quiet one: a hairline, generous height, one clear focus
+   ring, and a label that reads like a person asking. No inner shadows, no
+   rounded-pill inputs, no placeholder standing in for a label. */
+.rd-reg-body{padding:1.15rem 1.3rem 1.3rem}
+.rd-reg-grid{display:grid;gap:.9rem 1rem;grid-template-columns:minmax(0,1fr)}
+@media (min-width:640px){.rd-reg-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rd-reg-wide{grid-column:1/-1}
+.rd-f{min-width:0}
+.rd-f>label{display:block;font-size:.76rem;font-weight:650;color:#3d4c5f;
+  margin:0 0 .3rem;letter-spacing:.005em}
+.rd-f .rd-req{color:var(--mp-brass);font-weight:700}
+.rd-f>input,.rd-f>select,.rd-f>textarea{width:100%;font:inherit;font-size:.88rem;
+  color:var(--mp-ink);background:#fff;border:1px solid #cfd8e4;border-radius:.55rem;
+  padding:.6rem .7rem;transition:border-color .18s,box-shadow .18s}
+.rd-f>select{appearance:none;background-image:
+  linear-gradient(45deg,transparent 49%,#5a6779 50%),
+  linear-gradient(-45deg,transparent 49%,#5a6779 50%);
+  background-size:5px 5px,5px 5px;
+  background-position:calc(100% - 15px) 55%,calc(100% - 10px) 55%;
+  background-repeat:no-repeat;padding-right:2rem}
+.rd-f>input:hover,.rd-f>select:hover{border-color:#b3c0d1}
+.rd-f>input:focus,.rd-f>select:focus,.rd-f>textarea:focus{outline:0;
+  border-color:var(--rd-navy2);box-shadow:0 0 0 3px rgba(18,58,94,.13)}
+.rd-f.is-bad>input,.rd-f.is-bad>select{border-color:#b91c1c;
+  box-shadow:0 0 0 3px rgba(185,28,28,.1)}
+.rd-f-err{margin:.28rem 0 0;font-size:.73rem;font-weight:600;color:#b91c1c}
+.rd-f-hint{margin:.28rem 0 0;font-size:.73rem;color:var(--mp-mute);line-height:1.45}
+.rd-reg-sec{margin:0 0 .9rem}
+.rd-reg-sech{margin:0;font-size:1.02rem;font-weight:750;color:var(--mp-ink)}
+.rd-reg-secp{margin:.25rem 0 0;font-size:.8rem;line-height:1.55;color:var(--mp-mute)}
+
+/* ---- the step footer --------------------------------------------------- */
+/* One primary action, one clearly subordinate way back. Back never costs a
+   keystroke: every field stays in the DOM the whole time, so returning to a
+   step shows exactly what was typed. */
+.rd-reg-foot{display:flex;align-items:center;gap:.7rem;padding:1rem 1.3rem 1.15rem;
+  border-top:1px solid var(--mp-line);background:#fafbfd}
+.rd-reg-back{display:inline-flex;align-items:center;gap:.4rem;font:inherit;
+  font-size:.82rem;font-weight:650;color:var(--mp-key);background:transparent;
+  border:1px solid transparent;border-radius:.55rem;padding:.55rem .7rem;cursor:pointer;
+  transition:background .18s,color .18s}
+.rd-reg-back:hover{background:#eaeff6;color:var(--rd-navy)}
+.rd-reg-back[hidden]{display:none}
+.rd-reg-count{margin-left:auto;font-family:'Space Grotesk',sans-serif;font-size:.7rem;
+  font-weight:600;letter-spacing:.08em;color:var(--mp-mute);
+  font-variant-numeric:tabular-nums}
+.rd-reg-next{position:relative;display:inline-flex;align-items:center;gap:.5rem;
+  font:inherit;font-size:.85rem;font-weight:700;color:#fff;cursor:pointer;
+  padding:.68rem 1.25rem;border-radius:.6rem;border:1px solid #091b31;
+  background:linear-gradient(180deg,#1b4a78,var(--rd-navy));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 1px 2px rgba(12,35,64,.3);
+  transition:box-shadow .24s,transform .24s,filter .24s}
+.rd-reg-next i,.rd-reg-next svg{width:1rem;height:1rem;color:var(--mp-brass2)}
+.rd-reg-next:hover{transform:translateY(-1px);filter:brightness(1.08);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 8px 20px -8px rgba(12,35,64,.55)}
+.rd-reg-next:focus-visible{outline:2px solid var(--mp-brass2);outline-offset:2px}
+
+/* ---- the review step --------------------------------------------------- */
+/* Eighteen answers read back before anything is sent, each one linking to the
+   step that owns it. A person about to hand over their phone number and their
+   photograph is owed a last look. */
+.rd-reg-rev{border:1px solid var(--mp-line);border-radius:.7rem;overflow:hidden}
+.rd-reg-revg{display:flex;align-items:center;gap:.55rem;padding:.5rem .8rem;
+  background:#f2f6fb;border-bottom:1px solid var(--mp-line);border-top:1px solid var(--mp-line)}
+.rd-reg-rev>.rd-reg-revg:first-child{border-top:0}
+.rd-reg-revn{margin:0;font-family:'Space Grotesk',sans-serif;font-size:.64rem;
+  font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--rd-navy)}
+.rd-reg-reve{margin-left:auto;font:inherit;font-size:.72rem;font-weight:700;
+  color:var(--mp-key);background:none;border:0;cursor:pointer;padding:.1rem .25rem;
+  border-radius:.3rem;text-decoration:underline;text-underline-offset:2px}
+.rd-reg-reve:hover{color:var(--mp-brass);background:var(--mp-brasspale)}
+.rd-reg-revr{display:flex;gap:.8rem;padding:.42rem .8rem;font-size:.8rem;line-height:1.5}
+.rd-reg-revk{flex:0 0 9.5rem;color:var(--mp-mute);font-weight:600}
+.rd-reg-revv{min-width:0;color:var(--mp-ink);font-weight:650;overflow-wrap:anywhere}
+.rd-reg-revv.is-empty{color:#93a1b3;font-weight:500;font-style:italic}
+
+/* ---- registration: the parts the stepper draws at run time -------------- */
+.rd-reg-panel:focus{outline:none}
+.rd-reg-panel:focus-visible{outline:2px solid var(--mp-key2);outline-offset:6px;
+  border-radius:.4rem}
+/* A group of controls that no single <label for> can name, so the name sits in a
+   span and the group points at it. */
+.rd-f-lab{display:block;margin:0 0 .3rem;font-size:.74rem;font-weight:700;
+  letter-spacing:.02em;color:var(--mp-ink)}
+.rd-reg-addr{display:grid;gap:.4rem;grid-template-columns:minmax(0,1fr)}
+@media (min-width:520px){.rd-reg-addr{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.rd-reg-soc{display:grid;gap:.4rem}
+.rd-reg-socr{display:grid;gap:.4rem;grid-template-columns:minmax(0,1fr)}
+@media (min-width:520px){.rd-reg-socr{grid-template-columns:9.5rem minmax(0,1fr)}}
+.rd-reg-socadd{justify-self:start;display:inline-flex;align-items:center;gap:.35rem;
+  margin-top:.1rem;padding:.36rem .62rem;border-radius:.42rem;font-size:.74rem;
+  font-weight:700;color:var(--mp-key);background:#fff;cursor:pointer;
+  border:1px dashed rgba(23,65,107,.4);transition:background .18s,border-color .18s}
+.rd-reg-socadd:hover{background:#f2f6fc;border-color:var(--mp-key2)}
+.rd-reg-socadd:focus-visible{outline:2px solid var(--mp-key2);outline-offset:2px}
+.rd-reg-socadd i,.rd-reg-socadd svg{width:.8rem;height:.8rem}
+.rd-reg-revh{display:flex;align-items:center;gap:.6rem;margin:0 0 .45rem}
+.rd-reg-reve i,.rd-reg-reve svg{width:.72rem;height:.72rem}
+
+@media (prefers-reduced-motion:reduce){
+  .nav-cta,.rd-reg-next,.rd-reg-step::after,.rd-reg-rule>span,.rd-sv-t,
+  .rd-sv-t::after,.rd-sv-grp,.rd-reg-socadd{transition:none}
+  .nav-cta:hover,.rd-reg-next:hover{transform:none}
+}
+
+/* ---- every icon was 24px ------------------------------------------------ */
+/* lucide.createIcons() does not style the <i>, it replaces it with an <svg>,
+   copying only the element's attributes across. So a rule written as
+   `.rd-mp-act i{width:1.05rem}` matches nothing once the icons are drawn, and
+   the whole preview has been rendering lucide's 24px default everywhere -- the
+   heaviest thing on a line of 13px text. Thirteen selectors, all the same
+   mistake, so all thirteen are widened to the svg here rather than left for
+   later. Sizes are the ones the rules always intended. */
+.rd-mp-cbtn svg,.rd-mp-act2 svg,.rd-rep-del svg,.rd-rep-add svg{width:.95rem;height:.95rem}
+.rd-mp-act2 svg{color:var(--mp-key)}
+.rd-mp-facebtn svg,.rd-dc-seg svg,.rd-ed-h svg{width:1rem;height:1rem}
+.rd-mp-paper svg{width:1rem;height:1rem;color:var(--mp-key);flex:0 0 auto}
+.rd-mp-name svg{width:1.15rem;height:1.15rem;color:var(--mp-seal);flex:0 0 auto}
+.rd-mp-pill svg{width:.8rem;height:.8rem}
+.rd-mp-act svg,.rd-mp-ico svg{width:1.05rem;height:1.05rem}
+.rd-mp-sech svg{width:.9rem;height:.9rem;color:var(--mp-key);opacity:.75}
+.rd-dc-open svg.rd-dc-arw{width:.9rem;height:.9rem}
+.rd-reg-back svg{width:.9rem;height:.9rem}
+
+/* ---- body and level: segments, not a dropdown ------------------------- */
+/* Three fixed choices that decide which list the row belongs to. A select hid
+   the answer and clipped the longest one; segments show all three, and the
+   selected one is the only filled thing in the row, so a member scanning six
+   rows reads the bodies without reading anything else. */
+.rd-seg{display:flex;flex-wrap:wrap;gap:.35rem}
+.rd-seg-o{flex:1 1 auto;min-width:0;position:relative;display:flex;cursor:pointer}
+.rd-seg-r{position:absolute;width:1px;height:1px;margin:0;padding:0;opacity:0;
+  pointer-events:none}
+.rd-seg-b{flex:1 1 auto;min-width:0;display:inline-flex;align-items:center;
+  justify-content:center;gap:.35rem;text-align:center;
+  border:1px solid #d7deee;border-radius:.6rem;background:#fff;
+  padding:.5rem .6rem;font-size:.8rem;font-weight:700;color:#5a6779;
+  line-height:1.25;transition:color .18s,border-color .18s,background .18s,box-shadow .18s}
+.rd-seg-b i,.rd-seg-b svg{width:.9rem;height:.9rem;flex:0 0 auto;opacity:.7}
+.rd-seg-o:hover .rd-seg-b{border-color:#b3c0d1;color:var(--mp-ink)}
+.rd-seg-r:checked+.rd-seg-b{background:var(--rd-navy);border-color:var(--rd-navy);
+  color:#fff;box-shadow:var(--mp-e1)}
+/* Brass on navy, the same pairing the plate uses, so the chosen segment reads
+   as part of the record rather than as a form widget. */
+.rd-seg-r:checked+.rd-seg-b i,.rd-seg-r:checked+.rd-seg-b svg{color:var(--mp-brass2);opacity:1}
+.rd-seg-r:focus-visible+.rd-seg-b{outline:2px solid var(--mp-key2);outline-offset:2px}
+/* Below 420px the three stack. "Rangdhanu Alumni Association" needs a whole
+   line of a 320px phone to itself, and a segment can wrap where a select
+   could not. */
+@media (max-width:419px){
+  .rd-seg{display:grid;grid-template-columns:minmax(0,1fr);gap:.3rem}
+  .rd-seg-b{justify-content:flex-start;text-align:left}
+}
+
+/* ---- the two joins between the new stylesheet and the live page --------- */
+/* The directory card is hovered on its own root, and #alumni-grid>.alumni-card
+   already runs the rdCardIn entrance with fill-mode both. An animation outranks
+   an author rule, so the 100% keyframe's transform:none would swallow the hover
+   lift for good. The animation therefore stays on a wrapper and the card sits
+   inside it -- one element each, and neither fights the other. */
+.rd-dcw{display:flex;min-width:0}
+.rd-dcw>.rd-dc{flex:1 1 auto}
+
+/* My Profile now has two faces: the credential a member reads, and the form
+   they edit. Both are in the page at once and only one is shown, which is what
+   keeps a half-typed form from being thrown away by a stray click. */
+.rd-mpx{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-bottom:1rem}
+.rd-mpx-b{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem .85rem;
+  border-radius:.6rem;border:1px solid var(--mp-line);background:#fff;cursor:pointer;
+  font-size:.8rem;font-weight:700;color:var(--mp-mute);
+  transition:color .18s,border-color .18s,background .18s}
+.rd-mpx-b>i,.rd-mpx-b>svg{width:.9rem;height:.9rem;flex:0 0 auto}
+.rd-mpx-b:hover{border-color:#b3c0d1;color:var(--mp-ink)}
+.rd-mpx-b[aria-current="page"]{background:var(--rd-navy);border-color:var(--rd-navy);color:#fff}
+.rd-mpx-b[aria-current="page"]>i,.rd-mpx-b[aria-current="page"]>svg{color:var(--mp-brass2)}
+.rd-mpx-b:focus-visible{outline:2px solid var(--mp-key2);outline-offset:2px}
+.rd-mpx-n{flex:1 1 12rem;min-width:0;margin:0;font-size:.78rem;line-height:1.5;
+  color:var(--mp-mute)}
+@media (prefers-reduced-motion:reduce){.rd-mpx-b{transition:none}}

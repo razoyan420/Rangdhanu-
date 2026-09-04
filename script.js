@@ -67,7 +67,11 @@
       return raw;
     }
     
-    function initialsFor(name) { return String(name || '').split(' ').filter(n => n && !n.includes('.')).map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'DU'; }
+    /* One monogram rule for the whole site. rdMpInitials drops titles and
+       reads a Bengali first letter as one character, neither of which this
+       could do. Kept as a name of its own because alumniAvatarMarkup is
+       still called from the committee pages. */
+    function initialsFor(name) { return rdMpInitials(name); }
     
     /* A photo lands after the card that holds it -- Drive is a separate request.
        The image therefore starts transparent and is faded in once it is here.
@@ -1108,13 +1112,14 @@
           const h = Math.max(8, Math.round(88 * nums[i] / top));
           return '<div class="rd-pd-col' + (i === lead ? ' lead' : '') +
             '" style="--h:' + h + '%"><span class="rd-pd-val">' +
-            escapeHtml(String(x.count || '')) + '</span>' +
+            (nums[i] ? rdPdBn(nums[i]) : escapeHtml(String(x.count || ''))) + '</span>' +
             '<div class="rd-pd-bar" style="--d:' + (0.05 + i * 0.08).toFixed(2) + 's"></div></div>';
         }).join('');
         chart.setAttribute('aria-label',
           'সিরিজ অনুযায়ী ' +
           'চান্সপ্রাপ্তি: ' +
-          series.map(x => String(x.label) + ' ' + String(x.count) +
+          series.map((x, i) => String(x.label) + ' ' +
+            (nums[i] ? rdPdBn(nums[i]) : String(x.count)) +
             ' জন').join(', '));
 
         const axis = document.getElementById('pd-chance-axis');
@@ -1138,7 +1143,8 @@
             escapeHtml(String(x.label)) + '<small>' + escapeHtml(String(x.sub || '')) +
             '</small></div><div class="rd-pd-track"><div class="rd-pd-fill" style="--w:' +
             w + '%;--d:' + (0.05 + i * 0.07).toFixed(2) + 's"></div></div>' +
-            '<div class="rd-pd-row-v">' + escapeHtml(String(x.count || '')) + '</div></div>';
+            '<div class="rd-pd-row-v">' +
+            (dn[i] ? rdPdBn(dn[i]) : escapeHtml(String(x.count || ''))) + '</div></div>';
         }).join('');
         const sum = document.getElementById('pd-chance-sum');
         const total = dn.reduce((a, b) => a + b, 0);
@@ -1150,35 +1156,26 @@
     }
 
 
-    /* ---------- PDACC: the 27th year ribbon -------------------------------
-       The number is not typed into the page any more. The sheet holds the
-       count and the admission session it was true for; every session that has
-       started since adds one. A session is taken to start in July, which is
-       when DUET admission work begins, so the figure turns over with the
-       season rather than on 1 January.
+    /* ---------- PDACC: the 27 years ribbon --------------------------------
+       The figure is the one PDACC publishes about itself, and the owner's
+       decision on 2026-09-04 is that the site keeps printing it. The books
+       and the banners have said 27 years for a long time, so the site does
+       not contradict them on its own authority.
 
-       Written as two steps on purpose: rdPd27Season() is the only place the
-       July rule lives, and rdPd27Apply() is the only place the DOM is
-       touched. */
-    function rdPd27Season(now) {
-      const d = now || new Date();
-      return d.getMonth() >= 6 ? d.getFullYear() : d.getFullYear() - 1;
-    }
+       His director list argues for 29: 27 directors, 1998-99 through
+       2026-27, one director across two sessions and one session with none.
+       PDACC will settle it. When it does, the sheet is edited and no code
+       changes.
 
-    function rdPd27Count(years, yearsFrom, now) {
-      const base = rdPdToNum(years);
-      if (!base) return 0;
-      const from = parseInt(String(yearsFrom || '').replace(/[^0-9]/g, ''), 10);
-      if (!isFinite(from) || from < 1980) return base;
-      const gained = rdPd27Season(now) - from;
-      return gained > 0 ? base + gained : base;
-    }
-
+       Nothing is worked out from the number. The July rule that used to add
+       one per season is gone on purpose: it moved the figure with the
+       calendar, and a figure nobody decided to change is a figure nobody
+       can defend on an admission page. */
     function rdPd27Apply(d) {
       const n = document.getElementById('pd27-n');
       const t = document.getElementById('pd27-t');
       if (!n || !t) return;
-      const total = rdPd27Count(d.years, d.yearsFrom);
+      const total = rdPdToNum(d.years);
       if (!total) return;
       const bn = rdPdBn(total);
       n.textContent = bn;
@@ -1403,6 +1400,803 @@
       }
     }
 
+    /* ================= MEMBER RECORD: THE SHARED PIECES ==================
+       One member's record is now read in three places -- the directory card,
+       the page another member opens, and the member's own page -- so the
+       parsing, the sorting and the small words all live here once. A body
+       renamed on the committee page cannot drift from a body named on a
+       profile, because both read RD_EC_COMMITTEES. */
+
+    /* The sheet keeps a list in one cell: rows separated by a line break,
+       fields inside a row by a pipe. Only the designations also accept a
+       semicolon, because that is the separator the column legend names -- a
+       paper title is allowed to contain one. */
+    function rdMpRows(raw, semi) {
+      const s = String(raw == null ? '' : raw).trim();
+      if (!s) return [];
+      return s.split(semi ? /[\r\n;]+/ : /[\r\n]+/).map(x => x.trim()).filter(Boolean);
+    }
+
+    function rdMpCut(line) { return String(line).split('|').map(x => x.trim()); }
+
+    function rdMpHas(v) { return String(v == null ? '' : v).trim() !== ''; }
+
+    /* "N/A", "none", "-" and their friends are typed into a sheet by people
+       who mean "nothing here". Printing them back as a fact is worse than
+       printing nothing, so they are read as empty. */
+    const RD_MP_NOTHING = /^(none|n\/?a|na|nil|nothing|null|no|-{1,3}|\.+)$/i;
+
+    function rdMpReal(v) {
+      const s = String(v == null ? '' : v).trim();
+      return RD_MP_NOTHING.test(s) ? '' : s;
+    }
+
+    function rdMpPlural(n, one) { return n + ' ' + one + (n === 1 ? '' : 's'); }
+
+    /* tel: keeps a leading +, wa.me cannot have one. */
+    function rdMpDigits(s, plus) {
+      return String(s || '').replace(plus ? /[^0-9+]/g : /[^0-9]/g, '');
+    }
+
+    /* Printed as the eyebrow over every member's name, so the credential says
+       whose register it is without a logo in the way. */
+    const RD_MP_ORG = "Students' Welfare Association of Greater Rangpur, DUET";
+
+    /* The bundled cover, compressed, shipped at the repo root beside logo.png.
+       A member who never uploads one still gets a finished page. */
+    const RD_MP_COVER_DEFAULT = 'cover-default.jpg';
+
+    /* A name gives the monogram its colour, so two members side by side are
+       told apart without a photo between them. The hue is kept inside a narrow
+       navy-to-teal arc -- the register is one colour scheme, not a palette. */
+    function rdMpHue(name) {
+      let h = 0;
+      const s = String(name || '');
+      for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
+      return 200 + (h % 81);
+    }
+
+    /* An open ended job or course reads "2019 - now", never "2019 - ". */
+    function rdMpSpan(from, to) {
+      const f = String(from || '').trim(), t = String(to || '').trim();
+      if (!f && !t) return '';
+      if (!f) return t;
+      return t ? f + ' – ' + t : f + ' – now';
+    }
+
+    /* ---------- the three bodies and the three levels --------------------
+       The bodies are not written down again here. They are the committees the
+       site already knows, read through a function rather than a constant so
+       this never runs before RD_EC_COMMITTEES exists. */
+    const RD_MP_BODY_KEYS = ['RANGDHANU', 'ALUMNI', 'PDACC'];
+
+    function rdMpBodies() {
+      const ec = typeof RD_EC_COMMITTEES !== 'undefined' ? RD_EC_COMMITTEES : [];
+      const short = { RANGDHANU: 'Rangdhanu', ALUMNI: 'Rangdhanu Alumni Association', PDACC: 'PDACC' };
+      const icon = { RANGDHANU: 'shield-check', ALUMNI: 'users', PDACC: 'building-2' };
+      return RD_MP_BODY_KEYS.map((key, i) => {
+        const c = ec[i] || {};
+        return { key: key, short: short[key], icon: c.icon || icon[key],
+                 name: c.name || short[key], positions: c.positions || [],
+                 span: key === 'ALUMNI' ? 4 : 1 };
+      });
+    }
+
+    function rdMpBodyOf(key) {
+      const want = String(key || '').trim().toUpperCase();
+      const all = rdMpBodies();
+      return all.find(b => b.key === want) || all[0];
+    }
+
+    const RD_MP_LEVELS = [
+      { key: 'UNIVERSITY', label: 'University', icon: 'graduation-cap' },
+      { key: 'POLYTECHNIC', label: 'Polytechnic Institute', icon: 'wrench' },
+      { key: 'HIGHSCHOOL', label: 'High School', icon: 'school' }
+    ];
+
+    function rdMpLevelOf(key) {
+      const want = String(key || '').trim().toUpperCase();
+      return RD_MP_LEVELS.find(l => l.key === want) || RD_MP_LEVELS[0];
+    }
+
+    /* ---------- reading the four list columns ---------------------------- */
+    function rdMpParsePosts(raw) {
+      return rdMpRows(raw, true).map(line => {
+        const p = rdMpCut(line);
+        return { body: rdMpBodyOf(p[0]).key, session: p[1] || '', post: rdMpReal(p[2]) };
+      }).filter(r => r.post);
+    }
+
+    function rdMpParseWork(raw) {
+      return rdMpRows(raw).map(line => {
+        const p = rdMpCut(line);
+        return { org: rdMpReal(p[0]), desig: rdMpReal(p[1]), loc: rdMpReal(p[2]),
+                 from: p[3] || '', to: p[4] || '' };
+      }).filter(r => r.org || r.desig);
+    }
+
+    function rdMpParseEdu(raw) {
+      return rdMpRows(raw).map(line => {
+        const p = rdMpCut(line);
+        return { level: rdMpLevelOf(p[0]).key, inst: rdMpReal(p[1]), field: rdMpReal(p[2]),
+                 from: p[3] || '', to: p[4] || '' };
+      }).filter(r => r.inst);
+    }
+
+    function rdMpParsePapers(raw) {
+      return rdMpRows(raw).map(line => {
+        const p = rdMpCut(line);
+        const url = String(p[1] || '').trim();
+        return { title: rdMpReal(p[0]) || url, url: url };
+      }).filter(r => /^https?:\/\//i.test(r.url));
+    }
+
+    /* ---------- writing them back --------------------------------------- */
+    function rdMpJoin(list, keys) {
+      return (list || []).map(r => keys.map(k => String(r[k] == null ? '' : r[k]).trim()).join('|'))
+                         .join('\n');
+    }
+
+    /* ---------- sorting ------------------------------------------------- */
+    function rdMpSessionYear(s) {
+      const m = /^(\d{4})/.exec(String(s || '').trim());
+      return m ? +m[1] : 0;
+    }
+
+    function rdMpBySessionDesc(a, b) { return rdMpSessionYear(b.session) - rdMpSessionYear(a.session); }
+
+    /* An entry still open outranks one that closed in the same year: a job you
+       are in now belongs above a job you left this year. */
+    function rdMpByYearDesc(a, b) {
+      const af = +String(a.from || 0).slice(0, 4) || 0, bf = +String(b.from || 0).slice(0, 4) || 0;
+      const ao = rdMpHas(a.to) ? 0 : 1, bo = rdMpHas(b.to) ? 0 : 1;
+      if (bf !== af) return bf - af;
+      return bo - ao;
+    }
+
+    /* A term is current when today falls inside the session, which is why the
+       two years are compared rather than only the last one -- an Alumni
+       Association term may run for four. */
+    function rdMpIsCurrent(session) {
+      const m = /^(\d{4})-(\d{4})$/.exec(String(session || '').trim());
+      if (!m) return false;
+      const y = new Date().getFullYear();
+      return +m[1] <= y && +m[2] >= y;
+    }
+
+    /* Two columns carry standing and they do not agree on wording. The public
+       feed derives viewStatus from the active series list -- "Alumni" or
+       "Running Member" -- while a member's own row carries Status, which is
+       "PENDING" until the Association approves it. One key covers both so a
+       page never has to know which call it was filled from. */
+    function rdMpNormStatus(s) {
+      const u = String(s == null ? '' : s).trim().toUpperCase();
+      if (u === 'ALUMNI') return 'ALUMNI';
+      if (u === 'PENDING') return 'PENDING';
+      return 'APPROVED';
+    }
+
+    function rdMpStatusWord(status) {
+      const k = rdMpNormStatus(status);
+      return k === 'ALUMNI' ? 'Alumni' : k === 'PENDING' ? 'Pending approval' : 'Member';
+    }
+
+    function rdMpStatusClass(status) {
+      const k = rdMpNormStatus(status);
+      return k === 'ALUMNI' ? ' is-alumni' : k === 'PENDING' ? ' is-pending' : '';
+    }
+
+    /* The one line the Standing group prints, and the one the pill prints. */
+    function rdMpStanding(status) {
+      const k = rdMpNormStatus(status);
+      return k === 'ALUMNI' ? 'Alumni member'
+        : k === 'PENDING' ? 'Application under review' : 'Approved member';
+    }
+
+    /* Initials for the monogram. A title is not an initial: "Md. Shefaul
+       Islam" is SI, not MS, which is the difference between a register that
+       reads and one that repeats itself down the page. First and last, the way
+       a name is shortened out loud, so two Md. Abdurs are still told apart. */
+    const RD_MP_TITLES = /^(md|mohammad|muhammad|mohd|mst|most|mosa|mosammat|mrs|mr|ms|dr|engr|adv)\.?$/i;
+
+    function rdMpInitials(name) {
+      let w = String(name || '').replace(/[.]/g, ' . ').split(/\s+/)
+        .filter(x => x && x !== '.')
+        .filter(x => !RD_MP_TITLES.test(x));
+      if (!w.length) w = String(name || '').split(/\s+/).filter(Boolean);
+      if (!w.length) return 'DU';
+      /* Array.from, not [0]: a Bengali name's first letter is not always one
+         UTF-16 unit, and half a code point draws as a box. */
+      const a = Array.from(w[0])[0] || '';
+      const b = w.length > 1 ? (Array.from(w[w.length - 1])[0] || '') : '';
+      return ((a + b) || 'DU').toUpperCase();
+    }
+
+    /* ================= MEMBER PROFILE: THE PAGE ==========================
+       Two pages draw the same member: the one another member opens from the
+       directory, and the one the member opens from the menu. They used to be
+       two sets of builders, which is how the two pages came to disagree about
+       what a member's record even contained.
+
+       Every builder below takes the record and a small state object, and
+       returns a string. Nothing reads a global, so the same call renders a
+       public profile and an own profile -- the state is the only difference:
+
+         { own:  drawing the member's own page, so the cover and photo buttons
+                 and the completeness note appear,
+           signed: a member is signed in, so contact rows are filled,
+           pos:  the cover is being repositioned,
+           x, y: the cover's focal point, in per cent }
+       ==================================================================== */
+
+    function rdMpState(o) {
+      const s = o || {};
+      return { own: !!s.own, signed: !!s.signed, pos: !!s.pos,
+               x: typeof s.x === 'number' ? s.x : 50,
+               y: typeof s.y === 'number' ? s.y : 50 };
+    }
+
+    /* "50% 34%" out of the sheet, back into two numbers. An unreadable value
+       is centred rather than dropped, so a bad cell cannot blank a cover. */
+    function rdMpParsePos(raw) {
+      const m = /(-?\d+(?:\.\d+)?)\s*%?\s+(-?\d+(?:\.\d+)?)\s*%?/.exec(String(raw || ''));
+      if (!m) return { x: 50, y: 50 };
+      const clamp = v => Math.max(0, Math.min(100, Math.round(+v)));
+      return { x: clamp(m[1]), y: clamp(m[2]) };
+    }
+
+    /* ---- the face ------------------------------------------------------ */
+    /* A member with no photo gets a monogram in a colour taken from their own
+       name, not the Association logo for the fourth time on one page. The hue
+       is emitted inline because the gradient in custom.css reads --mp-h. */
+    function rdMpFaceMarkup(mp) {
+      if (rdMpHas(mp.photo)) {
+        return '<img src="' + escapeHtml(mp.photo) + '" alt="' + escapeHtml(mp.name || '') +
+               '" decoding="async" draggable="false" onerror="rdMpFaceFail(this)">';
+      }
+      return '<div class="rd-mp-mono" style="--mp-h:' + rdMpHue(mp.name) + '" aria-hidden="true">' +
+             escapeHtml(rdMpInitials(mp.name)) + '</div>';
+    }
+
+    /* A broken Drive link leaves an empty circle, so the monogram takes over. */
+    function rdMpFaceFail(img) {
+      const box = img.parentElement;
+      if (!box) { img.remove(); return; }
+      const name = img.getAttribute('alt') || '';
+      img.outerHTML = '<div class="rd-mp-mono" style="--mp-h:' + rdMpHue(name) +
+        '" aria-hidden="true">' + escapeHtml(rdMpInitials(name)) + '</div>';
+    }
+
+    /* "Assistant Engineer, LGED" on one line, instead of a Designation row and
+       an Organization row the reader has to join up themselves. */
+    function rdMpHeadline(mp) {
+      const bits = [];
+      if (rdMpHas(mp.desig)) bits.push('<b>' + escapeHtml(mp.desig) + '</b>');
+      if (rdMpHas(mp.org)) bits.push(escapeHtml(mp.org));
+      return bits.length ? '<p class="rd-mp-head">' + bits.join(', ') + '</p>' : '';
+    }
+
+    /* ---- the cover ----------------------------------------------------- */
+    function rdMpCoverMarkup(mp, st) {
+      const csrc = rdMpHas(mp.cover) ? mp.cover : RD_MP_COVER_DEFAULT;
+      const custom = rdMpHas(mp.cover);
+      const alt = custom ? 'Cover photo' : 'Proud Member of Rangdhanu';
+      let btns = '';
+      if (st.own) {
+        /* The label is hidden under 420px, so each button also carries an
+           aria-label and a title. Without them these are three unnamed buttons
+           to a screen reader, and one of them throws the cover away. */
+        btns = '<div class="rd-mp-cbtns">' +
+          (custom
+            ? '<button type="button" class="rd-mp-cbtn" onclick="rdMpPosStart()"' +
+                ' aria-label="Reposition the cover" title="Reposition the cover">' +
+                '<i data-lucide="move"></i><span class="rd-mp-cbtn-lbl">Reposition</span></button>' +
+              '<button type="button" class="rd-mp-cbtn" onclick="rdMpCoverReset()"' +
+                ' aria-label="Go back to the default cover" title="Go back to the default cover">' +
+                '<i data-lucide="rotate-ccw"></i><span class="rd-mp-cbtn-lbl">Use default</span></button>'
+            : '') +
+          '<button type="button" class="rd-mp-cbtn" onclick="rdMpCoverPick()"' +
+            ' aria-label="Change the cover photo" title="Change the cover photo">' +
+            '<i data-lucide="image-plus"></i><span class="rd-mp-cbtn-lbl">Cover</span></button>' +
+          '</div>';
+      }
+      const bar = st.own
+        ? '<div class="rd-mp-posbar">' +
+            '<span>Drag the photo up or down to choose what shows.</span>' +
+            '<div class="rd-mp-posacts">' +
+              '<button type="button" class="rd-mp-posbtn rd-mp-posbtn-no" onclick="rdMpPosEnd(false)">Cancel</button>' +
+              '<button type="button" class="rd-mp-posbtn rd-mp-posbtn-ok" onclick="rdMpPosEnd(true)">Save position</button>' +
+            '</div></div>'
+        : '';
+      return '<div class="rd-mp-cover' + (custom ? ' rd-mp-cover-photo' : '') +
+               (st.pos ? ' is-pos' : '') + '"' +
+               /* The id is only what the drag and the arrow keys hold on to, so
+                  it is emitted on the member's own page and nowhere else. Both
+                  pages sit in the DOM at once and #page-profile comes first, so
+                  an id on both would hand rdMpArmDrag the wrong cover. */
+               (st.own ? ' id="mp-cover"' : '') +
+               /* While the bar is open the cover takes focus, because dragging
+                  is the one thing here a keyboard cannot do. The label says
+                  which keys move it. */
+               (st.pos ? ' tabindex="0" aria-label="Cover photo. Use the arrow keys' +
+                         ' to move it, Enter to save, Escape to cancel."' : '') +
+               ' style="--rd-cover-pos:' + st.x + '% ' + st.y + '%">' +
+               '<img src="' + escapeHtml(csrc) + '" alt="' + alt + '" decoding="async" draggable="false">' +
+               btns +
+             '</div>' + bar;
+    }
+
+    /* ---- the engraved data line ---------------------------------------- */
+    function rdMpFact(label, value, cls) {
+      if (!rdMpHas(value)) return '';
+      return '<div class="rd-mp-fact"><dt>' + escapeHtml(label) + '</dt>' +
+             '<dd' + (cls ? ' class="' + cls + '"' : '') + '>' + escapeHtml(value) + '</dd></div>';
+    }
+
+    function rdMpRuleMarkup(mp) {
+      const inner = rdMpFact('Member ID', mp.memberId) +
+                    rdMpFact('Series', rdMpHas(mp.series) ? "'" + mp.series : '') +
+                    rdMpFact('Department', mp.dept, 'is-word') +
+                    rdMpFact('Batch', mp.batch) +
+                    rdMpFact('Blood', mp.blood, 'is-blood');
+      return inner ? '<dl class="rd-mp-rule">' + inner + '</dl>' : '';
+    }
+
+    /* ---- the actions --------------------------------------------------- */
+    function rdMpActsMarkup(mp, st) {
+      if (!st.signed) {
+        return '<div class="rd-mp-acts"><button type="button" class="rd-mp-act rd-mp-act-lock" ' +
+               'onclick="openMemberSignIn(\'profile\')"><i data-lucide="lock"></i> ' +
+               'Sign in to call or message</button></div>';
+      }
+      /* No falling back to the mobile number. Most members do use the same one
+         on WhatsApp, but the sheet does not say so, and a wa.me link to a
+         number that is not on WhatsApp is a dead end. Empty field, no button. */
+      const main = (rdMpHas(mp.mobile)
+          ? '<a class="rd-mp-act rd-mp-act-call" href="tel:' + rdMpDigits(mp.mobile, true) +
+            '"><i data-lucide="phone"></i> Call</a>' : '') +
+        (rdMpHas(mp.whatsapp)
+          ? '<a class="rd-mp-act rd-mp-act-wa" href="https://wa.me/' + rdMpDigits(mp.whatsapp) +
+            '" target="_blank" rel="noopener"><i data-lucide="message-circle"></i> WhatsApp</a>' : '');
+      /* On your own page the extras are Edit and Share; on somebody else's,
+         Save contact and Share. Saving your own number into your own phone
+         book is the kind of button that makes a page feel unread. */
+      const more = (st.own
+          ? '<button type="button" class="rd-mp-act2" onclick="rdMypTab(\'edit\')">' +
+              '<i data-lucide="pencil"></i> Edit profile</button>'
+          : '<button type="button" class="rd-mp-act2" onclick="rdMpVcard()">' +
+              '<i data-lucide="user-round-plus"></i> Save contact</button>') +
+        '<button type="button" class="rd-mp-act2" onclick="rdMpShare(this)">' +
+          '<i data-lucide="share-2"></i> Share profile</button>';
+      return (main ? '<div class="rd-mp-acts">' + main + '</div>' : '') +
+             '<div class="rd-mp-acts2">' + more + '</div>';
+    }
+
+    /* ---- the credential ------------------------------------------------ */
+    function rdMpCredential(mp, st) {
+      const k = rdMpNormStatus(mp.status);
+      const pill = k === 'PENDING'
+        ? '<span class="rd-mp-pill rd-mp-pill-wait"><i data-lucide="clock"></i> Pending</span>'
+        : '<span class="rd-mp-pill rd-mp-pill-ok"><i data-lucide="badge-check"></i> ' +
+          rdMpStanding(mp.status) + '</span>';
+      /* The tick beside the name means Approved or Alumni and nothing else. A
+         badge that is always drawn says nothing, so an applicant has none. */
+      const tick = k === 'PENDING' ? ''
+        : '<i data-lucide="shield-check" role="img" aria-label="Verified by the Association"' +
+          ' title="Verified by the Association"></i>';
+      return '<div class="rd-mp' + (st.pos ? ' is-pos' : '') + '"' +
+        (st.own ? ' id="mp-card"' : '') + '>' +
+        rdMpCoverMarkup(mp, st) +
+        '<div class="rd-mp-id">' +
+          '<div class="rd-mp-face">' + rdMpFaceMarkup(mp) +
+            (st.own ? '<button type="button" class="rd-mp-facebtn" onclick="rdMpPhotoPick()"' +
+                      ' aria-label="Change my photo" title="Change my photo">' +
+                      '<i data-lucide="camera"></i></button>' : '') +
+          '</div>' +
+          '<p class="rd-mp-eyebrow">' + escapeHtml(RD_MP_ORG) + '</p>' +
+          '<h1 class="rd-mp-name">' + escapeHtml(mp.name || '') + tick + '</h1>' +
+          rdMpHeadline(mp) +
+          '<div class="rd-mp-pillrow">' + pill + '</div>' +
+          rdMpRuleMarkup(mp) +
+          rdMpActsMarkup(mp, st) +
+        '</div>' +
+      '</div>';
+    }
+
+    /* ---- the record ---------------------------------------------------- */
+    function rdMpRow(icon, label, value, num, tone) {
+      if (!rdMpHas(value)) return '';           /* an empty fact draws nothing */
+      return '<div class="rd-mp-row">' +
+        '<div class="rd-mp-ico' + (tone ? ' rd-mp-ico-' + tone : '') + '">' +
+          '<i data-lucide="' + icon + '"></i></div>' +
+        '<div class="rd-mp-txt">' +
+          (label ? '<p class="rd-mp-k">' + escapeHtml(label) + '</p>' : '') +
+          '<p class="rd-mp-v' + (num ? ' rd-mp-v-num' : '') + '">' + escapeHtml(value) + '</p>' +
+        '</div></div>';
+    }
+
+    /* Sections are direct children of .rd-mp-grid -- there is no wrapper around
+       the wide column and none around the narrow one. is-side is what puts a
+       section in the narrow column, so the public profile page can lay itself
+       out from five separate variables without a div spanning two of them. */
+    function rdMpSection(icon, title, inner, side) {
+      if (!inner) return '';
+      return '<div class="rd-mp-sec' + (side ? ' is-side' : '') + '">' +
+        '<p class="rd-mp-sech"><i data-lucide="' + icon + '"></i>' +
+        escapeHtml(title) + '</p>' + inner + '</div>';
+    }
+
+    function rdMpRowsBox(inner) { return inner ? '<div class="rd-mp-rows">' + inner + '</div>' : ''; }
+
+    /* ---- service, work and education ----------------------------------- */
+    /* The first version drew each of these as a year column beside a line of
+       text: correct, and completely flat, which is what he saw -- "sudhu text
+       ar text". One object replaces all three. A group is a crest, the body's
+       own icon on a navy tile, over a rail; each entry is a station on that
+       rail, hollow for something finished and brass for what is true now.
+       Service, work and education share it, so the page reads as one system. */
+    function rdMpSvGroup(icon, name, count, inner) {
+      return '<div class="rd-sv-grp">' +
+        '<div class="rd-sv-h">' +
+          '<span class="rd-sv-crest" aria-hidden="true"><i data-lucide="' + icon + '"></i></span>' +
+          '<div class="rd-sv-ttl"><p class="rd-sv-n">' + escapeHtml(name) + '</p>' +
+            (rdMpHas(count) ? '<p class="rd-sv-c">' + escapeHtml(count) + '</p>' : '') +
+          '</div></div>' +
+        '<ul class="rd-sv-list">' + inner + '</ul></div>';
+    }
+
+    function rdMpSvTerm(yr, main, sub, now, chip) {
+      return '<li class="rd-sv-t' + (now ? ' is-now' : '') + (rdMpHas(sub) ? ' has-sub' : '') + '">' +
+        '<span class="rd-sv-y">' + escapeHtml(yr || '') + '</span>' +
+        '<span class="rd-sv-p">' + escapeHtml(main) +
+          (rdMpHas(chip) ? '<span class="rd-sv-chip">' + escapeHtml(chip) + '</span>' : '') +
+          (rdMpHas(sub) ? '<span class="rd-sv-org">' + escapeHtml(sub) + '</span>' : '') +
+        '</span></li>';
+    }
+
+    /* Three bodies, three rails, newest term at the top of each. A member who
+       has served only in Rangdhanu sees one group, not three empty ones. */
+    function rdMpService(mp) {
+      const list = (mp.posts || []).filter(p => rdMpHas(p.post) && rdMpHas(p.session));
+      if (!list.length) return rdMpLegacyService(mp);
+      let groups = rdMpBodies().map(b => {
+        const mine = list.filter(p => rdMpBodyOf(p.body).key === b.key).sort(rdMpBySessionDesc);
+        if (!mine.length) return '';
+        const inner = mine.map((p, i) => {
+          const now = i === 0 && rdMpIsCurrent(p.session);
+          /* "Serving" is the one chip on the page. The dot already says
+             current, so the word is spent only where a reader might otherwise
+             read a session that has not ended yet as one that has. */
+          return rdMpSvTerm(p.session, p.post, '', now, now ? 'Serving' : '');
+        }).join('');
+        return rdMpSvGroup(b.icon, b.short, rdMpPlural(mine.length, 'term'), inner);
+      }).join('');
+      groups += rdMpSvGroup('badge-check', 'Standing', '',
+        rdMpSvTerm('Today', rdMpStanding(mp.status), RD_MP_ORG, true, ''));
+      return rdMpSection('shield', 'Service record', '<div class="rd-sv">' + groups + '</div>');
+    }
+
+    /* Members who registered before the session-wise columns existed have one
+       free text cell instead, semicolon separated. It is still their record, so
+       it is drawn on the same rail rather than dropped. */
+    function rdMpLegacyService(mp) {
+      const ev = [];
+      String(mp.formerPos || '').split(';').forEach(p => {
+        p = p.trim();
+        if (!p || RD_MP_NOTHING.test(p)) return;
+        const m = /^(.*?),\s*([0-9]{4}(?:-[0-9]{2,4})?)$/.exec(p);
+        ev.push({ y: m ? m[2] : '', v: m ? m[1] : p });
+      });
+      const inner = ev.map(e => rdMpSvTerm(e.y, e.v, '', false, '')).join('') +
+        rdMpSvTerm('Today', rdMpStanding(mp.status), RD_MP_ORG, true, '');
+      /* One free text cell covers Rangdhanu and PDACC both, so the group is
+         named by what the cell is rather than by a body it might not be about.
+         rdPositionCardLabel is the same pair of words the two forms print over
+         the input, which is where this text was typed. */
+      return rdMpSection('shield', 'Service record', '<div class="rd-sv">' +
+        rdMpSvGroup('shield-check', ev.length ? rdPositionCardLabel(mp.status) : 'Standing',
+          ev.length ? rdMpPlural(ev.length, 'term') : '', inner) + '</div>');
+    }
+
+    function rdMpWork(mp) {
+      const list = (mp.work || []).filter(w => rdMpHas(w.org) || rdMpHas(w.desig))
+                                  .sort(rdMpByYearDesc);
+      const extra = rdMpRowsBox(rdMpRow('layers', 'Employment type', mp.empType));
+      if (!list.length) {
+        const one = (rdMpHas(mp.desig) || rdMpHas(mp.org))
+          ? '<div class="rd-sv">' + rdMpSvGroup('briefcase', 'Current post', '',
+              rdMpSvTerm('', [mp.desig, mp.org].filter(rdMpHas).join(', '),
+                rdMpReal(mp.loc), true, '')) + '</div>'
+          : '';
+        return rdMpSection('briefcase', 'Work', one + extra);
+      }
+      /* No "Present" chip here: rdMpSpan already ends the line with the word,
+         and printing it twice on one row is the sort of thing that makes a page
+         look automatically generated. */
+      const inner = list.map(w => rdMpSvTerm(rdMpSpan(w.from, w.to), w.desig || w.org,
+        [w.desig ? w.org : '', w.loc].filter(rdMpHas).join(' · '), !rdMpHas(w.to), '')).join('');
+      return rdMpSection('briefcase', 'Work',
+        '<div class="rd-sv">' + rdMpSvGroup('briefcase', 'Employment history',
+          rdMpPlural(list.length, 'post'), inner) + '</div>' + extra);
+    }
+
+    /* Education groups by level for the same reason service groups by body:
+       three crests, three rails, and a reader can find the polytechnic without
+       reading the university first. */
+    function rdMpEdu(mp) {
+      const list = (mp.edu || []).filter(e => rdMpHas(e.inst));
+      if (!list.length) return '';
+      const groups = RD_MP_LEVELS.map(lv => {
+        const mine = list.filter(e => rdMpLevelOf(e.level).key === lv.key).sort(rdMpByYearDesc);
+        if (!mine.length) return '';
+        const inner = mine.map(e => rdMpSvTerm(rdMpSpan(e.from, e.to), e.inst,
+          rdMpReal(e.field), !rdMpHas(e.to) && rdMpHas(e.from), '')).join('');
+        return rdMpSvGroup(lv.icon, lv.label, rdMpPlural(mine.length, 'record'), inner);
+      }).join('');
+      return rdMpSection('graduation-cap', 'Education', '<div class="rd-sv">' + groups + '</div>');
+    }
+
+    /* ---- thesis and papers --------------------------------------------- */
+    /* A thesis abstract can run to a page. It is clamped on a word boundary
+       with the full text already in the DOM behind a hidden attribute, so See
+       more is instant and a printout still carries everything. */
+    const RD_MP_CLAMP = 320;
+
+    /* aria-controls needs a real id, and the public profile and My Profile are
+       both in the DOM at once, so a fixed id would be in the page twice and See
+       more on one page would open the other one's abstract. Each block gets its
+       own pair and the button carries the stem. */
+    let RD_MP_TH_N = 0;
+
+    function rdMpResearch(mp) {
+      const papers = (mp.papers || []).filter(p => rdMpHas(p.url));
+      if (!rdMpHas(mp.thesis) && !papers.length) return '';
+      let out = '';
+      if (rdMpHas(mp.thesis)) {
+        out += '<div class="rd-mp-th"><p class="rd-mp-tht">' + escapeHtml(mp.thesis) + '</p>';
+        const d = String(mp.thesisDetails || '').trim();
+        if (d.length > RD_MP_CLAMP) {
+          const uid = 'rd-th-' + (++RD_MP_TH_N);
+          let cut = d.slice(0, RD_MP_CLAMP);
+          const sp = cut.lastIndexOf(' ');
+          if (sp > RD_MP_CLAMP * 0.6) cut = cut.slice(0, sp);
+          cut = cut.replace(/[\s,;:.-]+$/, '');
+          out += '<p class="rd-mp-thd" id="' + uid + '-s">' + escapeHtml(cut) + '...</p>' +
+            '<p class="rd-mp-thd" id="' + uid + '-l" hidden>' + escapeHtml(d) + '</p>' +
+            '<button type="button" class="rd-mp-more" data-th="' + uid + '" ' +
+              'aria-expanded="false" aria-controls="' + uid + '-l" onclick="rdMpThesisMore(this)">See more</button>';
+        } else if (d) {
+          out += '<p class="rd-mp-thd">' + escapeHtml(d) + '</p>';
+        }
+        out += '</div>';
+      }
+      if (papers.length) {
+        out += '<div class="rd-mp-papers' + (rdMpHas(mp.thesis) ? ' has-th' : '') + '">' +
+          papers.map(p => {
+            const host = String(p.url).replace(/^https?:\/\//i, '').split('/')[0];
+            return '<a class="rd-mp-paper" href="' + escapeHtml(p.url) + '" target="_blank" ' +
+              'rel="noopener noreferrer nofollow">' +
+              '<i data-lucide="file-text"></i>' +
+              '<span class="rd-mp-papert">' + escapeHtml(p.title || p.url) + '</span>' +
+              '<span class="rd-mp-paperh">' + escapeHtml(host) + ' &#8599;</span></a>';
+          }).join('') + '</div>';
+      }
+      return rdMpSection('flask-conical', 'Thesis and papers', out);
+    }
+
+    function rdMpThesisMore(btn) {
+      const uid = btn.getAttribute('data-th') || '';
+      const s = document.getElementById(uid + '-s'), l = document.getElementById(uid + '-l');
+      if (!s || !l) return;
+      const open = l.hasAttribute('hidden');
+      if (open) { l.removeAttribute('hidden'); s.setAttribute('hidden', ''); }
+      else { l.setAttribute('hidden', ''); s.removeAttribute('hidden'); }
+      btn.textContent = open ? 'See less' : 'See more';
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    /* ---- contact ------------------------------------------------------- */
+    /* Signed out, the block keeps its shape and loses its cells. The page does
+       not reflow when a member signs in, which is what makes signing in feel
+       like a door rather than a redesign.
+
+       The inner half is its own function because the public profile builds its
+       Contact section through rdMemberPrivateRows, whose signature the harness
+       pins. Both pages therefore draw the same lock card and the same rows from
+       the same source, and neither owns a second copy of it. */
+    function rdMpContactInner(mp, st) {
+      if (!st.signed) {
+        return '<div class="rd-mp-gate">' +
+            '<div class="rd-mp-gate-ico"><i data-lucide="lock"></i></div>' +
+            '<p class="rd-mp-gate-h">Mobile, WhatsApp, email and address</p>' +
+            '<p class="rd-mp-gate-p">Shown to signed in members only.</p>' +
+            '<button type="button" class="rd-mp-act rd-mp-act-call" style="margin-top:.85rem" ' +
+              'onclick="openMemberSignIn(\'profile\')"><i data-lucide="shield-check"></i> ' +
+              'Member Sign In</button>' +
+          '</div>';
+      }
+      return rdMpRowsBox(
+        rdMpRow('phone', 'Mobile', mp.mobile, true) +
+        rdMpRow('message-circle', 'WhatsApp', mp.whatsapp, true) +
+        rdMpRow('mail', 'Email', mp.email) +
+        rdMpRow('home', 'Permanent address', mp.permanent) +
+        rdMpRow('map-pin', 'Present address', mp.present));
+    }
+
+    function rdMpContact(mp, st) {
+      return rdMpSection('contact', 'Contact', rdMpContactInner(mp, st), 1);
+    }
+
+    /* The site already has one social block, with its own glyphs and its own
+       colours. A second set drawn here would be two answers to one question. */
+    function rdMpSocial(mp, st) {
+      if (!st.signed) return '';
+      const chips = rdSocialChips(mp.social);
+      return chips ? rdMpSection('at-sign', 'Social media', chips, 1) : '';
+    }
+
+    /* ---- what is still missing ----------------------------------------- */
+    /* Only on a member's own page, and only while something is actually
+       missing. RD_MP_BASE is what registration already collected: it counts
+       towards the total but is never listed, because the member cannot edit it.
+       Leaving it out of the sum was the first version's mistake -- a new member
+       saw "0% complete" over a page that already carried her name, series,
+       department and number, which reads as a telling-off, not a next step. */
+    const RD_MP_BASE = ['name', 'memberId', 'dept', 'series', 'batch', 'mobile'];
+
+    const RD_MP_WANTED = [
+      ['desig', 'Designation'], ['org', 'Organization'], ['empType', 'Employment type'],
+      ['loc', 'Work location'], ['blood', 'Blood group'], ['whatsapp', 'WhatsApp'],
+      ['email', 'Email'], ['permanent', 'Permanent address'], ['present', 'Present address'],
+      ['photo', 'Photo']
+    ];
+
+    function rdMpTodo(mp, st) {
+      if (!st.own) return '';
+      const missing = RD_MP_WANTED.filter(w => !rdMpHas(mp[w[0]]));
+      if (!missing.length) return '';
+      const done = RD_MP_BASE.filter(k => rdMpHas(mp[k])).length +
+                   (RD_MP_WANTED.length - missing.length);
+      const total = RD_MP_BASE.length + RD_MP_WANTED.length;
+      const pct = Math.round(100 * done / total);
+      return '<div class="rd-mp-todo">' +
+        '<div class="rd-mp-todo-t"><span>Your profile is ' +
+          '<span class="rd-mp-todo-n">' + pct + '%</span> complete</span>' +
+          '<span class="rd-mp-todo-n">' + done + '/' + total + '</span></div>' +
+        '<div class="rd-mp-bar"><i style="width:' + pct + '%"></i></div>' +
+        '<ul class="rd-mp-todo-l">' + missing.slice(0, 6).map(w =>
+          '<li>' + escapeHtml(w[1]) + '</li>').join('') +
+        (missing.length > 6 ? '<li>+' + (missing.length - 6) + ' more</li>' : '') + '</ul>' +
+      '</div>';
+    }
+
+    /* ---- the whole page ------------------------------------------------- */
+    function rdMpProfile(mp, st) {
+      const s = rdMpState(st);
+      return rdMpCredential(mp, s) + rdMpTodo(mp, s) +
+        '<div class="rd-mp-main">' +
+          rdMpWork(mp) + rdMpService(mp) + rdMpEdu(mp) + rdMpResearch(mp) +
+        '</div>' +
+        '<div class="rd-mp-side">' + rdMpContact(mp, s) + rdMpSocial(mp, s) + '</div>';
+    }
+
+    /* ================= WHERE THE RECORD COMES FROM =======================
+       Two calls answer with the same member in two shapes: the public feed is
+       already shortened by rdAlumniShape, a member's own row arrives with the
+       sheet's own headers. Both are turned into one record here, so no builder
+       above ever has to know which call it came from -- and a column renamed on
+       the sheet is a one line change in one of these two functions. */
+
+    function rdMpFromAlumni(a, c) {
+      const m = c || {};
+      const g = k => rdMpReal(m[k]);
+      return {
+        name: a.name, photo: normalizeAlumniImage(a.image),
+        cover: normalizeAlumniImage(a.cover), pos: rdMpParsePos(a.coverPos),
+        memberId: a.memberId || String(a.id || ''),
+        series: a.series, dept: rdMpReal(a.dept), batch: a.batch, blood: rdMpReal(a.blood),
+        desig: rdMpReal(a.desig), org: rdMpReal(a.org), loc: rdMpReal(a.loc),
+        empType: rdMpReal(a.emp_type),
+        /* Contact cells only exist once a member has signed in; until then the
+           whole object is null and every row here is empty by construction. */
+        mobile: g('Mobile Number'), whatsapp: g('WhatsApp Number'), email: g('Email'),
+        permanent: g('Permanent Address') || rdMpReal(a.address),
+        present: g('Present Address'),
+        social: m['Social Links'] || '',
+        status: a.status,
+        posts: rdMpParsePosts(a.posts), work: rdMpParseWork(a.work),
+        edu: rdMpParseEdu(a.edu), papers: rdMpParsePapers(a.papers),
+        thesis: rdMpReal(a.thesis), thesisDetails: rdMpReal(a.thesisDetails),
+        formerPos: a.former_pos
+      };
+    }
+
+    function rdMpFromSheet(m) {
+      const r = m || {};
+      const g = k => rdMpReal(r[k]);
+      return {
+        name: String(r['Full Name (English)'] || '').trim(),
+        photo: normalizeAlumniImage(r['Passport Size Image']),
+        cover: normalizeAlumniImage(r['Cover Photo']),
+        pos: rdMpParsePos(r['Cover Position']),
+        memberId: String(r['Member ID'] || '').trim(),
+        series: String(r['Series'] || '').trim(), dept: g('Department'),
+        batch: String(r['Batch'] || '').trim(), blood: g('Blood Group'),
+        desig: g('Current Designation'), org: g('Current Organization / Company'),
+        loc: g('Work Location (Division / Country)'), empType: g('Employment Type'),
+        mobile: g('Mobile Number'), whatsapp: g('WhatsApp Number'), email: g('Email'),
+        permanent: g('Permanent Address'), present: g('Present Address'),
+        social: r['Social Links'] || '',
+        status: r['Status'],
+        posts: rdMpParsePosts(r['Positions']), work: rdMpParseWork(r['Work History']),
+        edu: rdMpParseEdu(r['Education']), papers: rdMpParsePapers(r['Papers']),
+        thesis: g('Thesis Topic'), thesisDetails: g('Thesis Details'),
+        formerPos: r['Former Position at Rangdhanu / PDACC']
+      };
+    }
+
+    /* ================= THE TWO BUTTONS THAT DO SOMETHING ==================
+       Save contact and Share both need a record to work from. Whichever page
+       painted last owns it, so both read the same holder instead of each page
+       wiring its own copy of the same two buttons. */
+    let RD_MP_SHOWN = null;
+
+    /* A button says so itself for a moment. The site bans modals and alerts,
+       and rdFlash scrolls the page back to the top, which would throw a reader
+       out of the record they were halfway down. */
+    function rdMpFlash(btn, msg) {
+      const old = btn.innerHTML;
+      btn.innerHTML = '<i data-lucide="check"></i> ' + escapeHtml(msg);
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      clearTimeout(btn.rdMpTimer);
+      btn.rdMpTimer = setTimeout(function () {
+        btn.innerHTML = old;
+        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      }, 1800);
+    }
+
+    /* A real vCard, so the number lands in the phone book instead of being
+       copied across by hand. */
+    function rdMpVcard() {
+      const mp = RD_MP_SHOWN;
+      if (!mp) return;
+      const v = ['BEGIN:VCARD', 'VERSION:3.0', 'FN:' + mp.name, 'ORG:' + (mp.org || RD_MP_ORG)];
+      if (rdMpHas(mp.desig)) v.push('TITLE:' + mp.desig);
+      if (rdMpHas(mp.mobile)) v.push('TEL;TYPE=CELL:' + rdMpDigits(mp.mobile, true));
+      if (rdMpHas(mp.whatsapp)) v.push('TEL;TYPE=CELL:' + rdMpDigits(mp.whatsapp, true));
+      if (rdMpHas(mp.email)) v.push('EMAIL:' + mp.email);
+      if (rdMpHas(mp.memberId)) v.push('NOTE:' + RD_MP_ORG + ' - Member ID ' + mp.memberId);
+      v.push('END:VCARD');
+      const a = document.createElement('a');
+      const href = URL.createObjectURL(new Blob([v.join('\r\n')], { type: 'text/vcard' }));
+      a.href = href;
+      a.download = String(mp.memberId || 'member') + '.vcf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(href); }, 4000);
+    }
+
+    /* The phone's own share sheet where there is one, the clipboard where there
+       is not. No popup either way, so this never becomes the site's first one. */
+    function rdMpShare(btn) {
+      const mp = RD_MP_SHOWN;
+      const url = location.href;
+      const title = (mp && mp.name ? mp.name + ' - ' : '') + RD_MP_ORG;
+      if (navigator.share) {
+        navigator.share({ title: title, url: url })
+          .then(function () { rdMpFlash(btn, 'Shared'); }, function () { /* cancelled */ });
+        return;
+      }
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(
+          function () { rdMpFlash(btn, 'Link copied'); },
+          function () { rdMpFlash(btn, 'Copy failed'); });
+        return;
+      }
+      rdMpFlash(btn, 'Copy the address bar');
+    }
+
     /* ALUMNI API & RENDER */
     /* One shape for the remembered rows and the fresh ones, so a warm list and
        a just-fetched list can never drift apart. */
@@ -1416,7 +2210,10 @@
           emp_type: String(m['Employment Type']||'').trim(), org: String(m['Current Organization / Company']||'').trim(),
           desig: String(m['Current Designation']||'').trim(), loc: String(m['Work Location (Division / Country)']||'').trim(),
           former_pos: String(m['Former Position at Rangdhanu / PDACC']||'').trim(), image: String(m['Passport Size Image']||'').trim(),
-          cover: String(m['Cover Photo']||'').trim(),
+          cover: String(m['Cover Photo']||'').trim(), coverPos: String(m['Cover Position']||'').trim(),
+          posts: String(m['Positions']||'').trim(), work: String(m['Work History']||'').trim(),
+          edu: String(m['Education']||'').trim(), papers: String(m['Papers']||'').trim(),
+          thesis: String(m['Thesis Topic']||'').trim(), thesisDetails: String(m['Thesis Details']||'').trim(),
           status: String(m['viewStatus']||'').trim()
       }));
     }
@@ -1467,33 +2264,94 @@
     const RD_ALUMNI_PER_PAGE = 18;
     let rdAlumniList = [], rdAlumniPage = 1;
 
+    /* ================= THE DIRECTORY NAMEPLATE ===========================
+       The old card was a social card: avatar, name, two grey lines, one wide
+       button. Nine of them in a grid read as nine of the same thing, and the
+       two grey lines were often "Engineer" and "Organization" -- placeholders
+       printed as if they were facts about the member.
+
+       This is a nameplate instead. The plate across the top is engraved with
+       what one engineer uses to place another -- series, department, batch --
+       and the standing sits at its right end. Below it the face, the name, the
+       post, and the three actions as one segmented control. Nothing is
+       invented: an empty field draws nothing at all. */
+
+    /* One monogram treatment for the whole roll. rdMpHue is deliberately not
+       called here: eighteen differently tinted circles in one grid was colour
+       carrying no fact, and it is most of why the old grid read loud. */
+    function rdDcFace(a) {
+      const img = normalizeAlumniImage(a.image);
+      if (img) {
+        return '<div class="rd-dc-face"><img src="' + escapeHtml(img) + '" alt="' +
+          escapeHtml(a.name || '') + '" loading="lazy" decoding="async" ' +
+          'onload="rdPhotoReady(this)" onerror="rdPhotoReady(this)" class="rd-photo-in"></div>';
+      }
+      return '<div class="rd-dc-face"><div class="rd-dc-mono" aria-hidden="true">' +
+        escapeHtml(rdMpInitials(a.name)) + '</div></div>';
+    }
+
+    /* Signed out, the control keeps its shape and loses its cells: Full profile
+       stays where it was and the contact cells are replaced by one line saying
+       why. The grid does not reflow when a member signs in, which is what makes
+       signing in feel like a door rather than a redesign. */
+    function rdDcSeg(a) {
+      const c = memberContact(a.memberId);
+      /* Written as a template literal on purpose: test_gallery_reg.js pins the
+         source text of this call, so the same call spelled with string
+         concatenation would pass review and fail the harness. */
+      const open = `<button type="button" class="rd-dc-open" onclick="openAlumniModal('${escapeHtml(String(a.id))}')">Full profile` +
+        '<i data-lucide="arrow-right" class="rd-dc-arw"></i></button>';
+      if (!c) {
+        return '<div class="rd-dc-seg has-1 is-gate">' + open +
+          '<button type="button" class="rd-dc-gate" onclick="openMemberSignIn(\'alumni\')">' +
+          '<i data-lucide="lock"></i> Sign in to see contact</button></div>';
+      }
+      const call = rdMpReal(c['Mobile Number']), wa = rdMpReal(c['WhatsApp Number']);
+      const n = 1 + (call ? 1 : 0) + (wa ? 1 : 0);
+      return '<div class="rd-dc-seg has-' + n + '">' + open +
+        (call ? '<a class="rd-dc-call" href="tel:' + rdMpDigits(call, true) + '" aria-label="Call ' +
+          escapeHtml(a.name || '') + '" title="Call"><i data-lucide="phone"></i></a>' : '') +
+        (wa ? '<a class="rd-dc-wa" href="https://wa.me/' + rdMpDigits(wa) + '" target="_blank" ' +
+          'rel="noopener" aria-label="WhatsApp ' + escapeHtml(a.name || '') +
+          '" title="WhatsApp"><i data-lucide="message-circle"></i></a>' : '') +
+        '</div>';
+    }
+
+    /* The entrance animation is on the wrapper and the hover lift is on the
+       plate inside it. A running animation with `both` fill outranks an author
+       declaration, so a transform in :hover on the animated element itself
+       would never fire -- which is why these are two elements. */
     function renderAlumniCard(a) {
-      return `
-        <div class="alumni-card bg-white p-5 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between group">
-          <div class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-blue-50 to-transparent rounded-bl-full pointer-events-none"></div>
-          <div>
-              <div class="flex items-center gap-3">
-                <div class="shrink-0 group-hover:scale-105 transition-transform duration-300">
-                  ${alumniAvatarMarkup(a, 'w-14 h-14')}
-                </div>
-                <div class="min-w-0">
-                  <h3 class="font-bold text-base text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">${escapeHtml(a.name)}</h3>
-                  <p class="text-xs text-slate-500 font-mono font-medium">${escapeHtml(a.dept)} • Series '${escapeHtml(a.series)}</p>
-                  ${a.status ? `<span class="inline-flex items-center mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${a.status === 'Alumni' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}">${alumniStatusLabel(a.status, 'w-3 h-3')}</span>` : ''}
-                </div>
-              </div>
-              <div class="mt-4 text-sm text-slate-700 space-y-1.5 border-t border-slate-100 pt-3">
-                <p class="flex items-start gap-2"><i data-lucide="briefcase" class="w-4 h-4 text-blue-500 shrink-0 mt-0.5"></i> <span class="line-clamp-1 font-semibold">${escapeHtml(a.desig || 'Engineer')}</span></p>
-                <p class="flex items-start gap-2"><i data-lucide="building-2" class="w-4 h-4 text-slate-400 shrink-0 mt-0.5"></i> <span class="line-clamp-1">${escapeHtml(a.org || 'Organization')}</span></p>
-              </div>
-          </div>
-          <div class="mt-5 pt-3 border-t border-slate-100">
-              <button onclick="openAlumniModal('${escapeHtml(String(a.id))}')" class="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-gradient-to-r hover:from-blue-600 hover:to-indigo-600 text-slate-700 hover:text-white text-sm font-bold transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
-                <i data-lucide="user" class="w-4 h-4"></i> Full profile
-              </button>
-          </div>
-        </div>
-      `;
+      const desig = rdMpReal(a.desig), org = rdMpReal(a.org);
+      const plate = [a.series ? "'" + a.series : '', rdMpReal(a.dept),
+                     a.batch ? 'Batch ' + a.batch : ''].filter(rdMpHas).join('  ·  ');
+      let body = (desig ? '<p class="rd-dc-role">' + escapeHtml(desig) + '</p>' : '') +
+                 (org ? '<p class="rd-dc-org">' + escapeHtml(org) + '</p>' : '');
+      /* The newest post the member holds, and a count of the rest. A member
+         with four terms gets one line and "+3 more", not four lines that push
+         the button off the card. */
+      const posts = rdMpParsePosts(a.posts).filter(p => rdMpHas(p.session)).sort(rdMpBySessionDesc);
+      if (posts.length) {
+        const p = posts[0];
+        body += '<span class="rd-dc-post">' +
+          '<span class="rd-dc-posty">' + escapeHtml(p.session) + '</span>' +
+          '<span class="rd-dc-postv">' + escapeHtml(p.post) + ', ' +
+            escapeHtml(rdMpBodyOf(p.body).short) + '</span></span>' +
+          (posts.length > 1 ? '<span class="rd-dc-more">+' + (posts.length - 1) + ' more</span>' : '');
+      }
+      return '<div class="alumni-card rd-dcw">' +
+        '<article class="rd-dc' + rdMpStatusClass(a.status) + '">' +
+          '<div class="rd-dc-plate">' +
+            '<span class="rd-dc-pid">' + escapeHtml(plate || 'DUET') + '</span>' +
+            '<span class="rd-dc-pst">' + alumniStatusLabel(a.status, 'rd-dc-psti') + '</span>' +
+          '</div>' +
+          '<div class="rd-dc-top">' + rdDcFace(a) +
+            '<div class="rd-dc-id">' +
+              '<h3 class="rd-dc-name">' + escapeHtml(a.name) + '</h3>' +
+            '</div></div>' +
+          (body ? '<div class="rd-dc-body">' + body + '</div>' : '') +
+          '<div class="rd-dc-foot">' + rdDcSeg(a) + '</div>' +
+        '</article></div>';
     }
 
     function renderAlumni(data) {
@@ -1927,7 +2785,9 @@
       ['myp-employment', 'Employment Type'],
       ['myp-organization', 'Current Organization / Company'],
       ['myp-designation', 'Current Designation'],
-      ['myp-former', 'Former Position at Rangdhanu / PDACC']
+      ['myp-former', 'Former Position at Rangdhanu / PDACC'],
+      ['myp-thesis', 'Thesis Topic'],
+      ['myp-thdet', 'Thesis Details']
     ];
 
     function rdMypSet(id, value) {
@@ -2038,6 +2898,9 @@
         sel.value = String(vis[field] || 'MEMBER').toUpperCase() === 'ONLY_ME' ? 'ONLY_ME' : 'MEMBER';
       });
 
+      rdMpEditorFill(rdMpFromSheet(m));
+      rdMypViewPaint();
+
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
     }
 
@@ -2084,8 +2947,10 @@
          there is nothing to add here beyond not saving. */
       const social = rdSocialCollect('myp-social');
       if (social === null) return false;
+      const more = rdMpEdPayload();
+      if (more === null) return false;
 
-      const payload = {
+      const payload = Object.assign({
         mobile: mobile,
         whatsapp: wa,
         email: String(fd.get('email') || '').trim(),
@@ -2099,7 +2964,7 @@
         formerPosition: String(fd.get('formerPosition') || '').trim(),
         socialLinks: social,
         visibility: visibility
-      };
+      }, more);
 
       RD_MYP.busy = true;
       if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
@@ -2123,6 +2988,721 @@
       return false;
     }
 
+    /* ================= THE FOUR REPEAT EDITORS ===========================
+       A member holds a post in one session and then in another; works at one
+       organization and then at a second; studied at a high school, then a
+       polytechnic institute, then DUET. None of that is one field, so the edit
+       tab carries four small editors instead of four boxes.
+
+       All four share one shape: numbered rows, a Remove on each row, one or
+       more Add buttons underneath, a used-of-cap count, and one live message.
+       Nothing in any of them is required -- a member who fills none of it
+       still has a finished profile. */
+
+    const RD_REP_MAX = { posts: 12, work: 8, edu: 6, papers: 6 };
+
+    /* A <select> cannot wrap or ellipsize its own selected label, so on a
+       320px phone the longest choice on the form, "Rangdhanu Alumni
+       Association", was drawn as "Rangdhanu Alumni Associa". Widening the box
+       was not on offer: the row is already one column at that width, and
+       custom.css pins every field to 16px below 640px so iOS does not zoom the
+       page on focus.
+
+       So the control changes rather than the type. Body and level are three
+       fixed choices each, and they decide which of the three lists a row lands
+       in -- the most important answer in the row was the one collapsed out of
+       sight. Radios drawn as segments show all three at once, wrap when they
+       have to, and arrow-key between themselves with no script. */
+    function rdRepSegF(label, name, value, opts) {
+      const gid = 'sg-' + Math.random().toString(36).slice(2, 8);
+      return '<div class="rd-rep-f is-wide">' +
+        '<span class="rd-rep-l" id="' + gid + '">' + escapeHtml(label) + '</span>' +
+        '<div class="rd-seg" role="radiogroup" aria-labelledby="' + gid + '">' +
+          opts.options.map(function (o, i) {
+            const id = gid + '-' + i, on = o[0] === value;
+            /* The radio keeps its place in the tab order and its own checked
+               state -- it is moved out of sight, never display:none. Everything
+               visible is the <span> beside it, which is why the checked and
+               focus styles are written as sibling selectors. */
+            return '<label class="rd-seg-o">' +
+              '<input class="rd-seg-r" type="radio" id="' + id + '" name="' + gid + '"' +
+                ' data-f="' + name + '" value="' + escapeHtml(o[0]) + '"' +
+                (on ? ' checked' : '') +
+                (opts.onchange ? ' onchange="' + opts.onchange + '"' : '') + '>' +
+              '<span class="rd-seg-b">' +
+                (o[2] ? '<i data-lucide="' + o[2] + '" aria-hidden="true"></i>' : '') +
+                '<span class="rd-seg-t">' + escapeHtml(o[1]) + '</span>' +
+              '</span></label>';
+          }).join('') +
+        '</div></div>';
+    }
+    function rdRepFld(label, name, value, opts) {
+      opts = opts || {};
+      const id = 'f-' + Math.random().toString(36).slice(2, 8);
+      const cls = 'rd-rep-f' + (opts.wide ? ' is-wide' : '');
+      let input;
+      if (opts.options) {
+        input = '<select class="rd-rep-s" id="' + id + '" data-f="' + name + '"' +
+          (opts.onchange ? ' onchange="' + opts.onchange + '"' : '') + '>' +
+          opts.options.map(function (o) {
+            return '<option value="' + escapeHtml(o[0]) + '"' +
+                   (o[0] === value ? ' selected' : '') + '>' + escapeHtml(o[1]) + '</option>';
+          }).join('') + '</select>';
+      } else {
+        const list = opts.list ? ' list="' + opts.list + '"' : '';
+        input = '<input class="rd-rep-i' + (opts.num ? ' is-num' : '') + '" id="' + id +
+          '" data-f="' + name + '" type="' + (opts.type || 'text') + '"' + list +
+          ' maxlength="' + (opts.max || 120) + '" value="' + escapeHtml(value || '') + '"' +
+          (opts.ph ? ' placeholder="' + escapeHtml(opts.ph) + '"' : '') +
+          (opts.mode ? ' inputmode="' + opts.mode + '"' : '') + '>';
+      }
+      return '<div class="' + cls + '"><label class="rd-rep-l" for="' + id + '">' +
+             escapeHtml(label) + '</label>' + input + '</div>';
+    }
+
+    /* Start and end always sit together, and the end is allowed to be empty.
+       The hint under it is the whole reason: leaving it blank is how a member
+       says the job or the degree has not finished. */
+    function rdRepYY(from, to, hint) {
+      return '<div class="rd-rep-f is-wide"><div class="rd-rep-yy">' +
+        rdRepFld('Start year', 'from', from,
+                 { num: true, max: 4, mode: 'numeric', ph: '2019' }) +
+        '<span class="rd-rep-dash">&#8211;</span>' +
+        rdRepFld('End year', 'to', to,
+                 { num: true, max: 4, mode: 'numeric', ph: hint || 'blank = now' }) +
+        '</div></div>';
+    }
+
+    /* ---------- one row, per group -------------------------------------- */
+    /* The body is a fixed list because those three committees are the only
+       ones that exist. The position is typed, with the known posts offered
+       underneath: a fixed list of five would have turned away every Joint
+       Secretary and every Office Secretary the Association has ever had. */
+    function rdRepRowPosts(r) {
+      const b = rdMpBodyOf(r.body);
+      return rdRepSegF('Body', 'body', b.key, {
+          options: rdMpBodies().map(x => [x.key, x.short, x.icon]),
+          onchange: 'rdRepList(this)' }) +
+        rdRepFld('Session', 'session', r.session, { num: true, max: 9, ph: '2022-2023' }) +
+        rdRepFld('Position', 'post', r.post,
+                 { wide: true, list: 'rd-posts-' + b.key, ph: 'General Secretary' });
+    }
+
+    function rdRepRowWork(r) {
+      return rdRepFld('Designation', 'desig', r.desig, { ph: 'Assistant Engineer' }) +
+        rdRepFld('Organization', 'org', r.org,
+                 { ph: 'Local Government Engineering Department' }) +
+        rdRepFld('Location', 'loc', r.loc, { wide: true, ph: 'Rangpur, Bangladesh' }) +
+        rdRepYY(r.from, r.to, 'blank = still here');
+    }
+
+    function rdRepRowEdu(r) {
+      return rdRepSegF('Level', 'level', rdMpLevelOf(r.level).key,
+          { options: RD_MP_LEVELS.map(x => [x.key, x.label, x.icon]) }) +
+        rdRepFld('Institute', 'inst', r.inst, { ph: 'Rangpur Polytechnic Institute' }) +
+        rdRepFld('Subject or group', 'field', r.field,
+                 { wide: true, ph: 'Diploma in Civil Technology' }) +
+        rdRepYY(r.from, r.to, 'blank = studying');
+    }
+
+    function rdRepRowPapers(r) {
+      return rdRepFld('Title', 'title', r.title,
+               { wide: true, max: 180,
+                 ph: 'Land use change and peak flow on the Ghaghot floodplain' }) +
+        rdRepFld('Link', 'url', r.url,
+                 { wide: true, max: 300, type: 'url', ph: 'https://doi.org/...' });
+    }
+
+    /* Each group gets one Add button per kind rather than one Add plus a
+       dropdown. Three named buttons say out loud that a post at PDACC and a
+       post at Rangdhanu are separate records, and that high school belongs on
+       the page as much as university does -- which a member cannot learn from
+       a collapsed select. The segments inside the row stay, as the way to fix
+       a wrong pick.
+
+       This is a function and not a constant because `adds` reads the three
+       committees, and reading a const at module evaluation time lands in its
+       temporal dead zone. */
+    function rdRepGroups() {
+      return {
+        posts: { row: rdRepRowPosts, one: 'designation', add: 'Add a designation',
+                 icon: 'shield-check', seed: 'body',
+                 adds: rdMpBodies().map(b => ({ key: b.key, label: 'Add ' + b.short,
+                                                icon: b.icon })),
+                 none: 'No designation added yet. Add one for every session you held a post ' +
+                       'in, at Rangdhanu, at PDACC or at the Alumni Association.' },
+        work: { row: rdRepRowWork, one: 'workplace', add: 'Add a workplace', icon: 'briefcase',
+                none: 'No workplace added yet. Add every place you have worked. The profile ' +
+                      'sorts them itself, newest first.' },
+        edu: { row: rdRepRowEdu, one: 'institution', add: 'Add an institution',
+               icon: 'graduation-cap', seed: 'level',
+               adds: RD_MP_LEVELS.map(l => ({ key: l.key, label: 'Add ' + l.label,
+                                              icon: l.icon })),
+               none: 'No institution added yet. University, polytechnic institute and high ' +
+                     'school all go here. Your DUET record is already on the page.' },
+        papers: { row: rdRepRowPapers, one: 'paper', add: 'Add a paper link', icon: 'file-text',
+                  none: 'No paper added yet. A published paper, a conference paper or a ' +
+                        'repository link all work.' }
+      };
+    }
+
+    function rdRepGroupOf(kind) {
+      const all = rdRepGroups();
+      return all[kind] || all.work;
+    }
+
+    function rdRepAddBtns(kind, g, full) {
+      if (!g.adds) {
+        return '<button type="button" class="rd-rep-add" onclick="rdRepAdd(\'' + kind + '\')"' +
+          (full ? ' disabled' : '') + '><i data-lucide="plus"></i> ' +
+          escapeHtml(g.add) + '</button>';
+      }
+      return g.adds.map(function (a) {
+        return '<button type="button" class="rd-rep-add" onclick="rdRepAdd(\'' + kind +
+          '\',\'' + a.key + '\')"' + (full ? ' disabled' : '') + '>' +
+          '<i data-lucide="' + a.icon + '"></i> ' + escapeHtml(a.label) + '</button>';
+      }).join('');
+    }
+
+    function rdRepRender(kind, list) {
+      const box = document.getElementById('rep-' + kind);
+      if (!box) return;
+      const g = rdRepGroupOf(kind), cap = RD_REP_MAX[kind] || 6, full = list.length >= cap;
+      box.innerHTML =
+        (kind === 'posts' ? rdMpEdLists() : '') +
+        (list.length
+          ? list.map(function (r, i) {
+              return '<div class="rd-rep-row" data-rep-row>' +
+                '<span class="rd-rep-n">' + (i + 1) + '</span>' +
+                '<button type="button" class="rd-rep-del" onclick="rdRepRemove(\'' + kind +
+                  '\',' + i + ')" aria-label="Remove this ' + g.one +
+                  '"><i data-lucide="x"></i></button>' +
+                '<div class="rd-rep-grid">' + g.row(r) + '</div></div>';
+            }).join('')
+          : '<p class="rd-rep-none">' + escapeHtml(g.none) + '</p>') +
+        '<div class="rd-rep-foot">' + rdRepAddBtns(kind, g, full) +
+          '<span class="rd-rep-note">' +
+            (full ? 'That is ' + cap + ', which is as many as one profile holds.'
+                  : list.length + ' of ' + cap + ' used. Nothing here is required.') +
+          '</span>' +
+        '</div>' +
+        /* role="alert" so the message is spoken. Save moves focus to the field
+           at fault, and without this a screen reader user would land there with
+           no idea what was wrong with it. */
+        '<p class="rd-rep-err hidden" role="alert" data-rep-err></p>';
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+    }
+
+    /* Three radios carry the same data-f, and the two that are not checked
+       still answer to .value. Reading them all handed the last option to the
+       server no matter what the member picked. */
+    function rdRepRows(kind) {
+      const box = document.getElementById('rep-' + kind);
+      if (!box) return [];
+      return Array.prototype.map.call(box.querySelectorAll('[data-rep-row]'), function (row) {
+        const out = {};
+        Array.prototype.forEach.call(row.querySelectorAll('[data-f]'), function (el) {
+          if (el.type === 'radio' && !el.checked) return;
+          out[el.getAttribute('data-f')] = String(el.value == null ? '' : el.value).trim();
+        });
+        return out;
+      });
+    }
+
+    /* Add PDACC seeds the body, so focus skips past it to the first thing still
+       unanswered. A member adding four terms of office never reaches for the
+       mouse between them. */
+    function rdRepAdd(kind, seed) {
+      const list = rdRepRows(kind);
+      if (list.length >= (RD_REP_MAX[kind] || 6)) return;
+      const g = rdRepGroupOf(kind), row = {};
+      if (seed && g.seed) row[g.seed] = seed;
+      list.push(row);
+      rdRepRender(kind, list);
+      const box = document.getElementById('rep-' + kind);
+      const rows = box ? box.querySelectorAll('[data-rep-row]') : [];
+      const last = rows[rows.length - 1];
+      if (!last) return;
+      const first = rdRepFirstField(last, seed && g.seed ? g.seed : null);
+      if (first) first.focus();
+    }
+
+    function rdRepRemove(kind, i) {
+      const list = rdRepRows(kind);
+      list.splice(i, 1);
+      rdRepRender(kind, list);
+    }
+
+    /* With a select the first unanswered field was number two; with a segment
+       group it is the first field that is not one of the three radios. */
+    function rdRepFirstField(row, skipName) {
+      const all = row.querySelectorAll('[data-f]');
+      for (let i = 0; i < all.length; i++) {
+        if (skipName && all[i].getAttribute('data-f') === skipName) continue;
+        if (all[i].type === 'radio' && !all[i].checked) continue;
+        return all[i];
+      }
+      return all[0] || null;
+    }
+
+    /* Changing the body swaps which posts are offered under the Position box.
+       The row is not redrawn, because a redraw would take the half typed
+       session with it. */
+    function rdRepList(el) {
+      const row = el.closest('[data-rep-row]');
+      const post = row && row.querySelector('[data-f="post"]');
+      if (post) post.setAttribute('list', 'rd-posts-' + rdMpBodyOf(el.value).key);
+    }
+
+    /* Save's messages are about the session, the position, the organization --
+       the body is always one of three valid keys and is never the thing at
+       fault, so it does not take the focus. */
+    function rdRepErr(kind, i, msg) {
+      const box = document.getElementById('rep-' + kind);
+      if (!box) return !msg;
+      const rows = box.querySelectorAll('[data-rep-row]');
+      Array.prototype.forEach.call(rows, function (r) { r.classList.remove('is-bad'); });
+      const p = box.querySelector('[data-rep-err]');
+      if (msg && rows[i]) {
+        rows[i].classList.add('is-bad');
+        const f = rdRepFirstField(rows[i], rdRepGroupOf(kind).seed || null);
+        if (f) f.focus();
+      }
+      if (p) { p.textContent = msg || ''; p.classList.toggle('hidden', !msg); }
+      return !msg;
+    }
+
+    /* ---------- filling the four blocks on the edit tab -------------------
+       The blocks themselves are markup in index.html: a heading, a line of
+       help, and one empty `.rd-rep` box each. Everything below fills a box. */
+
+    /* One datalist per body rather than one per row: twelve rows would
+       otherwise carry twelve copies of the same five options. They ride inside
+       the posts box, which is the only place a `list=` points at them, so a
+       re-render cannot leave a row referring to a datalist that is gone. */
+    function rdMpEdLists() {
+      return rdMpBodies().map(function (b) {
+        return '<datalist id="rd-posts-' + b.key + '">' +
+          (b.positions || []).filter(p => p !== 'Others')
+            .map(p => '<option value="' + escapeHtml(p) + '"></option>').join('') +
+          '</datalist>';
+      }).join('');
+    }
+
+    function rdMpEditorFill(mp) {
+      rdRepRender('posts', (mp.posts || []).slice());
+      rdRepRender('work', (mp.work || []).slice());
+      rdRepRender('edu', (mp.edu || []).slice());
+      rdRepRender('papers', (mp.papers || []).slice());
+      rdMypThCount();
+    }
+
+    const RD_MP_TH_MAX = 1500;
+
+    function rdMypThCount() {
+      const t = document.getElementById('myp-thdet'), p = document.getElementById('myp-thcount');
+      if (t && p) p.textContent = t.value.length + ' / ' + RD_MP_TH_MAX;
+    }
+
+    /* ---------- validating what was typed --------------------------------
+       Empty rows are dropped rather than complained about: somebody who opens
+       a row and changes their mind should not be stopped by it, because none of
+       this is required. A row with something in it has to be right. */
+    function rdMpYearError(v, required) {
+      const s = String(v || '').trim();
+      if (!s) return required ? 'Add the year.' : '';
+      if (!/^\d{4}$/.test(s)) return 'Write the year in full, like 2019.';
+      const y = +s;
+      if (y < 1950 || y > new Date().getFullYear() + 6) return 'Please check the year.';
+      return '';
+    }
+
+    /* Returns the four lists plus the thesis, or null when something is wrong
+       -- in which case the message is already on screen and the focus is
+       already in the field at fault. The session rule is not written again
+       here: rdSessionError is the one the committee forms already use, and it
+       reads the span off the committee's own name. */
+    function rdMpEdCollect() {
+      const posts = [], postsAt = [], work = [], edu = [], papers = [], seen = {};
+      let raw, r, e, i, k;
+      /* Wipe all four messages before checking anything. Clearing a group only
+         once it had passed left a message under Papers alive through a Save
+         that stopped at Education: two red lines at once, one of them about a
+         field that was already fixed. */
+      ['posts', 'work', 'edu', 'papers'].forEach(kind => rdRepErr(kind, -1, ''));
+
+      raw = rdRepRows('posts');
+      for (i = 0; i < raw.length; i++) {
+        r = raw[i];
+        if (!rdMpHas(r.post) && !rdMpHas(r.session)) continue;
+        if (!rdMpHas(r.post)) { rdRepErr('posts', i, 'Add the position you held.'); return null; }
+        e = rdSessionError(r.session, rdMpBodyOf(r.body).name);
+        if (e) { rdRepErr('posts', i, e); return null; }
+        posts.push({ body: rdMpBodyOf(r.body).key, session: r.session, post: r.post });
+        postsAt.push(i);
+      }
+      for (i = 0; i < posts.length; i++) {
+        k = posts[i].body + '|' + posts[i].session;
+        /* One post per body per session. Two rows for one session is a typo far
+           more often than it is two posts. postsAt, not i: an empty row that
+           was skipped would otherwise mark the wrong row as the bad one. */
+        if (seen[k]) {
+          rdRepErr('posts', postsAt[i], 'You already have a ' +
+            rdMpBodyOf(posts[i].body).short + ' entry for ' + posts[i].session + '.');
+          return null;
+        }
+        seen[k] = true;
+      }
+      raw = rdRepRows('work');
+      for (i = 0; i < raw.length; i++) {
+        r = raw[i];
+        if (!rdMpHas(r.org) && !rdMpHas(r.desig) && !rdMpHas(r.from) && !rdMpHas(r.to)) continue;
+        if (!rdMpHas(r.org)) { rdRepErr('work', i, 'Add the organization.'); return null; }
+        e = rdMpYearError(r.from, true) || rdMpYearError(r.to, false);
+        if (e) { rdRepErr('work', i, e); return null; }
+        if (rdMpHas(r.to) && +r.to < +r.from) {
+          rdRepErr('work', i, 'The end year cannot come before the start.');
+          return null;
+        }
+        work.push({ org: r.org, desig: r.desig, loc: r.loc, from: r.from, to: r.to });
+      }
+
+      raw = rdRepRows('edu');
+      for (i = 0; i < raw.length; i++) {
+        r = raw[i];
+        if (!rdMpHas(r.inst) && !rdMpHas(r.field) && !rdMpHas(r.from) && !rdMpHas(r.to)) continue;
+        if (!rdMpHas(r.inst)) {
+          rdRepErr('edu', i, 'Add the name of the institution.');
+          return null;
+        }
+        e = rdMpYearError(r.from, true) || rdMpYearError(r.to, false);
+        if (e) { rdRepErr('edu', i, e); return null; }
+        if (rdMpHas(r.to) && +r.to < +r.from) {
+          rdRepErr('edu', i, 'The end year cannot come before the start.');
+          return null;
+        }
+        edu.push({ level: rdMpLevelOf(r.level).key, inst: r.inst, field: r.field,
+                   from: r.from, to: r.to });
+      }
+
+      raw = rdRepRows('papers');
+      for (i = 0; i < raw.length; i++) {
+        r = raw[i];
+        if (!rdMpHas(r.url) && !rdMpHas(r.title)) continue;
+        /* http and https only. javascript: and data: must never reach an href,
+           and this is the only gate between a typed link and one. */
+        if (!/^https?:\/\/[^\s]+\.[^\s]+$/i.test(r.url || '')) {
+          rdRepErr('papers', i, 'A paper link has to start with https:// and point at a page.');
+          return null;
+        }
+        papers.push({ title: r.title || r.url, url: r.url });
+      }
+
+      const th = document.getElementById('myp-thesis'), td = document.getElementById('myp-thdet');
+      return { posts: posts, work: work, edu: edu, papers: papers,
+               thesis: String((th && th.value) || '').trim(),
+               thesisDetails: String((td && td.value) || '').trim() };
+    }
+
+    /* The newest open ended job is what the directory card and the credential
+       print, so it is copied into the three single columns on save rather than
+       asked for a second time. */
+    function rdMpEdCurrentJob(work) {
+      const all = (work || []).slice();
+      return all.filter(w => !rdMpHas(w.to)).sort(rdMpByYearDesc)[0] ||
+             all.sort(rdMpByYearDesc)[0] || null;
+    }
+
+    /* The six list columns as the sheet wants them, built in one place so the
+       save handler stays short enough to read. null is the answer when a row is
+       wrong: rdMpEdCollect has already written the message under that row, so
+       the caller only has to stop.
+
+       Organization, Designation and Work Location are older single columns that
+       the card and the credential still read. They are overwritten only when a
+       Work History row exists, so a member who fills in nothing but the three
+       simple inputs keeps exactly what they typed.
+
+       Cover Position is not here on purpose. It is saved by its own button on
+       the picture, and a form save must not move a cover the member has just
+       dragged into place. */
+    function rdMpEdPayload() {
+      const c = rdMpEdCollect();
+      if (c === null) return null;
+      const out = {
+        positions: rdMpJoin(c.posts, ['body', 'session', 'post']),
+        workHistory: rdMpJoin(c.work, ['org', 'desig', 'loc', 'from', 'to']),
+        education: rdMpJoin(c.edu, ['level', 'inst', 'field', 'from', 'to']),
+        papers: rdMpJoin(c.papers, ['title', 'url']),
+        thesisTopic: c.thesis,
+        thesisDetails: c.thesisDetails
+      };
+      const job = rdMpEdCurrentJob(c.work);
+      if (job) {
+        out.organization = job.org || '';
+        out.designation = job.desig || '';
+        out.workLocation = job.loc || '';
+      }
+      return out;
+    }
+
+    /* ====================================================================
+       MY PROFILE -- the two tabs, the cover, and the drag
+       --------------------------------------------------------------------
+       The markup for this page is already in index.html: a tab strip, an
+       empty #myp-view the record is painted into, and #myp-edit holding the
+       form. Only hidden moves between the two -- both panels stay in the DOM,
+       so a half typed form is never thrown away by a tab click.
+
+       The cover has three actions and they all end in the same two hidden
+       file inputs the edit tab already owns (#myp-cover-file, #myp-photo-file).
+       A programmatic .click() works on an input inside a hidden panel, so
+       rdMypPhoto stays the one and only upload path.
+       ==================================================================== */
+
+    /* RD_MYP is declared with let further up and holds the record, so the
+       reposition state gets its own holder rather than redeclaring it.
+       ox/oy are the values Cancel goes back to. */
+    const RD_MP_POS = { on: false, x: 50, y: 50, ox: 50, oy: 50, busy: false };
+
+    function rdMypRecord() {
+      return rdMpFromSheet(RD_MYP.me ||
+        (typeof RD_MEMBER !== 'undefined' && RD_MEMBER.me) || {});
+    }
+
+    function rdMypCoverStore(header, value) {
+      if (RD_MYP.me) RD_MYP.me[header] = value;
+      if (typeof RD_MEMBER !== 'undefined' && RD_MEMBER.me) RD_MEMBER.me[header] = value;
+    }
+
+    /* A member's own page is painted through the same builder as anybody
+       else's, with own:true added. One design, one code path -- what he reads
+       here is what the directory shows, plus the buttons. */
+    function rdMypViewPaint() {
+      const box = document.getElementById('myp-view');
+      if (!box) return;
+      const mp = rdMypRecord();
+      if (!RD_MP_POS.on) { RD_MP_POS.x = mp.pos.x; RD_MP_POS.y = mp.pos.y; }
+      RD_MP_SHOWN = mp;
+      box.innerHTML = rdMpProfile(mp, { own: true, signed: true, pos: RD_MP_POS.on,
+                                        x: RD_MP_POS.x, y: RD_MP_POS.y });
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      if (typeof rdPhotoSweep === 'function') rdPhotoSweep(box);
+      if (RD_MP_POS.on) {
+        rdMpArmDrag();
+        const cov = document.getElementById('mp-cover');
+        if (cov && cov.focus) cov.focus({ preventScroll: true });
+      }
+    }
+
+    function rdMypTabMark(btn, on) {
+      if (!btn) return;
+      if (on) btn.setAttribute('aria-current', 'page');
+      else btn.removeAttribute('aria-current');
+    }
+
+    function rdMypTab(which) {
+      const edit = which === 'edit';
+      /* Leaving the page mid drag would strand the bar on a hidden panel and
+         hold the cover at a crop that was never saved. */
+      if (edit && RD_MP_POS.on) rdMpPosEnd(false);
+      const v = document.getElementById('myp-view'), e = document.getElementById('myp-edit');
+      if (v) v.hidden = edit;
+      if (e) e.hidden = !edit;
+      rdMypTabMark(document.getElementById('myp-tab-view'), !edit);
+      rdMypTabMark(document.getElementById('myp-tab-edit'), edit);
+      if (!edit) rdMypViewPaint();
+    }
+
+    /* ---- the two pickers ----------------------------------------------- */
+    function rdMpCoverPick() {
+      const input = document.getElementById('myp-cover-file');
+      if (input) input.click();
+    }
+
+    function rdMpPhotoPick() {
+      const input = document.getElementById('myp-photo-file');
+      if (input) input.click();
+    }
+
+    /* Called once an upload has landed. A brand new photo under an old crop
+       can sit anywhere, so the bar opens straight away: he asked for the crop
+       to be part of uploading, not a second thing to go and find. */
+    function rdMypCoverFresh() {
+      const mp = rdMypRecord();
+      RD_MP_POS.on = true;
+      RD_MP_POS.x = RD_MP_POS.ox = mp.pos.x;
+      RD_MP_POS.y = RD_MP_POS.oy = mp.pos.y;
+      rdMypTab('view');
+    }
+
+    /* ---- reposition ---------------------------------------------------- */
+    /* The bar's own sentence doubles as the status line. There is no room for
+       a second message box inside a strip this small, and a message that
+       appears where the reader is already looking is read. */
+    function rdMpPosMsg(text) {
+      const el = document.querySelector('.rd-mp-posbar > span');
+      if (el) el.textContent = text;
+    }
+
+    function rdMpPosStart() {
+      const mp = rdMypRecord();
+      /* Nothing to move on the Association's own artwork, so offer the upload
+         instead of a bar that would do nothing. */
+      if (!rdMpHas(mp.cover)) { rdMpCoverPick(); return; }
+      RD_MP_POS.on = true;
+      RD_MP_POS.x = RD_MP_POS.ox = mp.pos.x;
+      RD_MP_POS.y = RD_MP_POS.oy = mp.pos.y;
+      rdMypViewPaint();
+    }
+
+    async function rdMpPosEnd(save) {
+      if (!RD_MP_POS.on || RD_MP_POS.busy) return;
+      if (!save) {
+        RD_MP_POS.on = false;
+        RD_MP_POS.x = RD_MP_POS.ox;
+        RD_MP_POS.y = RD_MP_POS.oy;
+        rdMypViewPaint();
+        return;
+      }
+      const value = RD_MP_POS.x + '% ' + RD_MP_POS.y + '%';
+      const ok = document.querySelector('.rd-mp-posbtn-ok');
+      RD_MP_POS.busy = true;
+      if (ok) ok.disabled = true;
+      rdMpPosMsg('Saving the position...');
+      try {
+        /* Member_Profile.gs writes only the keys a payload really carries, so
+           one cell moves here and the other twelve are left alone. */
+        await apiPost('membersaveprofile',
+                      Object.assign({ coverPosition: value }, rdMemberParams()));
+        rdMypCoverStore('Cover Position', value);
+        rdFeedForget('alumni');
+        RD_MP_POS.on = false;
+        RD_MP_POS.ox = RD_MP_POS.x;
+        RD_MP_POS.oy = RD_MP_POS.y;
+        rdMypViewPaint();
+        const btn = document.querySelector('[onclick="rdMpPosStart()"]');
+        if (btn) rdMpFlash(btn, 'Saved');
+      } catch (err) {
+        rdMpPosMsg(friendlyError(err).msg);
+      } finally {
+        RD_MP_POS.busy = false;
+        const again = document.querySelector('.rd-mp-posbtn-ok');
+        if (again) again.disabled = false;
+      }
+    }
+
+    function rdMpClamp(v) { return Math.max(0, Math.min(100, v)); }
+
+    function rdMpPosNudge(dx, dy) {
+      const box = document.getElementById('mp-cover');
+      RD_MP_POS.x = rdMpClamp(RD_MP_POS.x + dx);
+      RD_MP_POS.y = rdMpClamp(RD_MP_POS.y + dy);
+      if (box) box.style.setProperty('--rd-cover-pos', RD_MP_POS.x + '% ' + RD_MP_POS.y + '%');
+    }
+
+    /* object-fit: cover leaves slack in one direction only. Pointer pixels are
+       turned into per cent of that slack, so a tall photo travels the whole way
+       from top to bottom under one finger, and a photo with no slack in an axis
+       does not jitter along it. Arrow keys move the same value, because a drag
+       is the one thing on this page a keyboard cannot do. */
+    function rdMpArmDrag() {
+      const box = document.getElementById('mp-cover');
+      const img = box && box.querySelector('img');
+      if (!box || !img || box.rdMpArmed) return;
+      box.rdMpArmed = true;
+      let drag = null;
+      function slack() {
+        const bw = box.clientWidth, bh = box.clientHeight;
+        const nw = img.naturalWidth || bw, nh = img.naturalHeight || bh;
+        const s = Math.max(bw / nw, bh / nh);
+        return { x: Math.max(0, nw * s - bw), y: Math.max(0, nh * s - bh) };
+      }
+      box.addEventListener('pointerdown', function (e) {
+        if (!RD_MP_POS.on) return;
+        drag = { px: e.clientX, py: e.clientY, x: RD_MP_POS.x, y: RD_MP_POS.y, sl: slack() };
+        if (box.setPointerCapture) box.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      });
+      box.addEventListener('pointermove', function (e) {
+        if (!drag) return;
+        if (drag.sl.x > 1) {
+          RD_MP_POS.x = rdMpClamp(drag.x - (e.clientX - drag.px) * 100 / drag.sl.x);
+        }
+        if (drag.sl.y > 1) {
+          RD_MP_POS.y = rdMpClamp(drag.y - (e.clientY - drag.py) * 100 / drag.sl.y);
+        }
+        box.style.setProperty('--rd-cover-pos', RD_MP_POS.x + '% ' + RD_MP_POS.y + '%');
+      });
+      box.addEventListener('pointerup', function () { drag = null; });
+      box.addEventListener('pointercancel', function () { drag = null; });
+      box.addEventListener('keydown', function (e) {
+        if (!RD_MP_POS.on) return;
+        const step = e.shiftKey ? 10 : 2;
+        if (e.key === 'ArrowUp') rdMpPosNudge(0, -step);
+        else if (e.key === 'ArrowDown') rdMpPosNudge(0, step);
+        else if (e.key === 'ArrowLeft') rdMpPosNudge(-step, 0);
+        else if (e.key === 'ArrowRight') rdMpPosNudge(step, 0);
+        else if (e.key === 'Enter') { rdMpPosEnd(true); return; }
+        else if (e.key === 'Escape') { rdMpPosEnd(false); return; }
+        else return;
+        e.preventDefault();
+      });
+    }
+
+    /* ---- back to the Association's own cover --------------------------- */
+    /* This throws a photo away, and the site has no box to ask with -- the
+       browser's own yes-or-no box is a popup and popups are banned here. So the
+       button asks in its own label instead: one tap arms it, a second tap
+       inside four seconds does it, and walking away disarms it. */
+    let RD_MP_RESET_AT = 0;
+
+    function rdMpWarnBtn(btn, msg) {
+      const old = btn.innerHTML;
+      btn.innerHTML = '<i data-lucide="alert-triangle"></i>' +
+                      '<span class="rd-mp-cbtn-lbl">' + escapeHtml(msg) + '</span>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      clearTimeout(btn.rdMpTimer);
+      btn.rdMpTimer = setTimeout(function () {
+        RD_MP_RESET_AT = 0;
+        btn.innerHTML = old;
+        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      }, 4000);
+    }
+
+    async function rdMpCoverReset() {
+      if (RD_MP_POS.busy) return;
+      const btn = document.querySelector('[onclick="rdMpCoverReset()"]');
+      if (Date.now() - RD_MP_RESET_AT > 4000) {
+        RD_MP_RESET_AT = Date.now();
+        if (btn) rdMpWarnBtn(btn, 'Tap again');
+        return;
+      }
+      RD_MP_RESET_AT = 0;
+      if (btn) { clearTimeout(btn.rdMpTimer); btn.disabled = true; }
+      RD_MP_POS.busy = true;
+      try {
+        /* An empty Cover Photo is the only value Member_Profile.gs takes from
+           this call -- a link cannot be written in from here, because the one
+           way a photo arrives is membersavephoto, where it really reaches
+           Drive. The file in Drive is left alone: deleting it would be the one
+           action on this page that could not be undone. */
+        await apiPost('membersaveprofile',
+                      Object.assign({ coverPhoto: '' }, rdMemberParams()));
+        rdMypCoverStore('Cover Photo', '');
+        rdFeedForget('alumni');
+        RD_MP_POS.on = false;
+        RD_MP_POS.x = RD_MP_POS.ox = 50;
+        RD_MP_POS.y = RD_MP_POS.oy = 50;
+        if (typeof rdMypCover === 'function') rdMypCover('');
+        rdMypViewPaint();
+      } catch (err) {
+        if (btn) { btn.disabled = false; rdMpWarnBtn(btn, friendlyError(err).msg); }
+      } finally {
+        RD_MP_POS.busy = false;
+      }
+    }
+
     /* Both pictures take the same road. The file is compressed in the browser
        first, so a phone camera photo never turns into a size error. */
     async function rdMypPhoto(input, kind) {
@@ -2141,6 +3721,10 @@
         if (RD_MYP.me) RD_MYP.me[header] = url;
         if (RD_MEMBER.me) RD_MEMBER.me[header] = url;
         rdFeedForget('alumni');
+        /* A new cover under an old crop can sit anywhere, so the bar that
+           moves it opens straight away; a new face only needs the page
+           drawn again. */
+        if (cover) rdMypCoverFresh(); else rdMypViewPaint();
         rdMemberMsg('myp-photo-msg', cover ? 'The cover is saved.' : 'The photo is saved.', 'ok');
       } catch (err) {
         rdMemberMsg('myp-photo-msg', friendlyError(err).msg);
@@ -2253,127 +3837,56 @@
         if(a) openAlumniProfileModal(a); 
     }
 
-    /* One card per private field, and one locked card in place of all of them.
-       The values are not hidden with CSS -- a signed-out browser never receives
-       them, so there is nothing in the page to reveal. */
-    function rdMemberPrivateRows(a) {
+    /* ================= THE PAGE ANOTHER MEMBER OPENS =====================
+       This page used to be its own set of builders, drawing its own boxes from
+       its own template. That is how it came to disagree with My Profile about
+       what a member's record even holds. It is now assembled from the shared
+       builders: five strings, each already a section, straight into the grid.
 
-      const c = memberContact(a.memberId);
+       The three functions below are the seam. Their names and their arguments
+       are what the harness reads to know the seam is still here, so they stay
+       thin on purpose -- no markup of their own beyond the one section wrapper
+       that rows need and a section does not. */
 
-      if (!c) {
-        return '<div class="p-4 bg-blue-50 rounded-xl border border-blue-100 text-center">' +
-          '<div class="w-10 h-10 mx-auto rounded-full bg-white text-blue-700 flex items-center justify-center border border-blue-200"><i data-lucide="lock" class="w-5 h-5"></i></div>' +
-          '<p class="text-sm font-extrabold text-slate-900 mt-2.5">Mobile, WhatsApp, email and address</p>' +
-          '<p class="text-xs text-slate-600 mt-1 leading-relaxed">Shown to signed in members only.</p>' +
-          '<button type="button" onclick="openMemberSignIn(\'profile\')" class="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition"><i data-lucide="shield-check" class="w-4 h-4"></i> Member Sign In</button>' +
-          '</div>';
-      }
-
-      const flat = (label, value) =>
-        '<div class="p-3 bg-slate-50 rounded-xl border border-slate-100">' +
-        '<p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">' + label + '</p>' +
-        '<p class="font-bold text-slate-900 break-all">' + escapeHtml(value || 'N/A') + '</p></div>';
-
-      const withBtn = (label, value, href, cls, icon) =>
-        '<div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center gap-3">' +
-        '<div class="min-w-0"><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">' + label + '</p>' +
-        '<p class="font-bold text-slate-900 font-mono text-base truncate">' + escapeHtml(value || 'N/A') + '</p></div>' +
-        (value ? '<a href="' + href + '" target="_blank" rel="noopener" class="w-10 h-10 shrink-0 rounded-full ' + cls +
-                 ' flex items-center justify-center transition"><i data-lucide="' + icon + '" class="w-4 h-4"></i></a>' : '') +
-        '</div>';
-
-      const phone = c['Mobile Number'] || '';
-      const wa = c['WhatsApp Number'] || phone;
-
-      return flat('Email', c['Email']) +
-             flat('Permanent Address', c['Permanent Address']) +
-             flat('Present Address', c['Present Address']) +
-             withBtn('Mobile Number', phone, 'tel:' + String(phone).replace(/[^0-9+]/g, ''),
-                     'bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white', 'phone') +
-             withBtn('WhatsApp Number', wa, 'https://wa.me/' + String(wa).replace(/[^0-9]/g, ''),
-                     'bg-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white', 'message-circle');
-    }
-
-    /* One card per fact, the same shapes as My Profile. A signed in member
-       therefore reads another member's page in the layout they already know,
-       and the only difference between the two pages is that this one has no
-       Save button. */
-    function rdProfileCell(label, value, extra) {
-      return '<div class="p-3 bg-slate-50 rounded-xl border border-slate-100">' +
-        '<p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">' + label + '</p>' +
-        '<p class="font-bold ' + (extra || 'text-slate-900') + ' break-words">' +
-        escapeHtml(value || 'N/A') + '</p></div>';
-    }
+    /* Contact and Social Media hand back rows, so they are the two that still
+       need naming and wrapping. Everything else arrives from rdMpSection with
+       its own title already engraved, and is passed straight through rather
+       than wrapped a second time. Both of these are rail sections: is-side is
+       what puts them in the narrow column. */
+    const RD_PROFILE_RAILS = { 'Contact': 'contact', 'Social Media': 'at-sign' };
 
     function rdProfileSection(title, inner) {
       if (!inner) return '';
-      return '<div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">' +
-        '<p class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">' + title + '</p>' +
-        '<div class="mt-3 space-y-3">' + inner + '</div></div>';
+      const rail = RD_PROFILE_RAILS[title];
+      return rail ? rdMpSection(rail, title, inner, 1) : inner;
+    }
+
+    /* The rows are not hidden with CSS. A signed-out browser is never sent the
+       contact sheet at all, so there is nothing in the page to reveal -- and
+       signed out this returns the same lock card My Profile would draw, from
+       the same function, so the two pages cannot drift apart. */
+    function rdMemberPrivateRows(a) {
+      const c = memberContact(a.memberId);
+      return rdMpContactInner(rdMpFromAlumni(a, c), rdMpState({ signed: !!c }));
     }
 
     function openAlumniProfileModal(a) {
       RD_MEMBER.lastProfileId = a.id;
       const mc = document.getElementById("profile-content");
+      /* Its own line because this is where a Drive file id on the row becomes a
+         URL the browser will actually load. */
       const cover = normalizeAlumniImage(a.cover);
-      const sub = [a.dept, a.series ? "Series '" + a.series : '', a.batch ? 'Batch ' + a.batch : '']
-                    .filter(Boolean).join('  |  ');
-
-      const head = `
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
-          <div class="rd-cover h-32 sm:h-44 relative${cover ? ' rd-cover-photo' : ''}"${cover ? ` style="background-image:url(&quot;${escapeHtml(cover)}&quot;)"` : ''}>
-            ${cover ? '' : rdProudCoverMarkup()}
-          </div>
-          <div class="px-5 pb-5 -mt-12">
-            ${alumniAvatarMarkup(a, 'w-24 h-24 rounded-2xl border-4 border-white shadow-lg bg-white', 'text-2xl')}
-            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-3">${escapeHtml(a.name)}</h2>
-            ${sub ? `<p class="text-sm text-slate-500 font-bold">${escapeHtml(sub)}</p>` : ''}
-            <div class="mt-2 flex flex-wrap items-center gap-2">
-              ${a.memberId ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold font-mono tracking-wide">Member ID: ${escapeHtml(a.memberId)}</span>` : ''}
-              ${a.status ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${a.status === 'Alumni' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-blue-50 text-blue-700 border border-blue-200'}">${alumniStatusLabel(a.status, 'w-3.5 h-3.5')}</span>` : ''}
-            </div>
-          </div>
-        </div>`;
-
-      const idCard = rdProfileSection('Rangdhanu Identity',
-        `<div class="grid grid-cols-2 gap-3">
-           ${rdProfileCell('Department', a.dept)}
-           ${rdProfileCell('Series', a.series)}
-           ${rdProfileCell('Batch', a.batch)}
-           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-             <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Blood Group</p>
-             <p class="font-black text-rose-600 text-lg">${escapeHtml(a.blood)}</p>
-           </div>
-         </div>` +
-        (a.former_pos
-          ? `<div class="p-3 bg-amber-50 rounded-xl border border-amber-100"><p class="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">${escapeHtml(rdPositionCardLabel(a.status))}</p><p class="font-bold text-amber-900 break-words">${escapeHtml(a.former_pos)}</p></div>`
-          : ''));
-
-      /* An empty job draws nothing at all -- a member who has not filled the
-         work fields in should not read four boxes saying N/A. */
-      const work = rdProfileSection('Work',
-        `${String(a.desig || '').trim() ? `<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-            <div class="w-10 h-10 shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><i data-lucide="briefcase" class="w-5 h-5"></i></div>
-            <div class="min-w-0"><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Designation</p><p class="font-extrabold text-slate-900 break-words">${escapeHtml(a.desig)}</p></div>
-         </div>` : ''}
-         ${String(a.org || '').trim() ? `<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-            <div class="w-10 h-10 shrink-0 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><i data-lucide="building-2" class="w-5 h-5"></i></div>
-            <div class="min-w-0"><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Organization</p><p class="font-bold text-slate-900 break-words">${escapeHtml(a.org)}</p></div>
-         </div>` : ''}
-         <div class="grid grid-cols-2 gap-3">
-           ${String(a.emp_type || '').trim() ? rdProfileCell('Employment Type', a.emp_type) : ''}
-           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-             <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Location</p>
-             <p class="font-bold text-slate-900 break-words">${escapeHtml(a.loc)}</p>
-           </div>
-         </div>`);
-
-      const contact = rdProfileSection('Contact', rdMemberPrivateRows(a));
-
-      /* Drawn only for a member who added an account, and only from the signed
-         in contacts answer -- so "Only me" keeps the links out of the reply
-         rather than merely off the screen. */
       const c = memberContact(a.memberId);
+      const mp = rdMpFromAlumni(a, c);
+      mp.cover = cover;
+      /* Save contact and Share read whichever record was painted last. */
+      RD_MP_SHOWN = mp;
+      const st = rdMpState({ own: false, signed: !!c, x: mp.pos.x, y: mp.pos.y });
+
+      const head = rdMpCredential(mp, st);
+      const idCard = rdProfileSection('Rangdhanu Identity', rdMpService(mp));
+      const work = rdProfileSection('Work', rdMpWork(mp) + rdMpEdu(mp) + rdMpResearch(mp));
+      const contact = rdProfileSection('Contact', rdMemberPrivateRows(a));
       const social = rdProfileSection('Social Media', c ? rdSocialChips(c['Social Links']) : '');
 
       mc.innerHTML = head + idCard + work + contact + social;
@@ -4705,30 +6218,228 @@
       document.querySelectorAll('[data-rd-social]').forEach(el => rdSocialRender(el.id, []));
     }
 
+    /* ====================================================================
+       THE MEMBERSHIP APPLICATION -- five steps, one form
+       --------------------------------------------------------------------
+       The markup is already in index.html: five .rd-reg-panel blocks inside
+       one <form>, a step strip, a mobile progress rule, and one footer button
+       that reads Continue until the last step and Send application on it.
+
+       Two things follow from that shape.
+
+       The panels stay in the DOM and only hidden moves, so a half typed answer
+       survives every step change. But a required input inside a hidden panel
+       is still validated by the browser on submit, and the browser refuses to
+       report a field it cannot show: Chrome aborts with "An invalid form
+       control is not focusable" and never fires submit at all. So the form
+       carries novalidate and every step checks its own fields here, through
+       the same setFieldError the rest of the site uses.
+
+       And because the footer button is the form's submit button, submit is
+       where the stepper turns: until step 5 it moves forward, and only on
+       step 5 does anything get sent.
+       ==================================================================== */
+
+    const RD_REG_STEPS = 5;
+    let RD_REG_AT = 1;
+    /* The furthest step reached. A step strip you can click back through is
+       useful; one you can click forward through skips the checks. */
+    let RD_REG_SEEN = 1;
+
+    function rdRegAtEnd() { return RD_REG_AT >= RD_REG_STEPS; }
+
+    function rdRegForm() { return document.getElementById('member-registration-form'); }
+
+    function rdRegPanel(n) { return document.querySelector('[data-reg-panel="' + n + '"]'); }
+
+    function rdRegText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    /* The field's own label is the message's wording, so a label reworded in
+       the markup cannot leave a stale name in an error message. */
+    function rdRegLabel(el) {
+      const lab = el && el.id ? document.querySelector('label[for="' + el.id + '"]') : null;
+      return String((lab && lab.textContent) || (el && el.name) || 'This')
+        .replace(/\*/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    /* The arrow becomes a paper plane on the last step. lucide has already
+       replaced the <i> with an <svg> that inherited the id, and an <svg>
+       cannot be re-rendered in place -- the whole node is swapped instead. */
+    function rdRegIcon(name) {
+      const el = document.getElementById('reg-next-icon');
+      if (!el || el.getAttribute('data-rd-icon') === name) return;
+      el.outerHTML = '<i data-lucide="' + name + '" class="w-4 h-4" id="reg-next-icon"' +
+                     ' data-rd-icon="' + name + '"></i>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
+
+    function rdRegShow(n) {
+      RD_REG_AT = Math.max(1, Math.min(RD_REG_STEPS, +n || 1));
+      RD_REG_SEEN = Math.max(RD_REG_SEEN, RD_REG_AT);
+      let label = '';
+      for (let i = 1; i <= RD_REG_STEPS; i++) {
+        const panel = rdRegPanel(i), tab = document.querySelector('[data-reg-step="' + i + '"]');
+        if (panel) panel.hidden = i !== RD_REG_AT;
+        if (!tab) continue;
+        if (i === RD_REG_AT) {
+          tab.setAttribute('aria-current', 'step');
+          const sl = tab.querySelector('.rd-reg-sl');
+          label = String((sl && sl.textContent) || '').trim();
+        } else {
+          tab.removeAttribute('aria-current');
+        }
+        /* is-done and aria-current are equally specific and is-done is written
+           later, so the step being read must not carry both. */
+        tab.classList.toggle('is-done', i < RD_REG_SEEN && i !== RD_REG_AT);
+        if (i <= RD_REG_SEEN) tab.setAttribute('data-open', '1');
+        else tab.removeAttribute('data-open');
+      }
+      rdRegText('reg-mob-n', 'Step ' + RD_REG_AT + ' of ' + RD_REG_STEPS);
+      rdRegText('reg-mob-l', label);
+      rdRegText('reg-count', RD_REG_AT + ' / ' + RD_REG_STEPS);
+      rdRegText('reg-next-label', rdRegAtEnd() ? 'Send application' : 'Continue');
+      rdRegIcon(rdRegAtEnd() ? 'send' : 'arrow-right');
+      const rule = document.getElementById('reg-rule');
+      if (rule) rule.style.width = Math.round(RD_REG_AT * 100 / RD_REG_STEPS) + '%';
+      const back = document.getElementById('reg-back');
+      if (back) back.hidden = RD_REG_AT === 1;
+      /* Each panel carries tabindex="-1" so the step change lands somewhere a
+         screen reader will read out, instead of leaving focus on a button that
+         has just changed what it does. */
+      const now = rdRegPanel(RD_REG_AT);
+      if (now && now.focus) {
+        try { now.focus({ preventScroll: true }); } catch (err) { now.focus(); }
+      }
+    }
+
+    /* ---- what each step will not let past ------------------------------ */
+    function rdRegValid(n) {
+      const f = rdRegForm(), panel = rdRegPanel(n);
+      if (!f || !panel) return true;
+      clearFieldErrors(f);
+      let first = '';
+      Array.prototype.forEach.call(panel.querySelectorAll('[required]'), function (el) {
+        if (String(el.value || '').trim()) return;
+        setFieldError(f, el.name, rdRegLabel(el) + ' is needed.', !first);
+        first = first || el.name;
+      });
+      if (first) return false;
+      /* A typo in a number costs one red outline, not a re-typed form. */
+      Array.prototype.forEach.call(
+        panel.querySelectorAll('[name="mobile"],[name="whatsapp"]'), function (el) {
+          const raw = String(el.value || '').trim();
+          if (!raw || isValidBdMobile(raw)) return;
+          setFieldError(f, el.name, rdRegLabel(el) + ' ' + RD_MOBILE_RULE, !first);
+          first = first || el.name;
+        });
+      if (first) return false;
+      /* The address pickers write into hidden inputs, so required cannot guard
+         them either. Each one carries its own message inside its own box. */
+      let addrBad = '';
+      [['address', 'Permanent address'], ['presentAddress', 'Present address']]
+        .forEach(function (p) {
+          if (!panel.querySelector('[name="' + p[0] + '"]')) return;
+          if (!rdAddrMount(p[0]) || rdAddrComplete(p[0])) return;
+          if (!addrBad) rdAddrError(p[0], p[1] + ': choose at least the district.');
+          addrBad = addrBad || p[0];
+        });
+      return !addrBad;
+    }
+
+    function rdRegNext() {
+      if (!rdRegValid(RD_REG_AT) || rdRegAtEnd()) return;
+      rdRegShow(RD_REG_AT + 1);
+      if (rdRegAtEnd()) rdRegReview();
+    }
+
+    function rdRegBack() {
+      if (RD_REG_AT > 1) rdRegShow(RD_REG_AT - 1);
+    }
+
+    /* A step tab, and the Edit buttons on the summary. Going back is free.
+       Going forward walks the steps in between, so nothing is skipped -- and
+       the panel is shown before it is checked, because a message cannot put
+       focus in a field that is not on screen. */
+    function rdRegGo(n) {
+      const want = Math.max(1, Math.min(RD_REG_STEPS, +n || 1));
+      if (want > RD_REG_AT) {
+        for (let i = RD_REG_AT; i < want; i++) {
+          rdRegShow(i);
+          if (!rdRegValid(i)) return;
+        }
+      }
+      rdRegShow(want);
+      if (rdRegAtEnd()) rdRegReview();
+    }
+
+    /* ---- read it back before sending ----------------------------------- */
+    const RD_REG_REVIEW = [
+      [1, 'Who you are', ['fullName', 'mobile', 'whatsapp', 'email']],
+      [2, 'DUET record', ['department', 'series', 'batch', 'bloodGroup']],
+      [3, 'Address', ['address', 'presentAddress']],
+      [4, 'Work', ['employmentType', 'designation', 'organization', 'workLocation',
+                   'formerPosition']]
+    ];
+
+    function rdRegReview() {
+      const box = document.getElementById('reg-review'), f = rdRegForm();
+      if (!box || !f) return;
+      /* One bordered sheet with the group headers as its own children, because
+         that is the shape custom.css draws: .rd-reg-rev>.rd-reg-revg:first-child
+         is what drops the top hairline off the first header. */
+      box.innerHTML = '<div class="rd-reg-rev">' + RD_REG_REVIEW.map(function (g) {
+        const rows = g[2].map(function (nm) {
+          const el = f.querySelector('[name="' + nm + '"]');
+          if (!el) return '';
+          const v = String(el.value || '').trim();
+          return '<div class="rd-reg-revr">' +
+            '<span class="rd-reg-revk">' + escapeHtml(rdRegLabel(el)) + '</span>' +
+            '<span class="rd-reg-revv' + (v ? '' : ' is-empty') + '">' +
+              escapeHtml(v || 'Not given') + '</span></div>';
+        }).join('');
+        /* A step whose fields are not on this form is not a step of this form. */
+        if (!rows) return '';
+        return '<div class="rd-reg-revg"><p class="rd-reg-revn">' + escapeHtml(g[1]) + '</p>' +
+            '<button type="button" class="rd-reg-reve" onclick="rdRegGo(' + g[0] + ')">' +
+              'Edit</button></div>' + rows;
+      }).join('') + '</div>';
+    }
+
+    /* Submit runs this over every step, not just the one on screen. Somebody
+       can clear an answer on step 1 and click back to step 5, and the browser
+       is no longer watching. */
+    function rdRegGuard() {
+      for (let i = 1; i <= RD_REG_STEPS; i++) {
+        if (rdRegValid(i)) continue;
+        rdRegShow(i);
+        rdRegValid(i);
+        return false;
+      }
+      return true;
+    }
+
+    /* After a successful send the form is empty again, so the steps lock back
+       to where a new applicant starts. */
+    function rdRegReset() {
+      RD_REG_SEEN = 1;
+      rdRegShow(1);
+      const box = document.getElementById('reg-review');
+      if (box) box.innerHTML = '';
+    }
+
     async function submitMemberRegistration(e){
       e.preventDefault();
+      /* The footer button is this form's submit button, so submit is where
+         the stepper turns: before the last step it moves forward and sends
+         nothing at all. */
+      if (!rdRegAtEnd()) { rdRegNext(); return; }
+      /* Every step, not just the one on screen -- an answer can be cleared
+         on step 1 and the step strip clicked back to 5. */
+      if (!rdRegGuard()) return;
       const f=e.target, b=document.getElementById('member-submit-btn'), fd=new FormData(f);
-      /* Check the phone numbers before anything is uploaded, so a typo costs the
-         user one red outline instead of a whole re-typed form. */
-      clearFieldErrors(f);
-      let firstBad = '';
-      [['mobile', 'Mobile'], ['whatsapp', 'WhatsApp']].forEach(([nm, label]) => {
-        const raw = String(fd.get(nm) || '').trim();
-        if (!raw || isValidBdMobile(raw)) return;
-        setFieldError(f, nm, label + ' ' + RD_MOBILE_RULE, !firstBad);
-        firstBad = firstBad || nm;
-      });
-      if (firstBad) return;
-      /* The address pickers are hidden inputs, so `required` cannot guard them --
-         the browser refuses to report a field it cannot show.  They are checked
-         here instead, and each carries its own message inside its own box. */
-      let addrBad = '';
-      [['address', 'স্থায়ী ঠিকানা'], ['presentAddress', 'বর্তমান ঠিকানা']].forEach(([nm, label]) => {
-        if (!rdAddrMount(nm) || rdAddrComplete(nm)) return;
-        if (!addrBad) rdAddrError(nm, label + ' বাছাই সম্পূর্ণ করুন — অন্তত জেলা পর্যন্ত।');
-        addrBad = addrBad || nm;
-      });
-      if (addrBad) return;
       /* The social rows are optional, so an empty block is fine -- but a row
          that has been typed into and is wrong stops the submit here, before
          anything is uploaded. */
@@ -4770,6 +6481,7 @@
         /* Same reason for the social rows: reset() empties the inputs but
            leaves the previous applicant's rows standing. */
         rdSocialRender('reg-social', []);
+        rdRegReset();
         /* The backend flags a duplicate instead of failing; say so plainly and
            keep the "admin will review" promise, because that is what happens. */
         const dup = String(r.status || '').toUpperCase() === 'DUPLICATE';
@@ -4780,7 +6492,10 @@
       } catch(err) {
         reportError(err, f);
       } finally {
-        b.disabled=false; b.textContent='Submit Membership Application';
+        b.disabled=false;
+        b.innerHTML='<span id="reg-next-label"></span>'+
+                    '<i class="w-4 h-4" id="reg-next-icon"></i>';
+        rdRegShow(RD_REG_AT);
       }
     }
 
@@ -7018,15 +8733,14 @@ f.reset();
           escapeHtml(ph) + '" value="' + escapeHtml(String(d[val] == null ? '' : d[val])) + '"></div>';
       };
       const inner =
-        /* The ribbon at the top of the PDACC page. Two boxes rather than one
-           so it can move on its own: the count, and the admission session that
-           count belonged to. Leave the session year empty and the number stays
-           exactly as written. */
+        /* The ribbon at the top of the PDACC page. One box, not two: the
+           second one held the session the count was true for, and only the
+           July rule needed it. The figure moves when PDACC decides it
+           moves, so it is typed and nothing adds to it. */
         '<div class="mt-5 grid sm:grid-cols-2 gap-4">' +
           box('pd-sy', 'Years completed, top of the page', 'years', 6, '27') +
-          box('pd-syf', 'The session that count was for', 'yearsFrom', 9, '2026') +
         '</div>' +
-        '<p class="text-xs text-slate-500 mt-2">This is the line above the PDACC menu. Write the count and the year of the admission session it belongs to, and the page adds one for every session that starts after it, each July. Leave the year empty to freeze the number.</p>' +
+        '<p class="text-xs text-slate-500 mt-2">This is the line above the PDACC menu. Write the figure PDACC publishes about itself. It stays exactly as typed, so change it here when PDACC changes it. Leave it empty and the page keeps the number already written into it.</p>' +
         '<div class="mt-4"><label class="form-label" for="pd-sser">The chart, one series per line *</label>' +
           '<textarea id="pd-sser" rows="8" class="form-input font-mono text-xs" placeholder="25 series | 2025-26 | 92">' +
             escapeHtml(rdPdLines(ch.series)) + '</textarea>' +
@@ -7051,14 +8765,15 @@ f.reset();
         return;
       }
       const val = id => String((document.getElementById(id) || {}).value || '').trim();
-      /* The first five are not on screen any more, so they are sent back
+      /* These six have no box on screen any more, so they are sent back
          exactly as they were read. The sheet keeps them, and the backend, which
-         still asks for them, is happy without an edit. */
+         still asks for them, is happy without an edit. yearsFrom joined them
+         when the ribbon stopped counting years. */
       const was = RD_PDSTATS || {};
       const keep = k => String(was[k] == null ? '' : was[k]).trim();
       const data = { kicker: keep('kicker'), title: keep('title'), figure: keep('figure'),
                      unit: keep('unit'), note: keep('note'),
-                     years: val('pd-sy'), yearsFrom: val('pd-syf') };
+                     yearsFrom: keep('yearsFrom'), years: val('pd-sy') };
       data.series = rdPdParseLines(val('pd-sser'));
       data.depts = rdPdParseLines(val('pd-sdep'));
       if (!data.series.length) {
@@ -7066,7 +8781,7 @@ f.reset();
           'error', 'The chart is empty', { backTo: 'admin' });
         return;
       }
-      /* Those five have no box to fill any more. If the sheet was never
+      /* Four of those must not go out blank. If the sheet was never
          seeded they would be empty and the backend would refuse, so a word is
          put in rather than letting the save fail with nothing to act on. */
       data.title  = data.title  || 'PDACC';

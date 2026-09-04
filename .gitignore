@@ -34,5 +34,8 @@
 !pdacc-logo.png
 !slide-home.jpg
 !slide-pdacc.jpg
+# The Association's own cover, behind every member who has not uploaded one.
+# RD_MP_COVER_DEFAULT in script.js names it, so it has to ship.
+!cover-default.jpg
 !robots.txt
 !sitemap.xml

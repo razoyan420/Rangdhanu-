@@ -515,13 +515,16 @@
           <button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-navbtn is-key">Admission guide</button>
           <button type="button" onclick="openPdaccUpdates()" class="rd-pd-navbtn">All updates</button>
         </nav>
-        <!-- PDACC states this about itself on its own June 2026 poster:
-             it has entered its 27th year. The founding year is published
-             nowhere, so only the figure is shown. The two spans are filled
-             from the PDACC Stats sheet, so a new season needs no code change:
-             the admin writes the number once with the session it belongs to,
-             and the page counts on from there. What is typed below is the
-             fallback that stays on screen if the feed never arrives. -->
+        <!-- The figure PDACC prints about itself: 27 years. The owner's decision
+             on 2026-09-04 is that it stays, because the books and the banners
+             have carried it for years and the site must not contradict them
+             on its own. His own director list argues for 29 instead: 27
+             directors, the 1998-99 session through 2026-27, one director
+             across two of them and one session with none. PDACC will settle
+             that internally, and when it does the number is edited in the
+             sheet and nowhere else. Nothing in the code advances it. What is
+             typed below is the fallback that stays on screen if the feed
+             never arrives. -->
         <div class="rd-pd27">
           <span class="rd-pd27-glow" aria-hidden="true"></span>
           <span class="rd-pd27-n" id="pd27-n">২৭</span>
@@ -1898,50 +1901,133 @@
   <div class="page-view" id="page-register">
     <section class="py-14 bg-slate-50 min-h-[70vh]">
       <div class="max-w-5xl mx-auto px-4">
-        <div class="mb-8 text-center max-w-2xl mx-auto">
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">Join the Rangdhanu family</h2>
-          <p class="mt-3 text-sm text-slate-500 leading-relaxed">After you submit, an admin verifies your details and emails you a Member ID.</p>
+        <div class="rd-reg">
+          <form id="member-registration-form" class="rd-reg-card" novalidate onsubmit="submitMemberRegistration(event)">
+
+            <div class="rd-reg-plate">
+              <p class="rd-reg-eyebrow">Students' Welfare Association of Greater Rangpur, DUET</p>
+              <h2 class="rd-reg-ttl">Membership Application</h2>
+              <p class="rd-reg-sub">Five short steps. An admin checks what you send, then emails you a Member ID.</p>
+            </div>
+
+            <div class="rd-reg-steps" role="list">
+              <button type="button" role="listitem" class="rd-reg-step" data-reg-step="1" aria-current="step" onclick="rdRegGo(1)"><span class="rd-reg-sn">Step 1</span><span class="rd-reg-sl">Who you are</span></button>
+              <button type="button" role="listitem" class="rd-reg-step" data-reg-step="2" onclick="rdRegGo(2)"><span class="rd-reg-sn">Step 2</span><span class="rd-reg-sl">DUET record</span></button>
+              <button type="button" role="listitem" class="rd-reg-step" data-reg-step="3" onclick="rdRegGo(3)"><span class="rd-reg-sn">Step 3</span><span class="rd-reg-sl">Address</span></button>
+              <button type="button" role="listitem" class="rd-reg-step" data-reg-step="4" onclick="rdRegGo(4)"><span class="rd-reg-sn">Step 4</span><span class="rd-reg-sl">Work</span></button>
+              <button type="button" role="listitem" class="rd-reg-step" data-reg-step="5" onclick="rdRegGo(5)"><span class="rd-reg-sn">Step 5</span><span class="rd-reg-sl">Check and send</span></button>
+            </div>
+
+            <div class="rd-reg-mob">
+              <p class="rd-reg-mobn" id="reg-mob-n">Step 1 of 5</p>
+              <p class="rd-reg-mobl" id="reg-mob-l">Who you are</p>
+              <span class="rd-reg-rule"><span id="reg-rule" style="width:20%"></span></span>
+            </div>
+
+            <div class="rd-reg-body">
+
+              <div class="rd-reg-panel" id="reg-panel-1" data-reg-panel="1" tabindex="-1" role="group" aria-labelledby="reg-h-1">
+                <div class="rd-reg-sec">
+                  <p class="rd-reg-sech" id="reg-h-1">Who you are</p>
+                  <p class="rd-reg-secp">Your name as it should be printed, and the two numbers the Association will use to reach you.</p>
+                </div>
+                <div class="rd-reg-grid">
+                  <div class="rd-f rd-reg-wide"><label class="form-label" for="reg-fullname">Full Name (English) <span class="rd-req">*</span></label><input id="reg-fullname" name="fullName" required autocomplete="name" class="form-input"></div>
+                  <div class="rd-f"><label class="form-label" for="reg-mobile">Mobile Number <span class="rd-req">*</span></label><input id="reg-mobile" name="mobile" required type="tel" inputmode="tel" maxlength="18" autocomplete="tel" placeholder="017xxxxxxxx / +9715xxxxxxx" class="form-input"></div>
+                  <div class="rd-f"><label class="form-label" for="reg-whatsapp">WhatsApp Number <span class="rd-req">*</span></label><input id="reg-whatsapp" name="whatsapp" required type="tel" inputmode="tel" maxlength="18" autocomplete="tel" placeholder="017xxxxxxxx / +9715xxxxxxx" class="form-input"></div>
+                  <div class="rd-f rd-reg-wide"><label class="form-label" for="reg-email">Email <span class="rd-req">*</span></label><input id="reg-email" name="email" required type="email" autocomplete="email" class="form-input"><p class="rd-f-hint">Your Member ID is emailed here, so use an address you read.</p></div>
+                </div>
+              </div>
+
+              <div class="rd-reg-panel" id="reg-panel-2" data-reg-panel="2" tabindex="-1" role="group" aria-labelledby="reg-h-2" hidden>
+                <div class="rd-reg-sec">
+                  <p class="rd-reg-sech" id="reg-h-2">Your DUET record</p>
+                  <p class="rd-reg-secp">Department and series are what the directory sorts by, so they are worth a second look.</p>
+                </div>
+                <div class="rd-reg-grid">
+                  <div class="rd-f">
+                    <label class="form-label" for="reg-department">Department <span class="rd-req">*</span></label>
+                    <select id="reg-department" name="department" required class="form-input">
+                      <option value="">Select Department</option>
+                      <option value="CE">CE</option><option value="EEE">EEE</option><option value="ME">ME</option><option value="CSE">CSE</option>
+                      <option value="TE">TE</option><option value="Arch">Arch</option><option value="IPE">IPE</option><option value="MME">MME</option>
+                      <option value="ChE">ChE</option><option value="FE">FE</option>
+                    </select>
+                  </div>
+                  <div class="rd-f">
+                    <label class="form-label" for="reg-series">Series <span class="rd-req">*</span></label>
+                    <select id="reg-series" name="series" required class="form-input" data-rd-series onchange="rdSyncPositionLabel()"><option value="">Select Series</option></select>
+                  </div>
+                  <div class="rd-f"><label class="form-label" for="reg-batch">Batch (If Remembered)</label><input id="reg-batch" name="batch" class="form-input"></div>
+                  <div class="rd-f">
+                    <label class="form-label" for="reg-blood">Blood Group <span class="rd-req">*</span></label>
+                    <select id="reg-blood" name="bloodGroup" required class="form-input"><option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rd-reg-panel" id="reg-panel-3" data-reg-panel="3" tabindex="-1" role="group" aria-labelledby="reg-h-3" hidden>
+                <div class="rd-reg-sec">
+                  <p class="rd-reg-sech" id="reg-h-3">Where you live</p>
+                  <p class="rd-reg-secp">Pick the division, then the district. The last box is yours to type.</p>
+                </div>
+                <div class="rd-reg-grid">
+                  <div class="rd-f rd-reg-wide" role="group" aria-labelledby="reg-lab-addr">
+                    <span class="rd-f-lab" id="reg-lab-addr">Permanent Address <span class="rd-req">*</span></span>
+                    <div data-addr="address" data-addr-name="address"></div>
+                  </div>
+                  <div class="rd-f rd-reg-wide" role="group" aria-labelledby="reg-lab-pres">
+                    <span class="rd-f-lab" id="reg-lab-pres">Present Address <span class="rd-req">*</span></span>
+                    <div data-addr="presentAddress" data-addr-name="presentAddress"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rd-reg-panel" id="reg-panel-4" data-reg-panel="4" tabindex="-1" role="group" aria-labelledby="reg-h-4" hidden>
+                <div class="rd-reg-sec">
+                  <p class="rd-reg-sech" id="reg-h-4">What you do now</p>
+                  <p class="rd-reg-secp">A student can say Student and move on. Your full work history and your designations go on your own profile once you are approved.</p>
+                </div>
+                <div class="rd-reg-grid">
+                  <div class="rd-f">
+                    <label class="form-label" for="reg-employment">Employment Type <span class="rd-req">*</span></label>
+                    <select id="reg-employment" name="employmentType" required class="form-input"><option value="">Select</option><option>Student</option><option>Government</option><option>Autonomous</option><option>Semi-Autonomous</option><option>Private</option><option>Business</option><option>Self Employed</option><option>Other</option></select>
+                  </div>
+                  <div class="rd-f"><label class="form-label" for="reg-designation">Current Designation</label><input id="reg-designation" name="designation" class="form-input"></div>
+                  <div class="rd-f rd-reg-wide"><label class="form-label" for="reg-organization">Current Organization / Company</label><input id="reg-organization" name="organization" class="form-input"></div>
+                  <div class="rd-f rd-reg-wide" role="group" aria-labelledby="reg-lab-work">
+                    <span class="rd-f-lab" id="reg-lab-work">Work Location</span>
+                    <div data-addr="workLocation" data-addr-name="workLocation"></div>
+                  </div>
+                  <div class="rd-f rd-reg-wide"><label class="form-label" id="member-position-label" data-rd-position-label for="reg-former">Position / Role at Rangdhanu / PDACC</label><input id="reg-former" name="formerPosition" class="form-input" placeholder="e.g. Joint Secretary, PDACC Instructor"><p class="rd-f-hint">One line is enough here. Session by session designations belong on your profile, where they are grouped by body.</p></div>
+                </div>
+              </div>
+
+              <div class="rd-reg-panel" id="reg-panel-5" data-reg-panel="5" tabindex="-1" role="group" aria-labelledby="reg-h-5" hidden>
+                <div class="rd-reg-sec">
+                  <p class="rd-reg-sech" id="reg-h-5">Check and send</p>
+                  <p class="rd-reg-secp">Read your answers back before anything is sent. Edit takes you to the step that owns the answer.</p>
+                </div>
+                <div class="rd-reg-grid">
+                  <div class="rd-f rd-reg-wide" role="group" aria-labelledby="reg-lab-soc">
+                    <span class="rd-f-lab" id="reg-lab-soc">Social Media Accounts</span>
+                    <div id="reg-social" data-rd-social></div>
+                  </div>
+                  <div class="rd-f rd-reg-wide"><label class="form-label" for="reg-photo">Passport Size Image</label><input id="reg-photo" name="photo" type="file" accept="image/*" class="form-input py-2"><p class="rd-f-hint">Optional. Any size is fine, it is made smaller in your browser before it is sent.</p></div>
+                  <div class="rd-reg-wide" id="reg-review"></div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="rd-reg-foot">
+              <button type="button" class="rd-reg-back" id="reg-back" onclick="rdRegBack()" hidden><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+              <span class="rd-reg-count" id="reg-count">1 / 5</span>
+              <button id="member-submit-btn" type="submit" class="rd-reg-next"><span id="reg-next-label">Continue</span><i data-lucide="arrow-right" class="w-4 h-4" id="reg-next-icon"></i></button>
+            </div>
+
+          </form>
         </div>
-        <form id="member-registration-form" class="bg-white p-6 sm:p-9 rounded-[28px] border border-slate-200 shadow-xl grid sm:grid-cols-2 gap-5" onsubmit="submitMemberRegistration(event)">
-          <div><label class="form-label">Full Name (English) *</label><input name="fullName" required class="form-input"></div>
-          <div><label class="form-label">Mobile Number *</label><input name="mobile" required type="tel" inputmode="tel" maxlength="18" autocomplete="tel" placeholder="017xxxxxxxx / +9715xxxxxxx" class="form-input"></div>
-          <div><label class="form-label">WhatsApp Number *</label><input name="whatsapp" required type="tel" inputmode="tel" maxlength="18" autocomplete="tel" placeholder="017xxxxxxxx / +9715xxxxxxx" class="form-input"></div>
-          <div><label class="form-label">Email *</label><input name="email" required type="email" class="form-input"></div>
-          <div class="sm:col-span-2"><label class="form-label">Permanent Address *</label><div data-addr="address" data-addr-name="address"></div></div><div class="sm:col-span-2"><label class="form-label">Present Address *</label><div data-addr="presentAddress" data-addr-name="presentAddress"></div></div>
-          <div>
-            <label class="form-label">Blood Group *</label>
-            <select name="bloodGroup" required class="form-input"><option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
-          </div>
-          <div>
-            <label class="form-label">Department *</label>
-            <select name="department" required class="form-input">
-              <option value="">Select Department</option>
-              <option value="CE">CE</option><option value="EEE">EEE</option><option value="ME">ME</option><option value="CSE">CSE</option>
-              <option value="TE">TE</option><option value="Arch">Arch</option><option value="IPE">IPE</option><option value="MME">MME</option>
-              <option value="ChE">ChE</option><option value="FE">FE</option>
-            </select>
-          </div>
-          <div>
-            <label class="form-label">Series *</label>
-            <select name="series" required class="form-input" data-rd-series onchange="rdSyncPositionLabel()"><option value="">Select Series</option></select>
-          </div>
-          <div><label class="form-label">Batch (If Remembered)</label><input name="batch" class="form-input"></div>
-          <div>
-            <label class="form-label">Employment Type *</label>
-            <select name="employmentType" required class="form-input"><option value="">Select</option><option>Student</option><option>Government</option><option>Autonomous</option><option>Semi-Autonomous</option><option>Private</option><option>Business</option><option>Self Employed</option><option>Other</option></select>
-          </div>
-          <div><label class="form-label">Current Organization / Company</label><input name="organization" class="form-input"></div>
-          <div><label class="form-label">Current Designation</label><input name="designation" class="form-input"></div>
-          <div class="sm:col-span-2"><label class="form-label">Work Location</label><div data-addr="workLocation" data-addr-name="workLocation"></div></div>
-          <div class="sm:col-span-2"><label class="form-label" id="member-position-label" data-rd-position-label>Position / Role at Rangdhanu / PDACC</label><input name="formerPosition" class="form-input" placeholder="e.g. Joint Secretary, PDACC Instructor"></div>
-          <div class="sm:col-span-2">
-            <label class="form-label">Social Media Accounts</label>
-            <div id="reg-social" data-rd-social></div>
-          </div>
-          <div class="sm:col-span-2"><label class="form-label">Passport Size Image</label><input name="photo" type="file" accept="image/*" class="form-input py-2"></div>
-          
-          <div class="sm:col-span-2"><button id="member-submit-btn" type="submit" class="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold">Submit Membership Application</button></div>
-        </form>
       </div>
     </section>
   </div>
@@ -2083,8 +2169,8 @@
       </div>
     </div>
     <section class="py-8 sm:py-12 bg-slate-50 min-h-[70vh]">
-      <div class="max-w-2xl mx-auto px-4">
-        <div id="profile-content" class="space-y-4"></div>
+      <div class="max-w-5xl mx-auto px-4">
+        <div id="profile-content" class="rd-mp-grid"></div>
       </div>
     </section>
   </div>
@@ -2153,7 +2239,17 @@
       </div>
     </div>
     <section class="py-6 sm:py-10 bg-slate-50 min-h-[70vh]">
-      <div class="max-w-2xl mx-auto px-4 space-y-4">
+      <div class="max-w-5xl mx-auto px-4">
+
+        <div class="rd-mpx">
+          <button type="button" id="myp-tab-view" class="rd-mpx-b" aria-current="page" onclick="rdMypTab('view')"><i data-lucide="id-card" class="w-4 h-4"></i> Profile</button>
+          <button type="button" id="myp-tab-edit" class="rd-mpx-b" onclick="rdMypTab('edit')"><i data-lucide="pencil-line" class="w-4 h-4"></i> Edit profile</button>
+          <p class="rd-mpx-n">Profile is the page other members read. Edit is where you change it.</p>
+        </div>
+
+        <div id="myp-view" class="rd-mp-grid"></div>
+
+        <div id="myp-edit" class="max-w-2xl mx-auto space-y-4" hidden>
 
         <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
           <div id="myp-cover" class="rd-cover h-32 sm:h-44 relative">
@@ -2261,6 +2357,42 @@
             <input id="myp-former" name="formerPosition" class="form-input">
           </div>
 
+          <div class="rd-ed">
+            <p class="rd-ed-h"><i data-lucide="shield-check" class="w-4 h-4"></i>Designations, session by session</p>
+            <p class="rd-ed-p">One row per session. Four terms at Rangdhanu, two at PDACC and one at the Alumni Association is seven rows. Your profile groups them under the three bodies on its own, newest session first.</p>
+            <div class="rd-rep" id="rep-posts"></div>
+          </div>
+
+          <div class="rd-ed">
+            <p class="rd-ed-h"><i data-lucide="briefcase" class="w-4 h-4"></i>Work history</p>
+            <p class="rd-ed-p">Every place you have worked, with the years. Leave the end year empty for the job you are in now.</p>
+            <div class="rd-rep" id="rep-work"></div>
+          </div>
+
+          <div class="rd-ed">
+            <p class="rd-ed-h"><i data-lucide="graduation-cap" class="w-4 h-4"></i>Education</p>
+            <p class="rd-ed-p">University, polytechnic institute and high school. Add the ones you want on your profile.</p>
+            <div class="rd-rep" id="rep-edu"></div>
+          </div>
+
+          <div class="rd-ed">
+            <p class="rd-ed-h"><i data-lucide="flask-conical" class="w-4 h-4"></i>Thesis</p>
+            <p class="rd-ed-p">Optional. The topic goes on your profile as a heading, the description below it.</p>
+            <div class="rd-rep-f is-wide">
+              <label class="rd-rep-l" for="myp-thesis">Topic</label>
+              <input class="rd-rep-i" id="myp-thesis" name="thesisTopic" maxlength="200" placeholder="Rainfall runoff behaviour of the Ghaghot floodplain">
+            </div>
+            <label class="rd-rep-l" for="myp-thdet">Description</label>
+            <textarea class="rd-ed-ta" id="myp-thdet" name="thesisDetails" maxlength="1500" oninput="rdMypThCount()" placeholder="What the work asked, how it was done, what came out of it. A few sentences is plenty."></textarea>
+            <p class="rd-ed-count" id="myp-thcount">0 / 1500</p>
+          </div>
+
+          <div class="rd-ed">
+            <p class="rd-ed-h"><i data-lucide="file-text" class="w-4 h-4"></i>Published papers</p>
+            <p class="rd-ed-p">A title and a link. The link opens in a new tab and is checked before it is saved.</p>
+            <div class="rd-rep" id="rep-papers"></div>
+          </div>
+
           <p class="text-xs font-extrabold text-slate-500 uppercase tracking-wider pt-2">Social Media</p>
           <div>
             <div id="myp-social" data-rd-social></div>
@@ -2275,6 +2407,8 @@
           <p id="myp-msg" class="text-sm font-bold hidden"></p>
           <button id="myp-save-btn" type="submit" class="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition">Save changes</button>
         </form>
+
+        </div>
 
       </div>
     </section>
