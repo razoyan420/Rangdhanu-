@@ -3947,12 +3947,7 @@
     /* Which of the two shortcuts is on screen follows the view being read.
        On "Everyone" both are offered, because both lists are on screen. */
     function rdSyncAlumniCommitteeLinks(v) {
-      const pair = [['alumni-btn-ec', v === 'ALL' || v === 'Running Member'],
-                    ['alumni-btn-ac', v === 'ALL' || v === 'Alumni']];
-      pair.forEach(([id, show]) => {
-        const b = document.getElementById(id);
-        if (b) b.classList.toggle('hidden', !show);
-      });
+      /* Committee buttons removed from main directory strip per owner request */
     }
 
 
