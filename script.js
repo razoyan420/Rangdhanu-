@@ -4100,6 +4100,11 @@
     function renderFacultyCard(f) {
       let body = (f.desig ? '<p class="rd-dc-role">' + escapeHtml(f.desig) + '</p>' : '') +
                  (f.degree ? '<p class="rd-dc-org">' + escapeHtml(f.degree) + '</p>' : '');
+      if (f.phone) {
+        body += '<span class="rd-dc-post">' +
+          '<span class="rd-dc-posty">Office Phone</span>' +
+          '<span class="rd-dc-postv">' + escapeHtml(f.phone) + '</span></span>';
+      }
       /* The diploma institute is the Rangpur connection -- it is the reason
          this teacher belongs on a Rangdhanu page at all -- so it gets the
          labelled row the member card gives to a held post. */
