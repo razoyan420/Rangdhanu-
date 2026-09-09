@@ -117,7 +117,11 @@
       'pdacc-updates': { parent: 'prokoushali', needsData: true  },
       /* The admission guide is plain markup: every number is in the page
          already, so a reload can land straight on it. */
-      'pdacc-admission': { parent: 'prokoushali', needsData: false }
+      'pdacc-admission': { parent: 'prokoushali', needsData: false },
+      /* Rangdhanu Family's teacher list. needsData is false because the page
+         fetches its own feed, so a reload lands here instead of bouncing the
+         visitor out to the member directory. */
+      'family-faculty': { parent: 'alumni', needsData: false }
     };
     const rdSubReturn = {};
     const rdSubFrom = {};
@@ -174,6 +178,7 @@
           loadPdacc();
           loadPdaccStats();
         }
+        if (pageId === 'family-faculty') loadFaculty();
         if (pageId === 'pdacc-updates') loadPdacc();
         if (pageId === 'pdacc-admission') rdAdInit();
         if (pageId === 'admin') adminEnterPage();
@@ -1691,7 +1696,7 @@
             ? '<button type="button" class="rd-mp-cbtn" onclick="rdMpPosStart()"' +
                 ' aria-label="Reposition the cover" title="Reposition the cover">' +
                 '<i data-lucide="move"></i><span class="rd-mp-cbtn-lbl">Reposition</span></button>' +
-              '<button type="button" class="rd-mp-cbtn" onclick="rdMpCoverReset()"' +
+              '<button type="button" class="rd-mp-cbtn" onclick="rdMpCoverReset(this)"' +
                 ' aria-label="Go back to the default cover" title="Go back to the default cover">' +
                 '<i data-lucide="rotate-ccw"></i><span class="rd-mp-cbtn-lbl">Use default</span></button>'
             : '') +
@@ -1836,7 +1841,14 @@
        rail, hollow for something finished and brass for what is true now.
        Service, work and education share it, so the page reads as one system. */
     function rdMpSvGroup(icon, name, count, inner) {
-      return '<div class="rd-sv-grp">' +
+      /* A group where not one term carries a date should not hold a date column
+         open: the dot would sit next to a hole, which is what "Current post"
+         looked like. A group where some terms are dated keeps the column, so
+         those rows stay in line with each other. rdMpSvTerm writes the span
+         either way and the decision is made here, where the whole list is in
+         view -- one non-empty year anywhere in it is enough. */
+      const dated = /class="rd-sv-y">[^<]/.test(inner);
+      return '<div class="rd-sv-grp' + (dated ? '' : ' no-dates') + '">' +
         '<div class="rd-sv-h">' +
           '<span class="rd-sv-crest" aria-hidden="true"><i data-lucide="' + icon + '"></i></span>' +
           '<div class="rd-sv-ttl"><p class="rd-sv-n">' + escapeHtml(name) + '</p>' +
@@ -2298,8 +2310,12 @@
       const c = memberContact(a.memberId);
       /* Written as a template literal on purpose: test_gallery_reg.js pins the
          source text of this call, so the same call spelled with string
-         concatenation would pass review and fail the harness. */
-      const open = `<button type="button" class="rd-dc-open" onclick="openAlumniModal('${escapeHtml(String(a.id))}')">Full profile` +
+         concatenation would pass review and fail the harness.
+         The words are inside a span and not loose in the button, because the
+         cell's hover wash is a positioned ::before and a positioned box paints
+         over its parent's own text. Loose text put "Full profile" underneath
+         the wash and left the arrow standing there alone. */
+      const open = `<button type="button" class="rd-dc-open" onclick="openAlumniModal('${escapeHtml(String(a.id))}')"><span class="rd-dc-lbl">Full profile</span>` +
         '<i data-lucide="arrow-right" class="rd-dc-arw"></i></button>';
       if (!c) {
         return '<div class="rd-dc-seg has-1 is-gate">' + open +
@@ -2812,22 +2828,26 @@
       const box = document.getElementById('myp-cover');
       if (!box) return;
       const src = normalizeAlumniImage(url);
+      /* The drawn PROUD MEMBER band was this page's default back when the
+         Association had no cover file of its own. It does now, and both faces of
+         My Profile stand on the same image, so the edit page cannot show one
+         thing while the page other members read shows another. The drawing and
+         its rules stay where they are -- they are the fallback that needs no
+         network at all -- but nothing puts them on this cover any more. */
       const art = box.querySelector('.rd-proud');
+      if (art) art.remove();
       if (src) {
         box.classList.add('rd-cover-photo');
         box.style.backgroundImage = 'url("' + src + '")';
-        if (art) art.remove();
       } else {
         box.classList.remove('rd-cover-photo');
-        box.style.backgroundImage = '';
-        /* The drawing is put in from here rather than sitting in the markup, so
-           the Cover button beside it is never thrown away and the page source
-           stays in one language. */
-        if (!art) {
-          box.insertAdjacentHTML('afterbegin', rdProudCoverMarkup());
-          if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
-        }
+        box.style.backgroundImage = 'url("' + RD_MP_COVER_DEFAULT + '")';
       }
+      /* "Use the Association's cover" and "delete the one I uploaded" are the
+         same single action, so there is one button for it and it is only in the
+         page while there is something to undo. */
+      const undo = document.getElementById('myp-cover-undo');
+      if (undo) undo.hidden = !src;
     }
 
     /* A Drive link straight out of the sheet is not a picture the browser can
@@ -3670,9 +3690,15 @@
       }, 4000);
     }
 
-    async function rdMpCoverReset() {
+    async function rdMpCoverReset(from) {
       if (RD_MP_POS.busy) return;
-      const btn = document.querySelector('[onclick="rdMpCoverReset()"]');
+      /* Two buttons now call this -- one over the cover on the Profile face, one
+         in the button row on the Edit face -- so the button has to be handed in.
+         Looking it up by its own onclick text would find whichever of the two
+         the markup happens to list first and arm that one, leaving the button
+         actually under the finger unchanged. The lookup stays as a fallback for
+         a caller that passes nothing. */
+      const btn = from || document.querySelector('[onclick="rdMpCoverReset(this)"]');
       if (Date.now() - RD_MP_RESET_AT > 4000) {
         RD_MP_RESET_AT = Date.now();
         if (btn) rdMpWarnBtn(btn, 'Tap again');
@@ -3927,6 +3953,214 @@
         const b = document.getElementById(id);
         if (b) b.classList.toggle('hidden', !show);
       });
+    }
+
+
+    /* ================= RANGDHANU FAMILY: TEACHERS AND OFFICERS =========
+       Its own feed and its own page. Members and teachers share one sheet --
+       that is what lets a teacher sign in through the same door every member
+       uses -- but they never share a list. `?action=faculty` returns only the
+       faculty rows, and getPublicAlumni() drops them, so neither grid can
+       ever show the other's people.
+
+       No personal mobile number is in this feed. The office extension and the
+       @duet.ac.bd address are what DUET publishes itself; anything private
+       stays behind the member sign-in like everyone else's. */
+    const FACULTY_API_URL = API_BASE_URL + '?action=faculty';
+    const RD_FAC = { ready: false, all: [], shown: [], kind: 'ALL' };
+
+    const RD_FAC_KIND_LABEL = { 'Teacher': 'Teacher', 'Officer': 'Officer', 'Staff': 'Staff' };
+    const RD_FAC_KIND_ICON  = { 'Teacher': 'graduation-cap', 'Officer': 'briefcase', 'Staff': 'users' };
+
+    /* One shape for the warm copy and the fresh one, so the card is written
+       against field names that cannot change under it. */
+    function rdFacShape(rows) {
+      const pick = (r, k) => String(r[k] == null ? '' : r[k]).trim();
+      return (Array.isArray(rows) ? rows : []).map((r, i) => ({
+        id: pick(r, 'Member ID') || ('fac-' + i),
+        memberId: pick(r, 'Member ID'),
+        kind: RD_FAC_KIND_LABEL[pick(r, 'Record Type')] || 'Teacher',
+        name: pick(r, 'Full Name (English)'),
+        desig: pick(r, 'Current Designation'),
+        dept: pick(r, 'Department'),
+        degree: pick(r, 'Academic Degree'),
+        phone: pick(r, 'Office Phone'),
+        profile: pick(r, 'DUET Profile'),
+        institute: pick(r, 'Diploma Institute'),
+        org: pick(r, 'Current Organization / Company'),
+        blood: pick(r, 'Blood Group'),
+        image: pick(r, 'Passport Size Image')
+      })).filter(f => f.name);
+    }
+
+    async function loadFaculty() {
+      const warm = rdFeedRecall('faculty');
+      if (warm && !RD_FAC.all.length) {
+        RD_FAC.all = rdFacShape(warm);
+        populateFacultyDeptFilter();
+        filterFaculty();
+      }
+      try {
+        const res = await fetch(FACULTY_API_URL + '&_=' + Date.now(), { cache: 'no-store' });
+        const data = await res.json();
+        const rows = Array.isArray(data.data) ? data.data : [];
+        RD_FAC.all = rdFacShape(rows);
+        RD_FAC.ready = true;
+        rdFeedRemember('faculty', rows);
+        populateFacultyDeptFilter();
+        filterFaculty();
+      } catch (e) {
+        /* A failed refresh must not wipe a list that is already on screen. */
+        console.warn('[rd] faculty list unavailable:', e && e.message ? e.message : e);
+        RD_FAC.ready = true;
+        if (!RD_FAC.all.length) renderFaculty();
+      }
+    }
+
+    /* The departments come from the rows, not from a hand-written list: a
+       teacher in a department the member form never offered -- Physics, for
+       one -- would otherwise be unfilterable. */
+    function populateFacultyDeptFilter() {
+      const s = document.getElementById('faculty-filter-dept');
+      if (!s) return;
+      const keep = s.value;
+      const v = [...new Set(RD_FAC.all.map(f => f.dept).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+      s.innerHTML = '<option value="ALL">All Departments</option>' +
+        v.map(x => '<option value="' + escapeHtml(x) + '">' + escapeHtml(x) + '</option>').join('');
+      if (keep && v.indexOf(keep) !== -1) s.value = keep;
+    }
+
+    function setFacultyKind(kind) {
+      RD_FAC.kind = kind;
+      document.querySelectorAll('.faculty-kind-btn').forEach(b => {
+        const on = b.dataset.kind === kind;
+        b.className = 'faculty-kind-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition ' +
+          (on ? 'bg-indigo-600 text-white border-indigo-600'
+              : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300');
+      });
+      filterFaculty();
+    }
+
+    function filterFaculty() {
+      const q = String((document.getElementById('faculty-search-input') || {}).value || '')
+        .trim().toLowerCase();
+      const dept = String((document.getElementById('faculty-filter-dept') || {}).value || 'ALL');
+      RD_FAC.shown = RD_FAC.all.filter(f =>
+        (RD_FAC.kind === 'ALL' || f.kind === RD_FAC.kind) &&
+        (dept === 'ALL' || f.dept === dept) &&
+        (!q || [f.name, f.desig, f.dept, f.degree, f.institute, f.org]
+          .join(' ').toLowerCase().includes(q))
+      );
+      renderFaculty();
+    }
+
+    function resetFacultyFilters() {
+      const s = document.getElementById('faculty-search-input');
+      const d = document.getElementById('faculty-filter-dept');
+      if (s) s.value = '';
+      if (d) d.value = 'ALL';
+      setFacultyKind('ALL');
+    }
+
+    /* Only what DUET publishes itself: the office extension and the profile
+       page. No personal number is in this feed, so there is nothing here for a
+       sign-in to unlock -- which is why the faculty foot carries no gate cell
+       where the member card carries one.
+
+       A four-digit IP(D) extension is printed, not linked: tel:8600 dials
+       nothing from outside the campus exchange, and a link that cannot work is
+       worse than plain text.
+
+       The profile label is inside an rd-dc-lbl span for the same reason the
+       member card's is: the cell's hover wash is a positioned ::before and it
+       paints over loose text in its parent. */
+    function rdFacSeg(f) {
+      const cells = [];
+      if (f.profile) {
+        cells.push('<a class="rd-dc-open" href="' + escapeHtml(f.profile) + '" target="_blank" rel="noopener">' +
+          '<span class="rd-dc-lbl">DUET profile</span>' +
+          '<i data-lucide="arrow-up-right" class="rd-dc-arw"></i></a>');
+      }
+      if (f.phone) {
+        const digits = rdMpDigits(f.phone, true);
+        cells.push(digits.replace(/\+/g, '').length >= 9
+          ? '<a class="rd-dc-call" href="tel:' + digits + '" aria-label="Office phone of ' +
+            escapeHtml(f.name) + '" title="Office phone"><i data-lucide="phone"></i></a>'
+          : '<span class="rd-dc-flat" title="Office extension"><i data-lucide="phone"></i> ' +
+            escapeHtml(f.phone) + '</span>');
+      }
+      if (!cells.length) {
+        return '<div class="rd-dc-seg has-1"><span class="rd-dc-flat">' +
+          escapeHtml(f.dept ? f.dept + ', DUET' : 'DUET') + '</span></div>';
+      }
+      return '<div class="rd-dc-seg has-' + cells.length + '">' + cells.join('') + '</div>';
+    }
+
+    /* The same nameplate the member roll uses, with faculty facts in the member
+       slots: the plate carries a department where a member's carries a series,
+       the pill says Teacher where a member's says Alumni, and the foot opens a
+       DUET profile where a member's opens the member modal. Reusing the shell
+       is deliberate -- two lists drawn as two different websites would read as
+       two different associations. */
+    function renderFacultyCard(f) {
+      let body = (f.desig ? '<p class="rd-dc-role">' + escapeHtml(f.desig) + '</p>' : '') +
+                 (f.degree ? '<p class="rd-dc-org">' + escapeHtml(f.degree) + '</p>' : '');
+      /* The diploma institute is the Rangpur connection -- it is the reason
+         this teacher belongs on a Rangdhanu page at all -- so it gets the
+         labelled row the member card gives to a held post. */
+      if (f.institute) {
+        body += '<span class="rd-dc-post">' +
+          '<span class="rd-dc-posty">Diploma</span>' +
+          '<span class="rd-dc-postv">' + escapeHtml(f.institute) + '</span></span>';
+      }
+      return '<div class="alumni-card rd-dcw">' +
+        '<article class="rd-dc is-faculty">' +
+          '<div class="rd-dc-plate">' +
+            '<span class="rd-dc-pid">' + escapeHtml(f.dept || 'DUET') + '</span>' +
+            '<span class="rd-dc-pst"><i data-lucide="' +
+              (RD_FAC_KIND_ICON[f.kind] || 'graduation-cap') + '" class="rd-dc-psti"></i> ' +
+              escapeHtml(f.kind) + '</span>' +
+          '</div>' +
+          '<div class="rd-dc-top">' + rdDcFace(f) +
+            '<div class="rd-dc-id">' +
+              '<h3 class="rd-dc-name">' + escapeHtml(f.name) + '</h3>' +
+            '</div></div>' +
+          (body ? '<div class="rd-dc-body">' + body + '</div>' : '') +
+          '<div class="rd-dc-foot">' + rdFacSeg(f) + '</div>' +
+        '</article></div>';
+    }
+
+    /* No pager here on purpose. The member roll pages at eighteen because it
+       runs to hundreds; this list is short enough that a pager would be a
+       control with nothing to control. */
+    function renderFaculty() {
+      const grid = document.getElementById('faculty-grid');
+      const total = RD_FAC.all.length, shown = RD_FAC.shown.length;
+      const countEl = document.getElementById('faculty-count-text');
+      if (countEl) {
+        countEl.innerText = !RD_FAC.ready && !total
+          ? 'Loading...'
+          : (shown === total
+              ? total + (total === 1 ? ' person listed' : ' people listed')
+              : 'Showing ' + shown + ' of ' + total);
+      }
+      if (!grid) return;
+      if (!RD_FAC.ready && !total) {
+        grid.innerHTML = '<div class="sm:col-span-2 lg:col-span-3 py-14 text-center text-slate-400">' +
+          '<i data-lucide="loader-circle" class="w-8 h-8 mx-auto mb-3 animate-spin"></i>' +
+          '<p class="font-semibold text-sm">Loading the list...</p></div>';
+        lucide.createIcons();
+        return;
+      }
+      grid.innerHTML = shown
+        ? RD_FAC.shown.map(renderFacultyCard).join('')
+        : '<div class="sm:col-span-2 lg:col-span-3 py-14 text-center text-slate-500">' +
+          '<i data-lucide="graduation-cap" class="w-9 h-9 mx-auto mb-3 text-slate-300"></i>' +
+          '<p class="font-semibold">' +
+          (total ? 'Nobody matches these filters.' : 'This list is not published yet.') +
+          '</p></div>';
+      rdPhotoSweep(grid);
+      lucide.createIcons();
     }
 
     function setAlumniViewFilter(v) {
@@ -7151,6 +7385,7 @@ f.reset();
       { key: 'social',        label: 'Social Media Corner',     icon: 'share-2',      action: 'getadminsocialposts', custom: true },
       { key: 'slides',        label: 'Slideshows',              icon: 'images',       action: 'getadminslides',      custom: true },
       { key: 'pdacc',         label: 'PDACC Page',              icon: 'graduation-cap', action: 'getadminpdacc',     custom: true },
+      { key: 'faculty',       label: 'Rangdhanu Family',        icon: 'users-round',  action: 'getadminfaculty',     custom: true },
       { key: 'activity',      label: 'Edit History',            icon: 'history',      action: 'getadminactivity',    custom: true },
       { key: 'summary',       label: 'Members Summary',         icon: 'bar-chart-3',  action: '',                    custom: true }
     ];
@@ -7170,6 +7405,7 @@ f.reset();
                      error: '', admin: '', rows: {}, busy: '', noteOpen: '',
                      nbEdit: '', scEdit: '', evEdit: '', slEdit: '', slPlace: 'home',
                      pdKind: 'LINE', pdEdit: '', role: 'ALL',
+                     facEdit: '', facMissing: [],
                      askWhat: '', askId: '' };
 
     function adminTabMeta(key) {
@@ -7741,6 +7977,17 @@ f.reset();
         return rows.map((r, i) => Object.assign({}, r, { id: 'act-' + i }));
       }
 
+      if (tab === 'faculty') {
+        /* This one answers with res.data keyed by the Alumni sheet's own column
+           names, not res.rows -- the save form posts those same names straight
+           back, so renaming them here would only have to be undone there. */
+        const res = await apiGet('getadminfaculty', {});
+        const rows = Array.isArray(res.data) ? res.data : [];
+        RD_ADMIN.facMissing = Array.isArray(res.missingColumns) ? res.missingColumns : [];
+        return rows.map(r => Object.assign({}, r, { id: String(r['Member ID'] || '').trim() }))
+                   .filter(r => r.id);
+      }
+
       const res = await apiGet(adminTabMeta(tab).action, {});
       const rows = Array.isArray(res.rows) ? res.rows : [];
       return rows.map(r => Object.assign({}, r, { id: String(r.noticeId || r.postId || r.slideId || r.lineId || r.updateId || '').trim() }))
@@ -7752,6 +7999,7 @@ f.reset();
       if (tab === 'social') return adminSocialHtml();
       if (tab === 'slides') return adminSlidesHtml();
       if (tab === 'pdacc') return adminPdaccHtml();
+      if (tab === 'faculty') return adminFacultyHtml();
       if (tab === 'activity') return adminActivityHtml();
       return adminSummaryHtml();
     }
@@ -9012,6 +9260,250 @@ f.reset();
       RD_ADMIN.busy = '';
       renderAdmin();
     }
+
+    /* ---------- Rangdhanu Family tab ------------------------------------
+       The teachers and officers of greater Rangpur at DUET. Their row sits in
+       the Alumni sheet like everyone else's -- that is what lets them sign in
+       through the same door members use -- but the `Record Type` column holds
+       the two lists apart everywhere either one is read: this tab shows only
+       faculty rows, and the member directory drops them.
+
+       Nothing here is a required box but the name, because an admin is filling
+       this in, not a stranger who has to be guided. An empty box simply draws
+       nothing on the card. The name is the one exception, and not as a rule
+       about the form: a row with no name is not somebody's record, it is a
+       blank line in the sheet. */
+    function adminFacRow(id) {
+      return (RD_ADMIN.rows.faculty || []).find(r => r.id === id) || null;
+    }
+
+    function adminFacNew() { RD_ADMIN.facEdit = ''; renderAdmin(); }
+
+    function adminFacEdit(id) {
+      RD_ADMIN.facEdit = adminFacRow(id) ? id : '';
+      RD_ADMIN.askWhat = ''; RD_ADMIN.askId = '';
+      renderAdmin();
+      const el = document.getElementById('fac-name');
+      if (el) { try { el.focus(); } catch (e) {} }
+    }
+
+    function adminFacBox(id, label, value, place) {
+      return '<div><label class="form-label" for="' + id + '">' + escapeHtml(label) + '</label>' +
+        '<input id="' + id + '" class="form-input" value="' + escapeHtml(value || '') + '"' +
+        (place ? ' placeholder="' + escapeHtml(place) + '"' : '') + '></div>';
+    }
+
+    function adminFacForm() {
+      const r = RD_ADMIN.facEdit ? adminFacRow(RD_ADMIN.facEdit) : null;
+      const g = k => r ? String(r[k] || '') : '';
+      const kind = g('Record Type') || 'Teacher';
+      const inner =
+        '<div class="mt-5 grid sm:grid-cols-2 gap-4">' +
+          '<div><label class="form-label" for="fac-kind">They are a</label>' +
+            '<select id="fac-kind" class="form-input">' +
+            ['Teacher', 'Officer', 'Staff'].map(k =>
+              '<option value="' + k + '"' + (k === kind ? ' selected' : '') + '>' + k + '</option>').join('') +
+            '</select></div>' +
+          adminFacBox('fac-name', 'Name', g('Full Name (English)'), 'Md. ...') +
+          adminFacBox('fac-desig', 'Designation', g('Current Designation'), 'Associate Professor') +
+          adminFacBox('fac-dept', 'Department', g('Department'), 'Civil Engineering') +
+          adminFacBox('fac-degree', 'Degree', g('Academic Degree'), 'Ph.D., M.Sc. Engg.') +
+          adminFacBox('fac-inst', 'Diploma institute', g('Diploma Institute'), 'Rangpur Polytechnic Institute') +
+          adminFacBox('fac-phone', 'Office phone', g('Office Phone'), 'IP(D) 8600') +
+          adminFacBox('fac-blood', 'Blood group', g('Blood Group'), 'B+') +
+          adminFacBox('fac-profile', 'DUET profile page', g('DUET Profile'), 'https://www.duet.ac.bd/...') +
+          adminFacBox('fac-mail', 'The mail they sign in with', g('Email'), 'name@duet.ac.bd') +
+          '<div class="sm:col-span-2"><label class="form-label" for="fac-photo">Picture</label>' +
+            '<input id="fac-photo" type="file" accept="image/*" class="form-input"></div>' +
+        '</div>' +
+        (r && String(r['Passport Size Image'] || '').trim()
+          ? '<p class="mt-2 text-[11px] font-semibold text-slate-500">A picture is already on this row. Choosing a new one replaces it; leaving the box empty keeps it.</p>'
+          : '') +
+        '<div class="mt-5 flex flex-wrap gap-2">' +
+          '<button id="fac-save" type="button" onclick="adminFacSave()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-extrabold cursor-pointer">' +
+            '<i data-lucide="save" class="w-4 h-4"></i> ' + (r ? 'Save the changes' : 'Add them') + '</button>' +
+          (r
+            ? '<button type="button" onclick="adminFacNew()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-bold cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i> Cancel</button>'
+            : '') +
+        '</div>';
+      return adminPanelShell('user-plus', r ? 'Editing ' + r.id : 'Add a teacher or an officer',
+        'Only the name is needed; every other box can stay empty. The mail written here is the mail they sign in with, through the same Google button members use.',
+        inner);
+    }
+
+    /* One card per person. The pill on the right says whether the mail is in
+       place, because that single box is the difference between a row on a page
+       and a person who can sign in and keep their own page current. */
+    function adminFacItem(r) {
+      const busy = RD_ADMIN.busy === r.id;
+      const kind = String(r['Record Type'] || 'Teacher');
+      const name = String(r['Full Name (English)'] || '');
+      const pic = String(r['Passport Size Image'] || '').trim();
+      const line = [String(r['Current Designation'] || ''), String(r['Department'] || '')]
+        .filter(x => x.trim()).join(' \u00b7 ');
+      const inst = String(r['Diploma Institute'] || '').trim();
+      const mail = String(r['Email'] || '').trim();
+      const pill = (cls, icon, text) =>
+        '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-extrabold ' +
+        cls + '"><i data-lucide="' + icon + '" class="w-3 h-3"></i>' + text + '</span>';
+      return '<article class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">' +
+        '<div class="flex flex-wrap items-center gap-2">' +
+          pill('bg-indigo-50 border-indigo-200 text-indigo-700',
+               RD_FAC_KIND_ICON[kind] || 'graduation-cap', escapeHtml(kind)) +
+          '<span class="text-[11px] font-mono font-bold text-slate-400">' + escapeHtml(r.id) + '</span>' +
+          '<span class="ml-auto">' + (mail
+            ? pill('bg-emerald-50 border-emerald-200 text-emerald-700', 'mail-check', 'Can sign in')
+            : pill('bg-slate-100 border-slate-200 text-slate-500', 'mail', 'No mail yet')) + '</span>' +
+        '</div>' +
+        '<div class="mt-3 flex gap-4">' +
+          '<div class="w-16 h-16 rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden flex-none flex items-center justify-center">' +
+            (pic
+              ? '<img src="' + escapeHtml(normalizeAlumniImage(pic) || pic) + '" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover">'
+              : '<i data-lucide="user" class="w-6 h-6 text-slate-300"></i>') +
+          '</div>' +
+          '<div class="min-w-0">' +
+            '<p class="font-extrabold text-slate-900 break-words">' + escapeHtml(name || '(no name)') + '</p>' +
+            (line ? '<p class="text-xs font-semibold text-slate-500 mt-0.5 break-words">' + escapeHtml(line) + '</p>' : '') +
+            (inst ? '<p class="text-[11px] font-semibold text-slate-400 mt-1 break-words">' + escapeHtml(inst) + '</p>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="mt-4 flex flex-wrap gap-2">' +
+          adminMiniBtn('Edit', 'pencil', 'bg-white border-blue-200 text-blue-700 hover:bg-blue-50',
+            "adminFacEdit('" + r.id + "')", busy) +
+          adminMiniBtn('Delete', 'trash-2', 'bg-white border-rose-200 text-rose-700 hover:bg-rose-50',
+            "adminAsk('facDel','" + r.id + "')", busy) +
+        '</div>' +
+        (adminAskArmed('facDel', r.id)
+          ? adminConfirmStrip('Remove ' + (name || r.id) +
+              ' from Rangdhanu Family? The row goes out of the sheet, so their sign-in stops working too.',
+              'Yes, remove', "adminFacDelete('" + r.id + "')")
+          : '') +
+      '</article>';
+    }
+
+    function adminFacultyHtml() {
+      const rows = Array.isArray(RD_ADMIN.rows.faculty) ? RD_ADMIN.rows.faculty : [];
+      const missing = Array.isArray(RD_ADMIN.facMissing) ? RD_ADMIN.facMissing : [];
+      return '<div class="space-y-4">' +
+        /* A column the sheet does not have cannot be written, and a silent
+           no-op would look like a save that did not stick. So the tab says it
+           out loud, with the one function name that fixes it. */
+        (missing.length
+          ? '<div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5">' +
+              '<p class="text-xs font-extrabold text-amber-900 flex items-center gap-1.5">' +
+              '<i data-lucide="wrench" class="w-3.5 h-3.5"></i> Run rdFacSetup() once</p>' +
+              '<p class="mt-1.5 text-[11px] font-semibold text-amber-800 leading-relaxed">The sheet has no ' +
+              escapeHtml(missing.join(', ')) + ' column yet, so those boxes cannot be saved. ' +
+              'Open the Apps Script editor, run rdFacSetup(), then press Refresh here.</p></div>'
+          : '') +
+        adminFacForm() +
+        (rows.length
+          ? rows.map(adminFacItem).join('')
+          : adminInfoBox('users-round', 'Nobody here yet',
+              'Whoever you add above appears on the Rangdhanu Family page, under Teachers and Officers at DUET.',
+              'empty')) +
+      '</div>';
+    }
+
+    /* Posted under the Alumni sheet's own column names. The server writes only
+       the headers it recognises, so a key it has never heard of changes
+       nothing -- which is what keeps this form from reaching Status, Series or
+       anything else it has no business touching. */
+    async function adminFacSave() {
+      if (!document.getElementById('fac-name')) return;
+      if (RD_ADMIN.busy) {
+        showToast('Another change is still being saved. Please wait a moment, or reload the admin page.',
+          'error', 'One at a time', { backTo: 'admin' });
+        return;
+      }
+      const val = id => String((document.getElementById(id) || {}).value || '').trim();
+      const name = val('fac-name');
+      if (!name) {
+        showToast('Please write the name. Every other box can stay empty.',
+          'error', 'The name is empty', { backTo: 'admin' });
+        return;
+      }
+      const profile = val('fac-profile');
+      if (profile && !/^https?:\/\/\S+$/i.test(profile)) {
+        showToast('Please paste the full profile link, starting with https://',
+          'error', 'The link is not complete', { backTo: 'admin' });
+        return;
+      }
+      const mail = val('fac-mail');
+      if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
+        showToast('That mail does not look complete. Leave the box empty if you do not have it yet.',
+          'error', 'Check the mail', { backTo: 'admin' });
+        return;
+      }
+      const editing = RD_ADMIN.facEdit;
+      const data = {
+        'Member ID': editing || '',
+        'Record Type': val('fac-kind') || 'Teacher',
+        'Full Name (English)': name,
+        'Current Designation': val('fac-desig'),
+        'Department': val('fac-dept'),
+        'Academic Degree': val('fac-degree'),
+        'Diploma Institute': val('fac-inst'),
+        'Office Phone': val('fac-phone'),
+        'DUET Profile': profile,
+        'Blood Group': val('fac-blood'),
+        'Email': mail
+      };
+      RD_ADMIN.busy = editing || 'new';
+      const btn = document.getElementById('fac-save');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+      try {
+        const photo = ((document.getElementById('fac-photo') || {}).files || [])[0] || null;
+        if (photo) {
+          /* The picture is its own step, so a picture problem says so instead
+             of hiding behind a general "could not save". */
+          if (btn) btn.textContent = 'Preparing the picture…';
+          try {
+            data.photo = await filePayload(photo, 900);
+          } catch (imgErr) {
+            console.warn('[rd] faculty picture:', imgErr);
+            throw new Error('The picture could not be prepared. Please try another one, or save without a picture.');
+          }
+          if (btn) btn.textContent = 'Saving…';
+        }
+        const r = await apiPost('savefaculty', { faculty: data });
+        RD_ADMIN.facEdit = '';
+        RD_ADMIN.busy = '';
+        /* The public page must refetch, not repaint from what the admin has
+           just changed away from. */
+        RD_FAC.ready = false;
+        RD_FAC.all = [];
+        rdFeedForget('faculty');
+        showToast(r.message || 'Saved.', 'success', 'Saved', { backTo: 'admin' });
+        loadAdminDashboard(true);
+      } catch (err) {
+        console.warn('[rd] savefaculty:', err);
+        RD_ADMIN.busy = '';
+        showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
+        renderAdmin();
+      }
+    }
+
+    async function adminFacDelete(id) {
+      if (!adminFacRow(id) || RD_ADMIN.busy) return;
+      RD_ADMIN.busy = id;
+      renderAdmin();
+      try {
+        const r = await apiPost('deletefaculty', { memberId: id });
+        RD_ADMIN.rows.faculty = (RD_ADMIN.rows.faculty || []).filter(x => x.id !== id);
+        RD_ADMIN.askWhat = ''; RD_ADMIN.askId = '';
+        if (RD_ADMIN.facEdit === id) RD_ADMIN.facEdit = '';
+        RD_FAC.ready = false;
+        RD_FAC.all = [];
+        rdFeedForget('faculty');
+        showToast(r.message || 'Removed.', 'success', 'Removed', { backTo: 'admin' });
+      } catch (err) {
+        showToast(friendlyError(err).msg, 'error', 'Could not remove', { backTo: 'admin' });
+      }
+      RD_ADMIN.busy = '';
+      renderAdmin();
+    }
+
 
     /* ---------- Members Summary tab -----------------------------------
        Everything here is counted from lists the panel already holds, so the

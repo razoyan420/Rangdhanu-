@@ -260,7 +260,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center gap-1">
       <button class="nav-btn premium-nav-item active" data-page="home" onclick="switchPage('home')"><span>Home</span></button>
       <button class="nav-btn premium-nav-item" data-page="reunion" onclick="switchPage('reunion')"><span>Reunion</span></button>
-      <button class="nav-btn premium-nav-item" data-page="alumni" onclick="switchPage('alumni')"><span>Alumni &amp; Member</span></button>
+      <button class="nav-btn premium-nav-item" data-page="alumni" onclick="switchPage('alumni')"><span>Rangdhanu Family</span></button>
       <button class="nav-btn premium-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')"><span>PDACC</span></button>
       <button class="nav-btn premium-nav-item" data-page="events" onclick="switchPage('events')"><span>Events</span></button>
       <button class="nav-btn premium-nav-item" data-page="committee" onclick="switchPage('committee')"><span>Committee</span></button>
@@ -275,7 +275,7 @@
   <div class="hidden xl:hidden absolute left-0 right-0 top-full w-full bg-white border-t border-sky-200 px-4 sm:px-6 lg:px-8 pt-3 pb-4 space-y-1 font-semibold text-base shadow-2xl" id="mobile-menu">
     <button class="mobile-nav-item" data-page="home" onclick="switchPage('home')">Home</button>
     <button class="mobile-nav-item" data-page="reunion" onclick="switchPage('reunion')">Rangdhanu Reunion</button>
-    <button class="mobile-nav-item" data-page="alumni" onclick="switchPage('alumni')">Alumni &amp; Member</button>
+    <button class="mobile-nav-item" data-page="alumni" onclick="switchPage('alumni')">Rangdhanu Family</button>
     <button class="mobile-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')">PDACC</button>
     <button class="mobile-nav-item" data-page="events" onclick="switchPage('events')">Events</button>
     <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')">Executive Committee</button>
@@ -1728,7 +1728,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto mb-10">
           <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Rangdhanu Family</h2>
-          <p class="mt-3 text-slate-500 text-sm sm:text-base leading-relaxed">Current members and alumni — one family, together.</p>
+          <p class="mt-3 text-slate-500 text-sm sm:text-base leading-relaxed">Current students and alumni of the Association, and the teachers and officers of greater Rangpur at DUET.</p>
         </div>
         
         <div class="bg-white p-5 sm:p-6 rounded-3xl max-w-5xl mx-auto mb-10 border border-slate-200 shadow-sm">
@@ -1766,6 +1766,9 @@
             <button type="button" id="alumni-btn-ac" onclick="alumniViewAlumniCommittee()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs sm:text-sm font-extrabold hover:border-blue-300 hover:bg-slate-50 transition cursor-pointer">
               <i data-lucide="users" class="w-4 h-4"></i> Alumni Committee
             </button>
+            <button type="button" id="alumni-btn-fac" onclick="openSubPage('family-faculty','alumni')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs sm:text-sm font-extrabold hover:border-indigo-300 hover:bg-slate-50 transition cursor-pointer">
+              <i data-lucide="graduation-cap" class="w-4 h-4"></i> Teachers at DUET
+            </button>
           </div>
           <div id="alumni-member-bar" class="pt-4 mt-4 border-t border-slate-100 text-xs sm:text-sm text-slate-500 font-medium"></div>
           <div class="flex flex-wrap justify-between items-center gap-3 pt-4 mt-4 border-t border-slate-100 text-xs sm:text-sm text-slate-500 font-medium">
@@ -1779,6 +1782,54 @@
         
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto" id="alumni-grid"></div>
         <nav id="alumni-pager" class="max-w-7xl mx-auto mt-9 flex flex-wrap items-center justify-center gap-2" aria-label="Alumni pagination"></nav>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================= SUB-PAGE: TEACHERS AND OFFICERS AT DUET =========
+       Its own page on purpose. These are our teachers, not our members: the
+       card carries a designation, a degree and an office extension where a
+       member card carries a series and a batch, and the two lists are never
+       mixed into one grid. They still sign in with the same door every
+       member uses, because their row lives in the same sheet. ============ -->
+  <div class="page-view" id="page-family-faculty">
+    <div class="subpage-bar">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
+        <button type="button" onclick="goBackFromSubPage('family-faculty')" class="subpage-back"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+        <span class="text-sm font-bold text-slate-500 truncate min-w-0">Rangdhanu Family</span>
+      </div>
+    </div>
+    <section class="py-10 sm:py-14 bg-slate-50 min-h-[75vh]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-9">
+          <span class="inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold uppercase tracking-widest"><i class="w-3.5 h-3.5" data-lucide="graduation-cap"></i> Rangdhanu Family</span>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 font-display tracking-tight">Teachers and Officers at DUET</h2>
+          <p class="text-slate-600 text-sm mt-2 leading-relaxed">Teachers and officers from greater Rangpur who serve at DUET. Only office numbers and official mail are listed here, never a personal number.</p>
+        </div>
+
+        <div class="bg-white p-5 sm:p-6 rounded-3xl max-w-5xl mx-auto mb-10 border border-slate-200 shadow-sm">
+          <div class="space-y-4">
+            <div class="relative">
+              <i class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" data-lucide="search"></i>
+              <input class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" id="faculty-search-input" onkeyup="filterFaculty()" placeholder="Search by name, designation, department or degree..." type="text"/>
+            </div>
+            <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-300 transition" id="faculty-filter-dept" onchange="filterFaculty()">
+              <option value="ALL">All Departments</option>
+            </select>
+          </div>
+          <div class="flex flex-wrap gap-2 pt-4 mt-4 border-t border-slate-100" id="faculty-kind-tabs" role="group" aria-label="Teachers and officers filter">
+            <button type="button" class="faculty-kind-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-indigo-600 text-white border-indigo-600 transition" data-kind="ALL" onclick="setFacultyKind('ALL')">Everyone</button>
+            <button type="button" class="faculty-kind-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-600 border-slate-200 hover:border-indigo-300 transition" data-kind="Teacher" onclick="setFacultyKind('Teacher')"><span class="inline-flex items-center gap-1.5"><i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> Teachers</span></button>
+            <button type="button" class="faculty-kind-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-600 border-slate-200 hover:border-indigo-300 transition" data-kind="Officer" onclick="setFacultyKind('Officer')"><span class="inline-flex items-center gap-1.5"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i> Officers</span></button>
+            <button type="button" class="faculty-kind-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-600 border-slate-200 hover:border-indigo-300 transition" data-kind="Staff" onclick="setFacultyKind('Staff')"><span class="inline-flex items-center gap-1.5"><i data-lucide="users" class="w-3.5 h-3.5"></i> Staff</span></button>
+          </div>
+          <div class="flex flex-wrap items-center gap-3 pt-4 mt-4 border-t border-slate-100">
+            <span class="text-xs sm:text-sm text-slate-500 font-medium" id="faculty-count-text"></span>
+            <button class="ml-auto text-indigo-600 font-bold hover:underline flex items-center gap-1 cursor-pointer text-xs sm:text-sm" onclick="resetFacultyFilters()"><i class="w-3.5 h-3.5" data-lucide="rotate-ccw"></i> Reset filters</button>
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto" id="faculty-grid"></div>
       </div>
     </section>
   </div>
@@ -2252,16 +2303,16 @@
         <div id="myp-edit" class="max-w-2xl mx-auto space-y-4" hidden>
 
         <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
-          <div id="myp-cover" class="rd-cover h-32 sm:h-44 relative">
-            <label class="rd-cover-btn">
-              <i data-lucide="image-plus" class="w-4 h-4"></i>
-              <span class="hidden sm:inline">Cover</span>
-              <input id="myp-cover-file" type="file" accept="image/*" class="hidden" aria-label="Change cover photo" onchange="rdMypPhoto(this,'cover')">
-            </label>
+          <div id="myp-cover" class="rd-cover relative">
+            <div class="rd-mp-cbtns">
+              <button type="button" id="myp-cover-undo" class="rd-mp-cbtn" hidden onclick="rdMpCoverReset(this)" aria-label="Go back to the default cover" title="Go back to the default cover"><i data-lucide="rotate-ccw"></i><span class="rd-mp-cbtn-lbl">Use default</span></button>
+              <button type="button" class="rd-mp-cbtn" onclick="rdMpCoverPick()" aria-label="Change the cover photo" title="Change the cover photo"><i data-lucide="image-plus"></i><span class="rd-mp-cbtn-lbl">Cover</span></button>
+            </div>
+            <input id="myp-cover-file" type="file" accept="image/*" class="hidden" aria-label="Change cover photo" onchange="rdMypPhoto(this,'cover')">
           </div>
           <div class="px-5 pb-5 -mt-12">
             <div class="relative w-24 h-24">
-              <img id="myp-photo" src="logo.png" alt="My photo" class="w-24 h-24 rounded-2xl object-cover bg-white border-4 border-white shadow-lg">
+              <img id="myp-photo" src="logo.png" alt="My photo" class="w-24 h-24 rounded-full object-cover bg-white border-4 border-white shadow-lg">
               <label class="rd-photo-btn">
                 <i data-lucide="camera" class="w-4 h-4"></i>
                 <input id="myp-photo-file" type="file" accept="image/*" class="hidden" aria-label="Change my photo" onchange="rdMypPhoto(this,'photo')">
@@ -2475,7 +2526,7 @@ Do not modify social links or structure without permission.
       <h4 class="text-white font-bold mb-4">Quick Services</h4>
       <ul class="space-y-2.5">
         <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('reunion')">Reunion</button></li>
-        <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('alumni')">Alumni Directory</button></li>
+        <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('alumni')">Rangdhanu Family</button></li>
         <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('prokoushali')">Prokoushali</button></li>
         <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('committee')">Executive Committee</button></li>
         <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('cgpa')">CGPA Calculator</button></li>
