@@ -9,6 +9,17 @@
     .font-premium, .font-premium h4 { font-family: 'Plus Jakarta Sans', 'Noto Sans Bengali', 'Kalpurush', sans-serif; letter-spacing: .005em; }
     .font-display { font-family: 'Space Grotesk', 'Noto Sans Bengali', sans-serif !important; }
 
+    /* ---------- Typography utility classes ----------
+       Reusable type ramp for the redesign; each class sets
+       size + weight + line-height so a single class is enough. */
+    .rd-label{font-size:.6rem;font-weight:800;letter-spacing:.28em;text-transform:uppercase;line-height:1.2;}
+    @media(min-width:640px){.rd-label{font-size:.68rem;}}
+    .rd-h1{font-family:'Space Grotesk','Noto Sans Bengali',sans-serif;font-size:clamp(1.5rem,4vw,2.75rem);font-weight:800;line-height:1.08;letter-spacing:-.01em;}
+    .rd-h2{font-family:'Space Grotesk','Noto Sans Bengali',sans-serif;font-size:clamp(1.25rem,3vw,2rem);font-weight:800;line-height:1.1;letter-spacing:-.005em;}
+    .rd-h3{font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;font-size:clamp(1rem,2.5vw,1.35rem);font-weight:700;line-height:1.2;}
+    .rd-body{font-size:clamp(.85rem,1.5vw,1rem);line-height:1.7;color:var(--rd-text);}
+    .rd-cap{font-size:.75rem;line-height:1.5;color:var(--rd-text-subtle);}
+
     button, a, select, input, .cursor-pointer { cursor: pointer !important; transition: color .25s var(--rd-ease-smooth), background-color .25s var(--rd-ease-smooth), border-color .25s var(--rd-ease-smooth), box-shadow .25s var(--rd-ease-smooth), transform .25s var(--rd-ease-smooth), opacity .25s var(--rd-ease-smooth); }
     button:active, a:active { transform: scale(0.96); }
 
