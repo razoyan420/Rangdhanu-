@@ -1282,6 +1282,8 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
+      window.addEventListener('wheel', closeMobileMenuOnUserScroll, { passive: true });
+      document.addEventListener('touchmove', closeMobileMenuOnUserScroll, { passive: true });
       const startPage = getPageFromLocation(false);
       history.replaceState({page: startPage}, '', window.location.pathname + (startPage==='home'?'':`#${pageUrlId(startPage)}`));
       switchPage(startPage, false);
@@ -9935,6 +9937,11 @@ f.reset();
         return;
       }
       syncMobileMenuButton();
+    }
+    function closeMobileMenuOnUserScroll(event) {
+      const menu = document.getElementById('mobile-menu');
+      if (!menu || menu.classList.contains('hidden') || menu.contains(event.target)) return;
+      closeMobileMenuAnimated();
     }
     let rdMobileMenuCloseTimer = 0;
     let rdMobileMenuOpenTimer = 0;
