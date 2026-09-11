@@ -71,7 +71,7 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 #page-home #cover-slides,
 #page-home #cover-poster,
 #page-home #cover-skeleton{border-radius:1.75rem}
-#page-home.active{animation:none}
+#page-home.active,#page-profile.active{animation:none!important}
 #page-home .rd-hero-anim h2{letter-spacing:-.035em;text-shadow:0 8px 26px rgba(7,31,73,.42)}
 #page-home .rd-hero-anim button{background:var(--rd-blue-50)!important;color:var(--rd-blue-950)!important;box-shadow:0 14px 30px -18px rgba(7,31,73,.8)!important}
 #page-home .rd-hero-anim button:hover{background:#fff!important;transform:translateY(-2px)}

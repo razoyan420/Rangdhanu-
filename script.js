@@ -125,8 +125,13 @@
     };
     const rdSubReturn = {};
     const rdSubFrom = {};
+    const rdPageScroll = Object.create(null);
     let rdCurrentPageId = 'home';
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+    window.addEventListener('scroll', function () {
+      rdPageScroll[rdCurrentPageId] = window.scrollY;
+    }, { passive: true });
 
     function openSubPage(pageId, backTo) {
       const parent = (RD_SUBPAGES[pageId] || {}).parent || 'home';
@@ -187,23 +192,30 @@
 
     function savePageScrollPosition() {
       if (!history.state || !history.state.page) return;
-      history.replaceState({ ...history.state, scrollY: window.scrollY }, '', window.location.pathname + window.location.hash);
+      const scrollY = window.scrollY;
+      rdPageScroll[history.state.page] = scrollY;
+      history.replaceState({ ...history.state, scrollY: scrollY }, '', window.location.pathname + window.location.hash);
     }
 
     function switchPage(pageId, updateUrl = true) {
       const historyState = history.state;
-      const restoreScroll = !updateUrl && historyState && historyState.page === pageId && Number.isFinite(historyState.scrollY);
-      const scrollY = restoreScroll ? historyState.scrollY : 0;
+      const restoreScroll = !updateUrl && historyState && historyState.page === pageId &&
+        (Number.isFinite(rdPageScroll[pageId]) || Number.isFinite(historyState.scrollY));
+      const scrollY = restoreScroll
+        ? (Number.isFinite(rdPageScroll[pageId]) ? rdPageScroll[pageId] : historyState.scrollY)
+        : 0;
       if (updateUrl) savePageScrollPosition();
       document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
       const tgt = document.getElementById(`page-${pageId}`);
       if (tgt) tgt.classList.add('active');
+      if (tgt && (pageId === 'profile' || pageId === 'home')) tgt.style.animation = 'none';
       rdCurrentPageId = pageId;
       const navId = (RD_SUBPAGES[pageId] || {}).parent || pageId;
       document.querySelectorAll('.nav-btn, .mobile-nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === navId));
       const menu = document.getElementById('mobile-menu');
       if (menu && !menu.classList.contains('hidden')) { menu.classList.add('hidden'); syncMobileMenuButton(); }
       if (updateUrl) { const urlId = pageUrlId(pageId); history.pushState({page: pageId, scrollY: 0}, '', window.location.pathname + (pageId==='home'?'':`#${urlId}`)); }
+      rdPageScroll[pageId] = scrollY;
       window.scrollTo({ top: scrollY, behavior: 'auto' });
       try {
         if (pageId === 'events') loadPublicEvents();
@@ -2698,7 +2710,8 @@
       await memberLoadContacts();
       if (quiet) { rdMemberPaintSignInLinks(); return; }
       rdMemberMsg('member-signin-msg', 'You are signed in.', 'ok');
-      rdMemberPaintSignInLinks();
+      if (token) rdMemberPaintSignInLinks(true);
+      else rdMemberPaintSignInLinks();
       rdMemberPaintLinkBox();
       /* No page of its own for this. A member who signs in is taken to the
          thing they signed in for -- the profile they were reading, or their own
@@ -3849,10 +3862,15 @@
       }
     }
 
-    function rdMemberPaintSignInLinks() {
+    function rdMemberPaintSignInLinks(restoring) {
       rdMemberNavPaint();
       const box = document.getElementById('alumni-member-bar');
       if (!box) return;
+      if (restoring && !rdMemberSignedIn()) {
+        box.innerHTML = '<span class="inline-flex items-center gap-1.5 text-slate-500 font-bold"><i data-lucide="loader-circle" class="w-4 h-4 animate-spin"></i> Restoring sign in...</span>';
+        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+        return;
+      }
       box.innerHTML = rdMemberSignedIn()
         ? '<span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold"><i data-lucide="badge-check" class="w-4 h-4"></i> ' +
           escapeHtml(RD_MEMBER.email) + '</span>' +
@@ -3903,7 +3921,7 @@
     function rdMemberSilentRenew(tries) {
       tries = tries || 0;
       if (!rdGsiReady()) {
-        if (tries < 6) { setTimeout(function () { rdMemberSilentRenew(tries + 1); }, 500); return; }
+        if (tries < 20) { setTimeout(function () { rdMemberSilentRenew(tries + 1); }, 500); return; }
         rdMemberLandedSignedOut();
         return;
       }
