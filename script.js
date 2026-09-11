@@ -221,7 +221,9 @@
         if (pageId === 'events') loadPublicEvents();
         /* The directory is a whole page of its own; fetching it during boot
            only slowed down the home screen, which never shows it. */
-        if (pageId === 'alumni') loadPublicAlumni();
+          /* Keep the rendered directory page, filters and pagination intact when
+            a profile returns to it. A fresh load is only needed on first entry. */
+          if (pageId === 'alumni' && !alumniData.length) loadPublicAlumni();
         if (pageId === 'noticeboard') loadNoticeBoard();
         if (pageId === 'committee') loadExecutiveCommittee();
         /* The PDACC page shows the Director's message, so it needs the

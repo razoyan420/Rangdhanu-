@@ -56,7 +56,7 @@ body{background:#f5f9ff;color:var(--rd-ink)}
 .mobile-nav-item:hover,.mobile-nav-item.active{background:var(--rd-blue-50)!important;color:var(--rd-blue-700)!important}
 #mobile-menu{background:rgba(247,251,255,.98)!important;border-color:var(--rd-line)!important}
 #mobile-menu .nav-cta{border-radius:.85rem!important}
-.page-view.active{animation:rdPageIn .42s cubic-bezier(.22,1,.36,1)}
+.page-view.active{animation:none!important}
 @keyframes rdPageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .card-pro,.rd-tile,.rd-pd-card,.rd-dc,.rd-mp-card{border-color:var(--rd-line)!important;box-shadow:0 14px 34px -28px rgba(7,31,73,.45)!important;transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s ease,border-color .28s ease!important}
 .card-pro:hover,.rd-tile:hover,.rd-pd-card:hover,.rd-dc:hover,.rd-mp-card:hover{border-color:rgba(36,121,223,.42)!important;box-shadow:0 24px 48px -28px rgba(23,105,209,.38)!important;transform:translateY(-4px)}
