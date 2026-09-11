@@ -323,6 +323,8 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 #page-profile .rd-mp-todo,#page-my-profile .rd-mp-todo{background:linear-gradient(125deg,#eaf3ff,#f7faff 55%,#eef5fc);border-color:#c8ddf3}
 #page-profile .rd-mp-bar>i,#page-my-profile .rd-mp-bar>i{background:linear-gradient(90deg,var(--rd-blue-800),var(--rd-blue-500))}
 #page-profile .rd-mp-more,#page-profile .rd-mp-paper i,#page-my-profile .rd-mp-more,#page-my-profile .rd-mp-paper i{color:var(--rd-blue-700)}
+#page-profile .subpage-back,#page-my-profile .subpage-back{display:none!important}
+#page-family-faculty .subpage-back,#page-events .subpage-back,#page-committee-new .subpage-back,#page-ec-message .subpage-back,#page-notice-file .subpage-back,#page-pdacc-updates .subpage-back,#page-member-signin .subpage-back,#page-photo .subpage-back{display:none!important}
 #page-profile .rd-ed-save,#page-my-profile .rd-ed-save{background:linear-gradient(110deg,var(--rd-blue-800),var(--rd-blue-600));color:#fff}
 #page-profile .rd-ed-h,#page-my-profile .rd-ed-h{color:var(--rd-blue-800)}
 #page-profile .rd-rep-add,#page-my-profile .rd-rep-add{color:var(--rd-blue-800);border-color:#b9d7f5}
