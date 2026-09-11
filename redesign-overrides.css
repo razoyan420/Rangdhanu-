@@ -250,6 +250,8 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   #about-rangdhanu h2{font-size:clamp(2rem,9vw,2.7rem);max-width:19rem}
   #about-rangdhanu p{font-size:.98rem!important;line-height:1.95!important}
   #about-rangdhanu .rd-tile{padding:1.25rem!important}
+  footer>div:first-child{row-gap:1.5rem!important}
+  footer>div:last-child{margin-top:2rem!important;padding-top:1rem!important;gap:.75rem!important}
 }
 
 /* The faculty directory uses the same card component as the member directory. */
