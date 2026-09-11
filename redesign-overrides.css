@@ -280,10 +280,16 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 }
 @media (max-width:639px){
   .glass-nav .max-w-7xl{height:4.5rem}
+  .glass-nav>.relative:first-child>.max-w-7xl>.brand-lockup{flex:1 1 auto;min-width:0}
+  .glass-nav>.relative:first-child>.max-w-7xl>.brand-lockup .brand-word{flex:1 1 auto;min-width:0}
   .glass-nav .brand-logo{width:2.65rem;height:2.65rem}
   .glass-nav .brand-name{font-size:1rem}
   .glass-nav .brand-tag{font-size:.52rem;max-width:10rem}
   .glass-nav #mobile-member-btn,.glass-nav #mobile-menu-btn{padding:.65rem}
+}
+@media (max-width:359px){
+  .glass-nav .brand-name{font-size:.82rem;letter-spacing:.07em}
+  .glass-nav .brand-tag{display:block;max-width:9rem;overflow:visible;text-overflow:clip;white-space:normal;font-size:.48rem;line-height:1.25}
 }
 
 /* Desktop brand lockup stays left above the navigation strip. */
