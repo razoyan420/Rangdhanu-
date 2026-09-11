@@ -10,7 +10,7 @@
   --rd-ink:#102b52;
   --rd-line:rgba(16,43,82,.14);
 }
-html{scroll-behavior:smooth}
+html{scroll-behavior:auto!important}
 body{background:#f5f9ff;color:var(--rd-ink)}
 ::selection{background:var(--rd-blue-700);color:#fff}
 .glass-nav{background:rgba(245,249,255,.93)!important;border-bottom-color:var(--rd-line)!important;box-shadow:0 12px 36px -28px rgba(7,31,73,.45)!important}
