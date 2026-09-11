@@ -14,21 +14,21 @@ html{scroll-behavior:smooth}
 body{background:#f5f9ff;color:var(--rd-ink)}
 ::selection{background:var(--rd-blue-700);color:#fff}
 .glass-nav{background:rgba(245,249,255,.93)!important;border-bottom-color:var(--rd-line)!important;box-shadow:0 12px 36px -28px rgba(7,31,73,.45)!important}
-.nav-accent{background:linear-gradient(110deg,#102b52 0%,#0e6877 48%,#c9963e 100%)!important;box-shadow:0 10px 30px -18px rgba(14,104,119,.75)}
-.nav-accent:after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 28%,rgba(255,255,255,.3) 46%,transparent 62%);transform:translateX(-120%);animation:brandBandShine 8s cubic-bezier(.22,1,.36,1) infinite;pointer-events:none}
-.brand-logo{border-color:rgba(201,150,62,.58)!important;box-shadow:0 0 0 3px rgba(255,255,255,.78),0 12px 28px -18px rgba(14,104,119,.85)!important;animation:brandLogoFloat 6s ease-in-out infinite}
+.nav-accent{background:linear-gradient(110deg,#17232d 0%,#3b4b52 52%,#aa8a5a 100%)!important;box-shadow:0 10px 30px -18px rgba(23,35,45,.58)}
+.nav-accent:after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 28%,rgba(255,255,255,.16) 46%,transparent 62%);transform:translateX(-120%);animation:brandBandShine 10s cubic-bezier(.22,1,.36,1) infinite;pointer-events:none}
+.brand-logo{border-color:rgba(170,138,90,.46)!important;box-shadow:0 0 0 3px rgba(255,255,255,.78),0 12px 28px -18px rgba(23,35,45,.58)!important;animation:brandLogoFloat 6s ease-in-out infinite}
 .brand-name{color:#102b52!important;text-shadow:0 4px 16px rgba(16,43,82,.1)}
-.brand-duet{color:#0e6877!important}
-.brand-tag{color:#55716f!important}
+.brand-duet{color:#876b43!important}
+.brand-tag{color:#66737a!important}
 .brand-lockup{position:relative}
-.brand-lockup:after{content:"";position:absolute;left:0;bottom:-.4rem;width:5.5rem;height:2px;background:linear-gradient(90deg,#c9963e,#0e6877,transparent);transform-origin:left;animation:brandUnderline 5s ease-in-out infinite}
+.brand-lockup:after{content:"";position:absolute;left:0;bottom:-.4rem;width:5.5rem;height:2px;background:linear-gradient(90deg,#aa8a5a,#6a7a80,transparent);transform-origin:left;animation:brandUnderline 5s ease-in-out infinite}
 .brand-lockup.brand-clicked .brand-logo{animation:brandClickBurst .8s cubic-bezier(.22,1,.36,1) both}
 .brand-lockup.brand-clicked .brand-name{animation:brandNameClick .8s cubic-bezier(.22,1,.36,1) both}
 @keyframes brandBandShine{0%,72%{transform:translateX(-120%)}88%,100%{transform:translateX(120%)}}
 @keyframes brandLogoFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(1.5deg)}}
 @keyframes brandUnderline{0%,100%{opacity:.45;transform:scaleX(.55)}50%{opacity:1;transform:scaleX(1)}}
 @keyframes brandClickBurst{0%{transform:scale(1) rotate(0);filter:saturate(1)}45%{transform:scale(1.16) rotate(-5deg);filter:saturate(1.6) brightness(1.08)}100%{transform:scale(1) rotate(0);filter:saturate(1)}}
-@keyframes brandNameClick{0%{color:#102b52;text-shadow:0 0 0 rgba(14,104,119,0)}45%{color:#0e6877;text-shadow:0 0 22px rgba(201,150,62,.72)}100%{color:#102b52;text-shadow:0 4px 16px rgba(16,43,82,.1)}}
+@keyframes brandNameClick{0%{color:#102b52;text-shadow:0 0 0 rgba(170,138,90,0)}45%{color:#876b43;text-shadow:0 0 16px rgba(170,138,90,.42)}100%{color:#102b52;text-shadow:0 4px 16px rgba(16,43,82,.1)}}
 @media(prefers-reduced-motion:reduce){
   .brand-logo,.nav-accent:after,.brand-lockup:after{animation:none!important}
   .brand-lockup.brand-clicked .brand-logo,.brand-lockup.brand-clicked .brand-name{animation:none!important}
