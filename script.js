@@ -162,6 +162,16 @@
       return publicIds[pageId] || pageId;
     }
 
+    function brandLockupClick(element) {
+      if (element) {
+        element.classList.remove('brand-clicked');
+        void element.offsetWidth;
+        element.classList.add('brand-clicked');
+        window.setTimeout(() => element.classList.remove('brand-clicked'), 900);
+      }
+      switchPage('home');
+    }
+
     function switchPage(pageId, updateUrl = true) {
       document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
       const tgt = document.getElementById(`page-${pageId}`);
