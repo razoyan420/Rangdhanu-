@@ -70,7 +70,7 @@
     .glass-nav:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--rd-primary);opacity:.95;}
 
     .page-view { display: none; animation: pageIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    .page-view.active { display: block; }
+    .page-view.active { display: block; animation: none !important; }
     @keyframes pageIn { 0% { opacity: 0; transform: translateY(14px) scale(0.995); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
     @media (prefers-reduced-motion:reduce){.page-view{animation:none;}}
 

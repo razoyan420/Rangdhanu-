@@ -72,6 +72,7 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 #page-home #cover-poster,
 #page-home #cover-skeleton{border-radius:1.75rem}
 #page-home.active,#page-profile.active{animation:none!important}
+#page-profile .rd-mp-cover>img,#page-profile .rd-mp-face,#page-profile .rd-mp-eyebrow,#page-profile .rd-mp-name,#page-profile .rd-mp-head,#page-profile .rd-mp-pillrow,#page-profile .rd-mp-rule,#page-profile .rd-mp-acts,#page-profile .rd-mp-acts2,#page-profile .rd-mp-sec,#page-my-profile .rd-mp-cover>img,#page-my-profile .rd-mp-face,#page-my-profile .rd-mp-eyebrow,#page-my-profile .rd-mp-name,#page-my-profile .rd-mp-head,#page-my-profile .rd-mp-pillrow,#page-my-profile .rd-mp-rule,#page-my-profile .rd-mp-acts,#page-my-profile .rd-mp-acts2,#page-my-profile .rd-mp-sec{animation:none!important}
 #page-home .rd-hero-anim h2{letter-spacing:-.035em;text-shadow:0 8px 26px rgba(7,31,73,.42)}
 #page-home .rd-hero-anim button{background:var(--rd-blue-50)!important;color:var(--rd-blue-950)!important;box-shadow:0 14px 30px -18px rgba(7,31,73,.8)!important}
 #page-home .rd-hero-anim button:hover{background:#fff!important;transform:translateY(-2px)}
