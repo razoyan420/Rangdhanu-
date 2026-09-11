@@ -245,20 +245,20 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   .glass-nav .nav-strip{display:none!important}
   .glass-nav .nav-strip #nav-member-btn{margin-left:0}
   .glass-nav .max-w-7xl{min-width:0}
-  .glass-nav .brand-tag{max-width:min(58vw,18rem);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .glass-nav .brand-tag{max-width:min(58vw,18rem);overflow:hidden;text-overflow:ellipsis;white-space:normal;line-height:1.2}
 }
 @media (max-width:639px){
   .glass-nav .max-w-7xl{height:4.5rem}
   .glass-nav .brand-logo{width:2.65rem;height:2.65rem}
   .glass-nav .brand-name{font-size:1rem}
-  .glass-nav .brand-tag{font-size:.52rem;max-width:48vw}
+  .glass-nav .brand-tag{font-size:.52rem;max-width:10rem}
   .glass-nav #mobile-member-btn,.glass-nav #mobile-menu-btn{padding:.65rem}
 }
 
-/* Desktop brand lockup: the identity sits on the far right above the nav. */
+/* Desktop brand lockup stays left; actions remain right-aligned in the nav strip. */
 @media (min-width:1024px){
-  .glass-nav>.relative:first-child>.max-w-7xl{justify-content:flex-end;min-height:5.5rem}
-  .glass-nav>.relative:first-child>.max-w-7xl>.group{margin-left:auto;order:2}
+  .glass-nav>.relative:first-child>.max-w-7xl{justify-content:flex-start;min-height:5.5rem}
+  .glass-nav>.relative:first-child>.max-w-7xl>.group{margin-left:0;order:0}
   .glass-nav>.relative:first-child>.max-w-7xl>.group .brand-logo{width:3.55rem;height:3.55rem}
   .glass-nav>.relative:first-child>.max-w-7xl>.group .brand-name{font-size:1.35rem;letter-spacing:.045em}
   .glass-nav>.relative:first-child>.max-w-7xl>.group .brand-tag{font-size:.62rem;letter-spacing:.04em}
@@ -266,4 +266,10 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 @media (max-width:1023px){
   .glass-nav>.relative:first-child>.max-w-7xl{justify-content:space-between}
   .glass-nav>.relative:first-child>.max-w-7xl>.group{margin-left:0;order:0}
+}
+
+/* Mobile menu: keep it in the layout so both opening and closing can animate. */
+@media (max-width:1023px){
+  .glass-nav #mobile-menu{display:block!important;max-height:0;opacity:0;overflow:hidden;pointer-events:none;transform:translateY(-.75rem);visibility:hidden;padding-top:0;padding-bottom:0;transition:max-height .38s cubic-bezier(.22,1,.36,1),opacity .22s ease,transform .38s cubic-bezier(.22,1,.36,1),padding .38s cubic-bezier(.22,1,.36,1),visibility 0s linear .38s}
+  .glass-nav #mobile-menu:not(.hidden){max-height:calc(100dvh - 4.5rem);opacity:1;overflow-y:auto;pointer-events:auto;transform:translateY(0);visibility:visible;padding-top:.75rem;padding-bottom:1rem;transition:max-height .42s cubic-bezier(.22,1,.36,1),opacity .24s ease,transform .42s cubic-bezier(.22,1,.36,1),padding .42s cubic-bezier(.22,1,.36,1),visibility 0s linear 0s}
 }
