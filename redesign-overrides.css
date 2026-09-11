@@ -284,6 +284,46 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 @media(max-width:767px){#page-family-faculty .rd-dc:hover{transform:translateY(-3px)!important}#page-family-faculty .rd-dc:after{display:none}}
 @media(prefers-reduced-motion:reduce){#page-family-faculty .rd-dc:after{display:none}#page-family-faculty .rd-dc:hover{transform:none!important}#page-family-faculty .rd-dc-face{transition:none!important}}
 
+/* Profile surfaces use the same blue credential language as the directory card. */
+#page-profile,#page-my-profile{
+  --mp-ink:#0c2340;
+  --mp-key:#124b9b;
+  --mp-key2:#3e91ed;
+  --mp-seal:#2479df;
+  --mp-mute:#5a6f88;
+  --mp-line:#d7e4f3;
+  --mp-paper:#f8fbff;
+  --mp-brass:#124b9b;
+  --mp-brass2:#3e91ed;
+  --mp-brasspale:#eaf3ff;
+  --mp-e1:0 1px 2px rgba(12,35,64,.07);
+  --mp-e2:0 10px 26px -12px rgba(23,105,209,.28),inset 0 1px 0 rgba(255,255,255,.9);
+  --mp-e3:0 22px 52px -24px rgba(12,35,64,.32),inset 0 1px 0 rgba(255,255,255,.92);
+}
+#page-profile .rd-mp,#page-my-profile .rd-mp{background:var(--mp-paper);border-color:var(--mp-line)}
+#page-profile .rd-mp-cover,#page-my-profile .rd-mp-cover{background:linear-gradient(110deg,var(--rd-blue-950),var(--rd-blue-800) 58%,var(--rd-blue-600))}
+#page-profile .rd-mp-cover-photo:after,#page-my-profile .rd-mp-cover-photo:after{background:linear-gradient(to top,rgba(7,31,73,.3),rgba(7,31,73,0))}
+#page-profile .rd-mp-posbar,#page-my-profile .rd-mp-posbar{background:linear-gradient(125deg,var(--rd-blue-950),var(--rd-blue-800) 60%,var(--rd-blue-600))}
+#page-profile .rd-mp-face>img,#page-profile .rd-mp-mono,#page-my-profile .rd-mp-face>img,#page-my-profile .rd-mp-mono{border-color:#fff;box-shadow:0 0 0 4px rgba(220,238,255,.82),var(--mp-e2)}
+#page-profile .rd-mp-mono,#page-my-profile .rd-mp-mono{background:linear-gradient(140deg,var(--rd-blue-700),var(--rd-blue-950))}
+#page-profile .rd-mp-pill-ok,#page-my-profile .rd-mp-pill-ok{background:#eaf3ff;color:var(--rd-blue-800);border-color:#b9d7f5}
+#page-profile .rd-mp-act-call,#page-profile .rd-mp-act-wa,#page-my-profile .rd-mp-act-call,#page-my-profile .rd-mp-act-wa{background:linear-gradient(110deg,var(--rd-blue-800),var(--rd-blue-600));box-shadow:var(--mp-e2)}
+#page-profile .rd-mp-act-lock,#page-my-profile .rd-mp-act-lock{background:#eaf3ff;color:var(--rd-blue-800);border-color:#c8ddf3}
+#page-profile .rd-mp-act2:hover,#page-my-profile .rd-mp-act2:hover{border-color:#8fc1ee;color:var(--rd-blue-800)}
+#page-profile .rd-mp-act2 i,#page-my-profile .rd-mp-act2 i{color:var(--rd-blue-700)}
+#page-profile .rd-mp-sec,#page-my-profile .rd-mp-sec{background:rgba(255,255,255,.92);border-color:var(--mp-line);box-shadow:var(--mp-e2)}
+#page-profile .rd-mp-sech i,#page-my-profile .rd-mp-sech i{color:var(--rd-blue-700)}
+#page-profile .rd-mp-ico,#page-my-profile .rd-mp-ico{background:#eaf3ff;color:var(--rd-blue-800);border-color:#c8ddf3}
+#page-profile .rd-mp-ico-blood,#page-my-profile .rd-mp-ico-blood{background:#eaf3ff;color:var(--rd-blue-800);border-color:#b9d7f5}
+#page-profile .rd-mp-tl:before,#page-my-profile .rd-mp-tl:before{background:linear-gradient(180deg,var(--rd-blue-600),var(--rd-blue-800))}
+#page-profile .rd-mp-tli:before,#page-my-profile .rd-mp-tli:before{border-color:var(--rd-blue-600)}
+#page-profile .rd-mp-tli.is-now:before,#page-my-profile .rd-mp-tli.is-now:before{background:var(--rd-blue-700);border-color:var(--rd-blue-700);box-shadow:0 0 0 3px rgba(36,121,223,.16)}
+#page-profile .rd-mp-gate,#page-my-profile .rd-mp-gate{background:#eaf3ff;border-color:#c8ddf3}
+#page-profile .rd-mp-gate-ico,#page-my-profile .rd-mp-gate-ico{border-color:#a9cef1;color:var(--rd-blue-800)}
+#page-profile .rd-mp-todo,#page-my-profile .rd-mp-todo{background:linear-gradient(125deg,#eaf3ff,#f7faff 55%,#eef5fc);border-color:#c8ddf3}
+#page-profile .rd-mp-bar>i,#page-my-profile .rd-mp-bar>i{background:linear-gradient(90deg,var(--rd-blue-800),var(--rd-blue-500))}
+#page-profile .rd-mp-more,#page-profile .rd-mp-paper i,#page-my-profile .rd-mp-more,#page-my-profile .rd-mp-paper i{color:var(--rd-blue-700)}
+
 /* Responsive shell: full navigation on desktop, compact controls on phones. */
 @media (min-width:1024px){
   .glass-nav #mobile-member-btn,.glass-nav #mobile-menu-btn{display:none!important}
