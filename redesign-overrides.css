@@ -254,3 +254,16 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   .glass-nav .brand-tag{font-size:.52rem;max-width:48vw}
   .glass-nav #mobile-member-btn,.glass-nav #mobile-menu-btn{padding:.65rem}
 }
+
+/* Desktop brand lockup: the identity sits on the far right above the nav. */
+@media (min-width:1024px){
+  .glass-nav>.relative:first-child>.max-w-7xl{justify-content:flex-end;min-height:5.5rem}
+  .glass-nav>.relative:first-child>.max-w-7xl>.group{margin-left:auto;order:2}
+  .glass-nav>.relative:first-child>.max-w-7xl>.group .brand-logo{width:3.55rem;height:3.55rem}
+  .glass-nav>.relative:first-child>.max-w-7xl>.group .brand-name{font-size:1.35rem;letter-spacing:.045em}
+  .glass-nav>.relative:first-child>.max-w-7xl>.group .brand-tag{font-size:.62rem;letter-spacing:.04em}
+}
+@media (max-width:1023px){
+  .glass-nav>.relative:first-child>.max-w-7xl{justify-content:space-between}
+  .glass-nav>.relative:first-child>.max-w-7xl>.group{margin-left:0;order:0}
+}
