@@ -164,10 +164,22 @@
 
     function brandLockupClick(element) {
       if (element) {
+        element.querySelectorAll('.brand-title-word').forEach((word, wordIndex) => {
+          if (word.querySelector('.brand-letter')) return;
+          const text = word.textContent || '';
+          word.textContent = '';
+          Array.from(text).forEach((character, letterIndex) => {
+            const letter = document.createElement('span');
+            letter.className = 'brand-letter';
+            letter.textContent = character;
+            letter.style.setProperty('--brand-letter-index', String(wordIndex * 9 + letterIndex));
+            word.appendChild(letter);
+          });
+        });
         element.classList.remove('brand-clicked');
         void element.offsetWidth;
         element.classList.add('brand-clicked');
-        window.setTimeout(() => element.classList.remove('brand-clicked'), 900);
+        window.setTimeout(() => element.classList.remove('brand-clicked'), 1500);
       }
       switchPage('home');
     }
