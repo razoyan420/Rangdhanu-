@@ -184,7 +184,16 @@
       switchPage('home');
     }
 
+    function savePageScrollPosition() {
+      if (!history.state || !history.state.page) return;
+      history.replaceState({ ...history.state, scrollY: window.scrollY }, '', window.location.pathname + window.location.hash);
+    }
+
     function switchPage(pageId, updateUrl = true) {
+      const historyState = history.state;
+      const restoreScroll = !updateUrl && historyState && historyState.page === pageId && Number.isFinite(historyState.scrollY);
+      const scrollY = restoreScroll ? historyState.scrollY : 0;
+      if (updateUrl) savePageScrollPosition();
       document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
       const tgt = document.getElementById(`page-${pageId}`);
       if (tgt) tgt.classList.add('active');
@@ -193,8 +202,8 @@
       document.querySelectorAll('.nav-btn, .mobile-nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === navId));
       const menu = document.getElementById('mobile-menu');
       if (menu && !menu.classList.contains('hidden')) { menu.classList.add('hidden'); syncMobileMenuButton(); }
-      if (updateUrl) { const urlId = pageUrlId(pageId); history.pushState({page: pageId}, '', window.location.pathname + (pageId==='home'?'':`#${urlId}`)); }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (updateUrl) { const urlId = pageUrlId(pageId); history.pushState({page: pageId, scrollY: 0}, '', window.location.pathname + (pageId==='home'?'':`#${urlId}`)); }
+      window.scrollTo({ top: scrollY, behavior: restoreScroll ? 'auto' : 'smooth' });
       try {
         if (pageId === 'events') loadPublicEvents();
         /* The directory is a whole page of its own; fetching it during boot
