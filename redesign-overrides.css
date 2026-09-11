@@ -56,30 +56,30 @@ body{background:#f5f9ff;color:var(--rd-ink)}
 .mobile-nav-item:hover,.mobile-nav-item.active{background:var(--rd-blue-50)!important;color:var(--rd-blue-700)!important}
 #mobile-menu{background:rgba(247,251,255,.98)!important;border-color:var(--rd-line)!important}
 #mobile-menu{left:auto!important;right:.75rem!important;width:52vw!important;max-width:18rem!important;transform:translateY(0) scale(1);opacity:1;transition:opacity 1s ease,transform 1s cubic-bezier(.22,1,.36,1)}
-#mobile-menu.rd-menu-opening{animation:rdMenuPanelIn 1s steps(7,end) both}
-#mobile-menu.rd-menu-closing{animation:rdMenuPanelOut 1s steps(7,end) both;pointer-events:none}
-#mobile-menu:not(.hidden)>*{opacity:0;animation:rdMenuItemIn .55s cubic-bezier(.22,1,.36,1) both}
-#mobile-menu.rd-menu-closing>*{animation:rdMenuItemOut .5s ease both}
-#mobile-menu:not(.hidden)>:nth-child(1){animation-delay:.05s}
-#mobile-menu:not(.hidden)>:nth-child(2){animation-delay:.1s}
-#mobile-menu:not(.hidden)>:nth-child(3){animation-delay:.15s}
-#mobile-menu:not(.hidden)>:nth-child(4){animation-delay:.2s}
-#mobile-menu:not(.hidden)>:nth-child(5){animation-delay:.25s}
-#mobile-menu:not(.hidden)>:nth-child(6){animation-delay:.3s}
-#mobile-menu:not(.hidden)>:nth-child(7){animation-delay:.35s}
-#mobile-menu:not(.hidden)>:nth-child(8){animation-delay:.4s}
-#mobile-menu:not(.hidden)>:nth-child(9){animation-delay:.45s}
-#mobile-menu:not(.hidden)>:nth-child(10){animation-delay:.5s}
+#mobile-menu.rd-menu-opening{animation:rdMenuPanelIn .5s steps(7,end) both}
+#mobile-menu.rd-menu-closing{animation:rdMenuPanelOut .5s steps(7,end) both;pointer-events:none}
+#mobile-menu:not(.hidden)>*{opacity:0;animation:rdMenuItemIn .27s cubic-bezier(.22,1,.36,1) both}
+#mobile-menu.rd-menu-closing>*{animation:rdMenuItemOut .25s ease both}
+#mobile-menu:not(.hidden)>:nth-child(1){animation-delay:.025s}
+#mobile-menu:not(.hidden)>:nth-child(2){animation-delay:.05s}
+#mobile-menu:not(.hidden)>:nth-child(3){animation-delay:.075s}
+#mobile-menu:not(.hidden)>:nth-child(4){animation-delay:.1s}
+#mobile-menu:not(.hidden)>:nth-child(5){animation-delay:.125s}
+#mobile-menu:not(.hidden)>:nth-child(6){animation-delay:.15s}
+#mobile-menu:not(.hidden)>:nth-child(7){animation-delay:.175s}
+#mobile-menu:not(.hidden)>:nth-child(8){animation-delay:.2s}
+#mobile-menu:not(.hidden)>:nth-child(9){animation-delay:.225s}
+#mobile-menu:not(.hidden)>:nth-child(10){animation-delay:.25s}
 #mobile-menu.rd-menu-closing>:nth-child(10){animation-delay:0s}
-#mobile-menu.rd-menu-closing>:nth-child(9){animation-delay:.055s}
-#mobile-menu.rd-menu-closing>:nth-child(8){animation-delay:.11s}
-#mobile-menu.rd-menu-closing>:nth-child(7){animation-delay:.165s}
-#mobile-menu.rd-menu-closing>:nth-child(6){animation-delay:.22s}
-#mobile-menu.rd-menu-closing>:nth-child(5){animation-delay:.275s}
-#mobile-menu.rd-menu-closing>:nth-child(4){animation-delay:.33s}
-#mobile-menu.rd-menu-closing>:nth-child(3){animation-delay:.385s}
-#mobile-menu.rd-menu-closing>:nth-child(2){animation-delay:.44s}
-#mobile-menu.rd-menu-closing>:nth-child(1){animation-delay:.495s}
+#mobile-menu.rd-menu-closing>:nth-child(9){animation-delay:.0275s}
+#mobile-menu.rd-menu-closing>:nth-child(8){animation-delay:.055s}
+#mobile-menu.rd-menu-closing>:nth-child(7){animation-delay:.0825s}
+#mobile-menu.rd-menu-closing>:nth-child(6){animation-delay:.11s}
+#mobile-menu.rd-menu-closing>:nth-child(5){animation-delay:.1375s}
+#mobile-menu.rd-menu-closing>:nth-child(4){animation-delay:.165s}
+#mobile-menu.rd-menu-closing>:nth-child(3){animation-delay:.1925s}
+#mobile-menu.rd-menu-closing>:nth-child(2){animation-delay:.22s}
+#mobile-menu.rd-menu-closing>:nth-child(1){animation-delay:.2475s}
 @keyframes rdMenuItemIn{from{opacity:0;transform:translateY(-9px)}to{opacity:1;transform:translateY(0)}}
 @keyframes rdMenuItemOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-9px)}}
 @keyframes rdMenuPanelIn{
