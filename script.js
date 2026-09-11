@@ -2469,8 +2469,12 @@
       const last = alumniPageCount();
       rdAlumniPage = Math.min(Math.max(1, Number(p) || 1), last);
       renderAlumniPage();
-      const grid = document.getElementById("alumni-grid");
-      if (grid) { try { grid.scrollIntoView({behavior:'auto', block:'start'}); } catch(e) { grid.scrollIntoView(); } }
+      const toolbar = document.querySelector('#page-alumni .family-toolbar');
+      if (toolbar) {
+        const header = document.querySelector('header');
+        const offset = header ? header.getBoundingClientRect().height + 12 : 12;
+        window.scrollTo({ top: Math.max(0, toolbar.getBoundingClientRect().top + window.scrollY - offset), behavior: 'auto' });
+      }
     }
 
     function renderAlumniPage() {
