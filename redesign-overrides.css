@@ -218,7 +218,7 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 @media(prefers-reduced-motion:reduce){#page-alumni .family-toolbar:before{animation:none;transform:scaleX(1)}#page-alumni #alumni-grid>.rd-scroll-card{opacity:1;transform:none;transition:none!important}}
 @media(max-width:639px){
   #page-alumni .family-intro-title{font-size:clamp(1.25rem,7.2vw,2.1rem);letter-spacing:.035em}
-  #page-alumni .family-intro-copy{font-size:clamp(.44rem,1.8vw,.7rem);letter-spacing:-.035em;transform:scaleX(.84);width:119%;margin-left:-9.5%}
+  #page-alumni .family-intro-copy{font-size:clamp(.68rem,2.6vw,.82rem);letter-spacing:-.01em;line-height:1.45;max-width:20rem;white-space:normal;transform:none;width:auto;margin:1rem auto 0}
 }
 #page-alumni .rd-dc-wa:hover,#page-alumni .rd-dc-call:hover{background:#e5f1ff!important;color:var(--rd-blue-700)!important}
 #page-alumni .rd-dc:nth-child(3n+1){animation-delay:.04s}
