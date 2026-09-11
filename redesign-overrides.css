@@ -14,7 +14,7 @@ html{scroll-behavior:smooth}
 body{background:#f5f9ff;color:var(--rd-ink)}
 ::selection{background:var(--rd-blue-700);color:#fff}
 .glass-nav{background:rgba(245,249,255,.93)!important;border-bottom-color:var(--rd-line)!important;box-shadow:0 12px 36px -28px rgba(7,31,73,.45)!important}
-.nav-accent{background:linear-gradient(110deg,#17232d 0%,#3b4b52 52%,#aa8a5a 100%)!important;box-shadow:0 10px 30px -18px rgba(23,35,45,.58)}
+.nav-accent{left:auto!important;right:-9%!important;width:39%!important;background:linear-gradient(110deg,rgba(219,234,254,.16),rgba(96,165,250,.34),rgba(30,64,175,.18))!important;box-shadow:0 10px 30px -18px rgba(37,99,235,.24);opacity:.62!important}
 .nav-accent:after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 28%,rgba(255,255,255,.16) 46%,transparent 62%);transform:translateX(-120%);animation:brandBandShine 10s cubic-bezier(.22,1,.36,1) infinite;pointer-events:none}
 .brand-logo{border-color:rgba(170,138,90,.46)!important;box-shadow:0 0 0 3px rgba(255,255,255,.78),0 12px 28px -18px rgba(23,35,45,.58)!important;animation:brandLogoFloat 6s ease-in-out infinite}
 .brand-name{color:#102b52!important;text-shadow:0 4px 16px rgba(16,43,82,.1)}
