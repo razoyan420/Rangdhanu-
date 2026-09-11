@@ -54,6 +54,8 @@ body{background:#f5f9ff;color:var(--rd-ink)}
 .nav-cta:hover{background:#111!important}
 .mobile-nav-item{border-bottom:1px solid var(--rd-line)!important;color:var(--rd-ink)!important;display:block;padding:.75rem .25rem!important;text-align:left;width:100%}
 .mobile-nav-item:hover,.mobile-nav-item.active{background:var(--rd-blue-50)!important;color:var(--rd-blue-700)!important}
+.glass-nav #mobile-member-btn,.glass-nav #mobile-menu-btn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;position:relative;z-index:20}
+.glass-nav #mobile-member-btn::before,.glass-nav #mobile-menu-btn::before{content:"";position:absolute;inset:0}
 #mobile-menu{background:rgba(247,251,255,.98)!important;border-color:var(--rd-line)!important}
 #mobile-menu{left:auto!important;right:.75rem!important;width:52vw!important;max-width:18rem!important;border-radius:.9rem!important;transform:translateY(0) scale(1);opacity:1;transition:opacity 1s ease,transform 1s cubic-bezier(.22,1,.36,1);overflow:hidden}
 #mobile-menu.rd-menu-opening{animation:rdMenuPanelIn .35s steps(6,end) both}
@@ -452,6 +454,7 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 
 /* Mobile menu: keep it in the layout so both opening and closing can animate. */
 @media (max-width:1023px){
+  .glass-nav #mobile-menu.hidden{display:none!important}
   .glass-nav #mobile-menu{display:block!important;max-height:0;opacity:0;overflow:hidden;pointer-events:none;transform:translateY(-.75rem);visibility:hidden;padding-top:0;padding-bottom:0;transition:max-height .38s cubic-bezier(.22,1,.36,1),opacity .22s ease,transform .38s cubic-bezier(.22,1,.36,1),padding .38s cubic-bezier(.22,1,.36,1),visibility 0s linear .38s}
   .glass-nav #mobile-menu:not(.hidden){max-height:calc(100dvh - 4.5rem);opacity:1;overflow-y:auto;pointer-events:auto;transform:translateY(0);visibility:visible;padding-top:.75rem;padding-bottom:1rem;transition:max-height .42s cubic-bezier(.22,1,.36,1),opacity .24s ease,transform .42s cubic-bezier(.22,1,.36,1),padding .42s cubic-bezier(.22,1,.36,1),visibility 0s linear 0s}
 }

@@ -1282,13 +1282,6 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
-      document.addEventListener('click', (event) => {
-        const menu = document.getElementById('mobile-menu');
-        const button = document.getElementById('mobile-menu-btn');
-        if (!menu || menu.classList.contains('hidden') || menu.contains(event.target) || button?.contains(event.target)) return;
-        closeMobileMenuAnimated();
-      });
-      window.addEventListener('scroll', closeMobileMenuAnimated, { passive: true });
       const startPage = getPageFromLocation(false);
       history.replaceState({page: startPage}, '', window.location.pathname + (startPage==='home'?'':`#${pageUrlId(startPage)}`));
       switchPage(startPage, false);
@@ -9927,7 +9920,8 @@ f.reset();
       renderAdmin();
     }
 
-    function toggleMobileMenu() {
+    function toggleMobileMenu(event) {
+      if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
       const m = document.getElementById("mobile-menu");
       if (m.classList.contains('hidden')) {
         window.clearTimeout(rdMobileMenuCloseTimer);
