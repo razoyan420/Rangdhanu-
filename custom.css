@@ -1978,16 +1978,16 @@
 .nav-cta{position:relative;display:inline-flex;align-items:center;gap:.5rem;
   padding:.6rem 1.05rem;border-radius:.6rem;font-size:.8rem;font-weight:700;
   letter-spacing:.005em;color:#fff;text-decoration:none;white-space:nowrap;
-  border:1px solid #000;cursor:pointer;
-  background:#000;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 1px 2px rgba(0,0,0,.35);
+  border:1px solid #005c55;cursor:pointer;
+  background:#01796f;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 1px 2px rgba(0,92,85,.35);
   transition:box-shadow .24s,transform .24s,filter .24s}
 .nav-cta>i,.nav-cta>svg{width:.95rem;height:.95rem;color:var(--mp-brass2)}
 .nav-cta::after{content:'';position:absolute;left:.75rem;right:.75rem;bottom:-1px;
   height:1px;opacity:0;transition:opacity .24s;
   background:linear-gradient(90deg,transparent,var(--mp-brass2),transparent)}
-.nav-cta:hover{transform:translateY(-1px);background:#111;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 7px 18px -7px rgba(0,0,0,.58)}
+.nav-cta:hover{transform:translateY(-1px);background:#006b61;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 7px 18px -7px rgba(0,92,85,.58)}
 .nav-cta:hover::after{opacity:1}
 .nav-cta:focus-visible{outline:2px solid var(--mp-brass2);outline-offset:2px}
 /* ---- the directory card, take two ------------------------------------- */
