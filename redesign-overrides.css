@@ -22,7 +22,7 @@ body{background:#f5f9ff;color:var(--rd-ink)}
 .brand-duet{color:#a74755!important;animation:brandDuetFlow 9s ease-in-out 1.4s infinite}
 .brand-tag{color:#58708f!important;animation:brandTagFlow 9s ease-in-out 2.2s infinite}
 .brand-lockup{position:relative}
-.brand-lockup:after{content:"";position:absolute;left:0;bottom:-.4rem;width:5.5rem;height:2px;background:linear-gradient(90deg,#aa8a5a,#6a7a80,transparent);transform-origin:left;animation:brandUnderline 5s ease-in-out infinite}
+.brand-lockup:after{display:none}
 .brand-lockup.brand-clicked .brand-logo{animation:brandClickBurst .8s cubic-bezier(.22,1,.36,1) both}
 .brand-lockup.brand-clicked .brand-name{animation:brandNameClick .8s cubic-bezier(.22,1,.36,1) both}
 .brand-letter{display:inline-block;transform-origin:50% 100%}
