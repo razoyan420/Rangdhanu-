@@ -56,7 +56,8 @@ body{background:#f5f9ff;color:var(--rd-ink)}
 .mobile-nav-item:hover,.mobile-nav-item.active{background:var(--rd-blue-50)!important;color:var(--rd-blue-700)!important}
 #mobile-menu{background:rgba(247,251,255,.98)!important;border-color:var(--rd-line)!important}
 #mobile-menu{left:auto!important;right:.75rem!important;width:52vw!important;max-width:18rem!important;transform:translateY(0) scale(1);opacity:1;transition:opacity 1s ease,transform 1s cubic-bezier(.22,1,.36,1)}
-#mobile-menu.rd-menu-closing{opacity:0;transform:translateY(-10px) scale(.97);pointer-events:none}
+#mobile-menu.rd-menu-opening{animation:rdMenuPanelIn 1s steps(7,end) both}
+#mobile-menu.rd-menu-closing{animation:rdMenuPanelOut 1s steps(7,end) both;pointer-events:none}
 #mobile-menu:not(.hidden)>*{opacity:0;animation:rdMenuItemIn .55s cubic-bezier(.22,1,.36,1) both}
 #mobile-menu.rd-menu-closing>*{animation:rdMenuItemOut .5s ease both}
 #mobile-menu:not(.hidden)>:nth-child(1){animation-delay:.05s}
@@ -81,8 +82,24 @@ body{background:#f5f9ff;color:var(--rd-ink)}
 #mobile-menu.rd-menu-closing>:nth-child(1){animation-delay:.495s}
 @keyframes rdMenuItemIn{from{opacity:0;transform:translateY(-9px)}to{opacity:1;transform:translateY(0)}}
 @keyframes rdMenuItemOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-9px)}}
+@keyframes rdMenuPanelIn{
+  0%{opacity:0;transform:translateY(-10px) scale(.97);clip-path:inset(0 0 100% 0)}
+  18%{opacity:.55;clip-path:inset(0 0 78% 0)}
+  36%{opacity:.78;clip-path:inset(0 0 54% 0)}
+  54%{opacity:.9;clip-path:inset(0 0 31% 0)}
+  72%{opacity:.96;clip-path:inset(0 0 12% 0)}
+  88%,100%{opacity:1;transform:translateY(0) scale(1);clip-path:inset(0)}
+}
+@keyframes rdMenuPanelOut{
+  0%{opacity:1;transform:translateY(0) scale(1);clip-path:inset(0)}
+  22%{opacity:.95;clip-path:inset(0 0 13% 0)}
+  44%{opacity:.82;clip-path:inset(0 0 34% 0)}
+  66%{opacity:.62;clip-path:inset(0 0 58% 0)}
+  84%{opacity:.35;clip-path:inset(0 0 81% 0)}
+  100%{opacity:0;transform:translateY(-10px) scale(.97);clip-path:inset(0 0 100% 0)}
+}
 @media(prefers-reduced-motion:reduce){
-  #mobile-menu:not(.hidden)>*,#mobile-menu.rd-menu-closing>*{animation:none!important;opacity:1!important;transform:none!important}
+  #mobile-menu.rd-menu-opening,#mobile-menu.rd-menu-closing,#mobile-menu:not(.hidden)>*,#mobile-menu.rd-menu-closing>*{animation:none!important;opacity:1!important;transform:none!important;clip-path:none!important}
 }
 #mobile-menu .nav-cta{border-radius:.85rem!important}
 .page-view.active{animation:none!important}

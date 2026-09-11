@@ -9931,8 +9931,11 @@ f.reset();
       const m = document.getElementById("mobile-menu");
       if (m.classList.contains('hidden')) {
         window.clearTimeout(rdMobileMenuCloseTimer);
+        window.clearTimeout(rdMobileMenuOpenTimer);
         m.classList.remove('rd-menu-closing');
         m.classList.remove('hidden');
+        m.classList.add('rd-menu-opening');
+        rdMobileMenuOpenTimer = window.setTimeout(() => m.classList.remove('rd-menu-opening'), 1050);
       } else {
         closeMobileMenuAnimated();
         return;
@@ -9940,9 +9943,12 @@ f.reset();
       syncMobileMenuButton();
     }
     let rdMobileMenuCloseTimer = 0;
+    let rdMobileMenuOpenTimer = 0;
     function closeMobileMenuAnimated() {
       const m = document.getElementById('mobile-menu');
       if (!m || m.classList.contains('hidden') || m.classList.contains('rd-menu-closing')) return;
+      window.clearTimeout(rdMobileMenuOpenTimer);
+      m.classList.remove('rd-menu-opening');
       m.classList.add('rd-menu-closing');
       syncMobileMenuButton();
       window.clearTimeout(rdMobileMenuCloseTimer);
