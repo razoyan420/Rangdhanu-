@@ -126,6 +126,7 @@
     const rdSubReturn = {};
     const rdSubFrom = {};
     let rdCurrentPageId = 'home';
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
     function openSubPage(pageId, backTo) {
       const parent = (RD_SUBPAGES[pageId] || {}).parent || 'home';
@@ -203,7 +204,7 @@
       const menu = document.getElementById('mobile-menu');
       if (menu && !menu.classList.contains('hidden')) { menu.classList.add('hidden'); syncMobileMenuButton(); }
       if (updateUrl) { const urlId = pageUrlId(pageId); history.pushState({page: pageId, scrollY: 0}, '', window.location.pathname + (pageId==='home'?'':`#${urlId}`)); }
-      window.scrollTo({ top: scrollY, behavior: restoreScroll ? 'auto' : 'smooth' });
+      window.scrollTo({ top: scrollY, behavior: 'auto' });
       try {
         if (pageId === 'events') loadPublicEvents();
         /* The directory is a whole page of its own; fetching it during boot
@@ -1785,7 +1786,7 @@
 
     function rdMpRuleMarkup(mp) {
       const inner = rdMpFact('Member ID', mp.memberId) +
-                    rdMpFact('Series', rdMpHas(mp.series) ? "'" + mp.series : '') +
+                    rdMpFact('Series', rdMpHas(mp.series) ? mp.series : '') +
                     rdMpFact('Department', mp.dept, 'is-word') +
                     rdMpFact('Batch', mp.batch) +
                     rdMpFact('Blood', mp.blood, 'is-blood');
@@ -1812,8 +1813,8 @@
          Save contact and Share. Saving your own number into your own phone
          book is the kind of button that makes a page feel unread. */
       const more = (st.own
-          ? '<button type="button" class="rd-mp-act2" onclick="rdMypTab(\'edit\')">' +
-              '<i data-lucide="pencil"></i> Edit profile</button>'
+            ? '<button type="button" class="rd-mp-act2" onclick="rdMypTab(\'edit\')">' +
+              '<i data-lucide="pencil"></i> Update profile</button>'
           : '<button type="button" class="rd-mp-act2" onclick="rdMpVcard()">' +
               '<i data-lucide="user-round-plus"></i> Save contact</button>') +
         '<button type="button" class="rd-mp-act2" onclick="rdMpShare(this)">' +

@@ -307,7 +307,7 @@
   <div class="page-view active" id="page-home">
     <div class="scroll-mt-28" id="top"></div>
     <!-- Cover -->
-    <section class="pt-5 md:pt-7 pb-3 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <section class="pt-0 pb-3 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
       <div class="relative w-full aspect-[16/10] sm:aspect-[21/9] md:h-[500px] rounded-[28px] overflow-hidden border border-slate-200 shadow-[0_24px_70px_-28px_rgba(15,23,42,.35)] bg-slate-900 group">
         <!-- Slides are rendered by renderCoverSlides(); the pictures come from the
              Google Drive folder configured in Drive_Images.gs, so photos can be
@@ -2291,13 +2291,13 @@
     <section class="py-6 sm:py-10 bg-slate-50 min-h-[70vh]">
       <div class="max-w-5xl mx-auto px-4">
 
+        <div id="myp-view" class="rd-mp-grid"></div>
+
         <div class="rd-mpx">
           <button type="button" id="myp-tab-view" class="rd-mpx-b" aria-current="page" onclick="rdMypTab('view')"><i data-lucide="id-card" class="w-4 h-4"></i> Profile</button>
-          <button type="button" id="myp-tab-edit" class="rd-mpx-b" onclick="rdMypTab('edit')"><i data-lucide="pencil-line" class="w-4 h-4"></i> Edit profile</button>
+          <button type="button" id="myp-tab-edit" class="rd-mpx-b" onclick="rdMypTab('edit')"><i data-lucide="pencil-line" class="w-4 h-4"></i> Update profile</button>
           <p class="rd-mpx-n">Profile is the page other members read. Edit is where you change it.</p>
         </div>
-
-        <div id="myp-view" class="rd-mp-grid"></div>
 
         <div id="myp-edit" class="max-w-2xl mx-auto space-y-4" hidden>
 
