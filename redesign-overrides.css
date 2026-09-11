@@ -151,12 +151,12 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 #page-register .rd-reg-panel:focus-visible{outline-color:rgba(36,121,223,.58)!important}
 #page-alumni .family-intro{text-align:center}
 #page-alumni .family-intro-kicker{color:var(--rd-blue-600);font-family:'Plus Jakarta Sans',sans-serif;font-size:.65rem;font-weight:800;letter-spacing:.2em;margin:0 0 .65rem;text-transform:uppercase}
-#page-alumni .family-intro-title{color:var(--rd-blue-950);font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;font-size:clamp(2.1rem,5vw,4rem);font-weight:800;letter-spacing:.08em;line-height:1;margin:0;text-transform:uppercase;animation:familyTitleIn .8s cubic-bezier(.22,1,.36,1) both}
+#page-alumni .family-intro-title{color:var(--rd-blue-950);font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif;font-size:clamp(1.65rem,5vw,3.7rem);font-weight:800;letter-spacing:.08em;line-height:1;margin:0;text-transform:uppercase;white-space:nowrap;animation:familyTitleIn .8s cubic-bezier(.22,1,.36,1) both}
 #page-alumni .family-intro-title>span{color:var(--rd-blue-700);animation:familyBrandPulse 9s ease-in-out 1.2s infinite}
 #page-alumni .family-intro-title b{color:var(--rd-blue-950);font-weight:800;animation:familyWordPulse 9s ease-in-out 1.7s infinite}
 #page-alumni .family-intro-title{cursor:pointer;outline:none}
 #page-alumni .family-intro-title:focus-visible{outline:3px solid rgba(62,145,237,.35);outline-offset:8px;border-radius:.3rem}
-#page-alumni .family-intro-copy{color:var(--muted);font-size:.92rem;line-height:1.7;margin:1rem auto 0;max-width:42rem;position:relative}
+#page-alumni .family-intro-copy{color:var(--muted);font-size:clamp(.58rem,1.25vw,.92rem);letter-spacing:-.01em;line-height:1.7;margin:1rem auto 0;max-width:none;position:relative;white-space:nowrap}
 #page-alumni .family-intro-copy:after{background:linear-gradient(90deg,transparent,var(--rd-blue-500),transparent);bottom:-1.35rem;content:"";height:2px;left:20%;position:absolute;right:20%}
 @keyframes familyTitleIn{from{opacity:0;letter-spacing:.18em;transform:translateY(12px)}to{opacity:1;letter-spacing:.08em;transform:translateY(0)}}
 @keyframes familyBrandPulse{0%,100%{color:var(--rd-blue-700);text-shadow:0 0 0 rgba(62,145,237,0)}28%{color:#4338ca;text-shadow:0 8px 28px rgba(67,56,202,.2)}55%{color:var(--rd-blue-500);text-shadow:0 4px 18px rgba(62,145,237,.24)}78%{color:#0f766e;text-shadow:0 8px 28px rgba(15,118,110,.18)}}
@@ -216,6 +216,10 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 @keyframes familyToolbarRail{to{transform:scaleX(1)}}
 @media(max-width:640px){#page-alumni .family-toolbar{border-radius:1rem;padding:.85rem}#page-alumni .family-toolbar-foot{align-items:flex-start;display:block}#page-alumni .family-toolbar-actions{justify-content:flex-start;margin-top:.75rem}#page-alumni .family-profile-note{flex-basis:100%;line-height:1.45}}
 @media(prefers-reduced-motion:reduce){#page-alumni .family-toolbar:before{animation:none;transform:scaleX(1)}#page-alumni #alumni-grid>.rd-scroll-card{opacity:1;transform:none;transition:none!important}}
+@media(max-width:639px){
+  #page-alumni .family-intro-title{font-size:clamp(1.25rem,7.2vw,2.1rem);letter-spacing:.035em}
+  #page-alumni .family-intro-copy{font-size:clamp(.44rem,1.8vw,.7rem);letter-spacing:-.035em;transform:scaleX(.84);width:119%;margin-left:-9.5%}
+}
 #page-alumni .rd-dc-wa:hover,#page-alumni .rd-dc-call:hover{background:#e5f1ff!important;color:var(--rd-blue-700)!important}
 #page-alumni .rd-dc:nth-child(3n+1){animation-delay:.04s}
 #page-alumni .rd-dc:nth-child(3n+2){animation-delay:.1s}
