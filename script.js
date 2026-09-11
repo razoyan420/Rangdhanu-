@@ -9929,7 +9929,14 @@ f.reset();
 
     function toggleMobileMenu() {
       const m = document.getElementById("mobile-menu");
-      m.classList.toggle("hidden");
+      if (m.classList.contains('hidden')) {
+        window.clearTimeout(rdMobileMenuCloseTimer);
+        m.classList.remove('rd-menu-closing');
+        m.classList.remove('hidden');
+      } else {
+        closeMobileMenuAnimated();
+        return;
+      }
       syncMobileMenuButton();
     }
     let rdMobileMenuCloseTimer = 0;
@@ -9943,7 +9950,7 @@ f.reset();
         m.classList.add('hidden');
         m.classList.remove('rd-menu-closing');
         syncMobileMenuButton();
-      }, 220);
+      }, 480);
     }
     function syncMobileMenuButton() {
       const m = document.getElementById("mobile-menu"), b = document.getElementById("mobile-menu-btn");
