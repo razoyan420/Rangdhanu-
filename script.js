@@ -1282,6 +1282,13 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
+      document.addEventListener('click', (event) => {
+        const menu = document.getElementById('mobile-menu');
+        const button = document.getElementById('mobile-menu-btn');
+        if (!menu || menu.classList.contains('hidden') || menu.contains(event.target) || button?.contains(event.target)) return;
+        menu.classList.add('hidden');
+        syncMobileMenuButton();
+      });
       const startPage = getPageFromLocation(false);
       history.replaceState({page: startPage}, '', window.location.pathname + (startPage==='home'?'':`#${pageUrlId(startPage)}`));
       switchPage(startPage, false);
