@@ -151,6 +151,17 @@
       switchPage(back);
     }
 
+    function pageUrlId(pageId) {
+      const publicIds = {
+        alumni: 'family',
+        prokoushali: 'pdacc',
+        'member-signin': 'signin',
+        noticeboard: 'notice',
+        notice: 'status'
+      };
+      return publicIds[pageId] || pageId;
+    }
+
     function switchPage(pageId, updateUrl = true) {
       document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
       const tgt = document.getElementById(`page-${pageId}`);
@@ -160,7 +171,7 @@
       document.querySelectorAll('.nav-btn, .mobile-nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === navId));
       const menu = document.getElementById('mobile-menu');
       if (menu && !menu.classList.contains('hidden')) { menu.classList.add('hidden'); syncMobileMenuButton(); }
-      if (updateUrl) history.pushState({page: pageId}, '', window.location.pathname + (pageId==='home'?'':`#${pageId}`));
+      if (updateUrl) { const urlId = pageUrlId(pageId); history.pushState({page: pageId}, '', window.location.pathname + (pageId==='home'?'':`#${urlId}`)); }
       window.scrollTo({ top: 0, behavior: 'smooth' });
       try {
         if (pageId === 'events') loadPublicEvents();
@@ -186,7 +197,10 @@
     }
 
     function getPageFromLocation(allowSubPages = true) {
-      const page = window.location.hash.replace('#','').trim();
+      const rawPage = window.location.hash.replace('#','').trim();
+      const aliases = { family: 'alumni', pdacc: 'prokoushali', signin: 'member-signin', notice: 'noticeboard', status: 'notice' };
+      const page = aliases[rawPage] || rawPage;
+      if (aliases[rawPage]) history.replaceState({page: page}, '', window.location.pathname + `#${pageUrlId(page)}`);
       if (!page || !document.getElementById(`page-${page}`)) return 'home';
       const sub = RD_SUBPAGES[page];
       if (!allowSubPages && sub && sub.needsData) return sub.parent;
@@ -1223,7 +1237,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
       const startPage = getPageFromLocation(false);
-      history.replaceState({page: startPage}, '', window.location.pathname + (startPage==='home'?'':`#${startPage}`));
+      history.replaceState({page: startPage}, '', window.location.pathname + (startPage==='home'?'':`#${pageUrlId(startPage)}`));
       switchPage(startPage, false);
       /* The head script's stop-gap rule has done its job; drop it so it cannot
          override an ordinary page change later on. */
@@ -2339,9 +2353,16 @@
        would never fire -- which is why these are two elements. */
     function renderAlumniCard(a) {
       const desig = rdMpReal(a.desig), org = rdMpReal(a.org);
-      const plate = [a.series ? "'" + a.series : '', rdMpReal(a.dept),
+      const plate = [rdMpReal(a.dept), a.series ? 'Series ' + a.series : '',
                      a.batch ? 'Batch ' + a.batch : ''].filter(rdMpHas).join('  ·  ');
-      let body = (desig ? '<p class="rd-dc-role">' + escapeHtml(desig) + '</p>' : '') +
+      const formerPosition = rdMpReal(a.former_pos || a.formerPosition || a.formerPositionAtRangdhanu);
+      const employment = rdMpReal(a.emp_type || a.employmentType);
+      const location = rdMpReal(a.loc || a.location);
+      const fallback = formerPosition ?
+        '<p class="rd-dc-role">Former position: ' + escapeHtml(formerPosition) + '</p>' :
+        employment ? '<p class="rd-dc-org">Employment: ' + escapeHtml(employment) + '</p>' :
+        location ? '<p class="rd-dc-org">Location: ' + escapeHtml(location) + '</p>' : '';
+      let body = (desig ? '<p class="rd-dc-role">' + escapeHtml(desig) + '</p>' : fallback) +
                  (org ? '<p class="rd-dc-org">' + escapeHtml(org) + '</p>' : '');
       /* The newest post the member holds, and a count of the rest. A member
          with four terms gets one line and "+3 more", not four lines that push
@@ -2355,7 +2376,7 @@
             escapeHtml(rdMpBodyOf(p.body).short) + '</span></span>' +
           (posts.length > 1 ? '<span class="rd-dc-more">+' + (posts.length - 1) + ' more</span>' : '');
       }
-      return '<div class="alumni-card rd-dcw">' +
+      return '<div class="alumni-card rd-dcw rd-scroll-card">' +
         '<article class="rd-dc' + rdMpStatusClass(a.status) + '">' +
           '<div class="rd-dc-plate">' +
             '<span class="rd-dc-pid">' + escapeHtml(plate || 'DUET') + '</span>' +
@@ -2368,6 +2389,24 @@
           (body ? '<div class="rd-dc-body">' + body + '</div>' : '') +
           '<div class="rd-dc-foot">' + rdDcSeg(a) + '</div>' +
         '</article></div>';
+    }
+
+    function familyTitleDance(element) {
+      if (!element) return;
+      element.querySelectorAll('.family-title-word').forEach(function (word) {
+        if (word.querySelector('.family-letter')) return;
+        const text = word.textContent || '';
+        word.textContent = '';
+        Array.from(text).forEach(function (character) {
+          const letter = document.createElement('span');
+          letter.className = 'family-letter';
+          letter.textContent = character;
+          word.appendChild(letter);
+        });
+      });
+      element.classList.remove('family-title-dance');
+      void element.offsetWidth;
+      element.classList.add('family-title-dance');
     }
 
     function renderAlumni(data) {
@@ -2413,9 +2452,30 @@
                <p class="font-semibold">No member matches these filters.</p>
              </div>`;
       }
+      observeAlumniCards(grid);
       renderAlumniPager(last);
       rdPhotoSweep(grid);
       lucide.createIcons();
+    }
+
+    function observeAlumniCards(grid) {
+      if (!grid) return;
+      const cards = grid.querySelectorAll('.rd-scroll-card');
+      if (!cards.length) return;
+      if (!('IntersectionObserver' in window)) {
+        cards.forEach(card => card.classList.add('is-visible'));
+        return;
+      }
+      const observer = new IntersectionObserver((entries, current) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const card = entry.target;
+          card.style.setProperty('--rd-scroll-delay', `${Array.from(cards).indexOf(card) * 55}ms`);
+          card.classList.add('is-visible');
+          current.unobserve(card);
+        });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+      cards.forEach(card => observer.observe(card));
     }
 
     /* 1 2 3 … next — with ellipses so a long list never overflows on a phone. */

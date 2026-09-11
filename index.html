@@ -61,7 +61,8 @@
     var id = (location.hash || '').replace('#', '').trim();
     if (!id || id === 'home' || !/^[a-z0-9-]+$/.test(id)) return;
     var LANDS_ON = {"notice":"home","event-detail":"events","profile":"alumni","photo":"home","notice-file":"noticeboard","ec-message":"committee","pdacc-updates":"prokoushali"};
-    var target = LANDS_ON[id] || id;
+    var aliases = {family:'alumni', pdacc:'prokoushali', signin:'member-signin', notice:'noticeboard', status:'notice'};
+    var target = LANDS_ON[id] || aliases[id] || id;
     if (target === 'home') return;
     var s = document.createElement('style');
     s.id = 'rd-boot-page';
@@ -181,7 +182,7 @@
      the inline <style> below already declares it from jsdelivr, and the
      fonts.maateen.me stylesheet that used to sit on this line was the same
      font from a second, slower host. -->
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400..800&family=Plus+Jakarta+Sans:wght@400..800&family=Space+Grotesk:wght@600..700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400..800&family=Noto+Serif+Bengali:wght@500..800&family=Plus+Jakarta+Sans:wght@400..800&family=Space+Grotesk:wght@600..700&display=swap" rel="stylesheet"/>
 
 <!-- Start the DNS + TLS handshakes for the hosts the first screen needs
      while this HTML is still being parsed, instead of one after another
@@ -197,6 +198,7 @@
      নতুন class যোগ করলে এই কমান্ড আবার চালাতে হবে — CDN আগে নিজে করত। -->
 <link rel="stylesheet" href="style.css"/>
 <link rel="stylesheet" href="custom.css"/>
+<link rel="stylesheet" href="redesign-overrides.css"/>
 <script>
   /* style.css fallback: prebuilt sheet না এলে বা পুরনো হলে CDN ফিরিয়ে আনে।
      document.write এখানেই সঠিক — এই path শুধু তখনই চলে যখন পেজ ইতিমধ্যে
@@ -260,13 +262,12 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center gap-1">
       <button class="nav-btn premium-nav-item active" data-page="home" onclick="switchPage('home')"><span>Home</span></button>
       <button class="nav-btn premium-nav-item" data-page="reunion" onclick="switchPage('reunion')"><span>Reunion</span></button>
-      <button class="nav-btn premium-nav-item" data-page="alumni" onclick="switchPage('alumni')"><span>Rangdhanu Family</span></button>
+      <button class="nav-btn premium-nav-item" data-page="alumni" onclick="switchPage('alumni')"><span>Family</span></button>
       <button class="nav-btn premium-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')"><span>PDACC</span></button>
       <button class="nav-btn premium-nav-item" data-page="events" onclick="switchPage('events')"><span>Events</span></button>
       <button class="nav-btn premium-nav-item" data-page="committee" onclick="switchPage('committee')"><span>Committee</span></button>
       <button class="nav-btn premium-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')"><span>Notice</span></button>
-      <button class="nav-btn premium-nav-item" data-page="cgpa" onclick="switchPage('cgpa')"><span>CGPA</span></button>
-      <span class="ml-auto inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-slate-500">DUET, Gazipur</span>
+      <button class="nav-btn premium-nav-item" data-page="cgpa" onclick="switchPage('cgpa')"><span>CGPA Calculator</span></button>
       <button id="nav-member-btn" type="button" class="nav-btn premium-nav-item" data-page="my-profile" onclick="rdMemberNavClick()"><span id="nav-member-text">Sign In</span></button>
       <button class="nav-cta ml-3" onclick="switchPage('register')"><i class="w-4 h-4" data-lucide="user-plus"></i>Membership Application</button>
     </div>
@@ -274,12 +275,12 @@
   <!-- Mobile menu -->
   <div class="hidden xl:hidden absolute left-0 right-0 top-full w-full bg-white border-t border-slate-200 px-4 sm:px-6 lg:px-8 pt-3 pb-4 space-y-1 font-semibold text-base shadow-2xl" id="mobile-menu">
     <button class="mobile-nav-item" data-page="home" onclick="switchPage('home')">Home</button>
-    <button class="mobile-nav-item" data-page="reunion" onclick="switchPage('reunion')">Rangdhanu Reunion</button>
-    <button class="mobile-nav-item" data-page="alumni" onclick="switchPage('alumni')">Rangdhanu Family</button>
+    <button class="mobile-nav-item" data-page="reunion" onclick="switchPage('reunion')">Reunion</button>
+    <button class="mobile-nav-item" data-page="alumni" onclick="switchPage('alumni')">Family</button>
     <button class="mobile-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')">PDACC</button>
     <button class="mobile-nav-item" data-page="events" onclick="switchPage('events')">Events</button>
-    <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')">Executive Committee</button>
-    <button class="mobile-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')">Notice Board</button>
+    <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')">Committee</button>
+    <button class="mobile-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')">Notice</button>
     <button class="mobile-nav-item" data-page="cgpa" onclick="switchPage('cgpa')">CGPA Calculator</button>
     <button id="mobile-member-item" type="button" class="mobile-nav-item" data-page="my-profile" onclick="rdMemberNavClick()">Sign In</button>
     <button class="w-full mt-3 py-3 rounded-xl text-white font-extrabold inline-flex items-center justify-center gap-2" style="background:#0ea5e9;box-shadow:0 10px 26px -10px rgba(14,165,233,.7);" onclick="switchPage('register')"><i class="w-5 h-5" data-lucide="user-plus"></i>Membership Application</button>
@@ -1726,13 +1727,14 @@
   <div class="page-view" id="page-alumni">
     <section class="py-14 bg-slate-50 border-t border-slate-200 relative z-10 min-h-[70vh]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-2xl mx-auto mb-10">
-          <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Rangdhanu Family</h2>
-          <p class="mt-3 text-slate-500 text-sm sm:text-base leading-relaxed">Current students and alumni of the Association, and the teachers and officers of greater Rangpur at DUET.</p>
+        <div class="family-intro max-w-3xl mx-auto mb-10">
+          <p class="family-intro-kicker">RANGDHANU / COMMUNITY DIRECTORY</p>
+          <h2 class="family-intro-title" role="button" tabindex="0" onclick="familyTitleDance(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();familyTitleDance(this)}"><span class="family-title-word">RANGDHANU</span> <b class="family-title-word">FAMILY</b></h2>
+          <p class="family-intro-copy">Current students and alumni of the Association, and the teachers and officers of greater Rangpur at DUET.</p>
         </div>
         
-        <div class="bg-white p-5 sm:p-6 rounded-3xl max-w-5xl mx-auto mb-10 border border-slate-200 shadow-sm">
-          <div class="space-y-4">
+        <div class="family-toolbar max-w-6xl mx-auto mb-10">
+          <div class="family-filter-fields">
             <div class="relative">
               <i class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" data-lucide="search"></i>
               <input class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" id="alumni-search-input" onkeyup="filterAlumni()" placeholder="Search by name, company, designation, district or series..." type="text"/>
@@ -1754,21 +1756,21 @@
               </select>
             </div>
           </div>
-          <div class="flex flex-wrap gap-2 pt-4 mt-4 border-t border-slate-100" id="alumni-view-tabs" role="group" aria-label="Directory filter">
+          <div class="family-view-tabs flex flex-wrap gap-2 pt-4 mt-4 border-t border-slate-100" id="alumni-view-tabs" role="group" aria-label="Directory filter">
             <button type="button" class="alumni-view-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-blue-600 text-white border-blue-600 transition" data-view="ALL" onclick="setAlumniViewFilter('ALL')">Everyone</button>
             <button type="button" class="alumni-view-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-600 border-slate-200 hover:border-blue-300 transition" data-view="Alumni" onclick="setAlumniViewFilter('Alumni')"><span class="inline-flex items-center gap-1.5"><i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> Alumni</span></button>
             <button type="button" class="alumni-view-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-600 border-slate-200 hover:border-blue-300 transition" data-view="Running Member" onclick="setAlumniViewFilter('Running Member')"><span class="inline-flex items-center gap-1.5"><i data-lucide="backpack" class="w-3.5 h-3.5"></i> Running Member</span></button>
           </div>
           <div class="flex flex-wrap gap-2 pt-4 mt-4 border-t border-slate-100" id="alumni-committee-links">
-            <button type="button" id="alumni-btn-fac" onclick="openSubPage('family-faculty','alumni')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs sm:text-sm font-extrabold hover:bg-indigo-700 transition cursor-pointer">
-              <i data-lucide="users-round" class="w-4 h-4"></i> Teachers and Officers at DUET
+            <button type="button" id="alumni-btn-fac" onclick="openSubPage('family-faculty','alumni')" class="alumni-view-tab-btn family-teacher-btn inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-700 border-slate-200 hover:border-blue-300 transition cursor-pointer">
+              <i data-lucide="users-round" class="w-3.5 h-3.5"></i> Teachers and Officers
             </button>
           </div>
-          <div id="alumni-member-bar" class="pt-4 mt-4 border-t border-slate-100 text-xs sm:text-sm text-slate-500 font-medium"></div>
-          <div class="flex flex-wrap justify-between items-center gap-3 pt-4 mt-4 border-t border-slate-100 text-xs sm:text-sm text-slate-500 font-medium">
+          <div class="family-toolbar-foot">
             <span id="alumni-count-text">Loading directory...</span>
-            <div class="flex items-center gap-4">
-              <button class="text-blue-600 font-bold hover:underline flex items-center gap-1 cursor-pointer" onclick="openUpdateInfoModal()"><i class="w-3.5 h-3.5" data-lucide="user-cog"></i> Update your information</button>
+            <div class="family-toolbar-actions">
+              <span class="family-profile-note"><i class="w-3.5 h-3.5" data-lucide="user-round-cog"></i> Update information from My Profile after signing in.</span>
+              <button class="family-profile-link" onclick="switchPage('my-profile')">Open My Profile <i class="w-3.5 h-3.5" data-lucide="arrow-up-right"></i></button>
               <button class="text-blue-600 font-bold hover:underline flex items-center gap-1 cursor-pointer" onclick="resetAlumniFilters()"><i class="w-3.5 h-3.5" data-lucide="rotate-ccw"></i> Reset filters</button>
             </div>
           </div>
