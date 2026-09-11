@@ -196,3 +196,33 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 @media(max-width:767px){.nav-strip{display:none}.brand-tag{max-width:13rem}.rd-dc:hover,.rd-mp-card:hover{transform:none}.card-pro:hover,.rd-tile:hover{transform:translateY(-2px)}}
 @media(max-width:767px){#page-alumni .rd-dc:hover{transform:translateY(-3px)!important}#page-alumni .rd-dc:after{display:none}}
 @media(prefers-reduced-motion:reduce){.page-view.active{animation:none}.card-pro,.rd-tile,.rd-pd-card,.rd-dc,.rd-mp-card{transition:none!important}#page-alumni .rd-dc:after{display:none}#page-alumni .rd-dc:hover{transform:none!important}#page-alumni .rd-dc-face{transition:none!important}}
+
+/* The faculty directory uses the same card component as the member directory. */
+#page-family-faculty .rd-dc{background:linear-gradient(180deg,#fff 0%,#fff 72%,var(--rd-blue-50) 100%)!important;border:1px solid rgba(23,105,209,.16)!important;border-radius:1rem!important;box-shadow:0 10px 28px -20px rgba(7,31,73,.52)!important;overflow:hidden;transform:translateZ(0)}
+#page-family-faculty .rd-dc:after{background:linear-gradient(110deg,transparent 25%,rgba(255,255,255,.42) 48%,transparent 70%);content:"";inset:0;opacity:0;pointer-events:none;position:absolute;transform:translateX(-110%);transition:opacity .3s ease,transform .65s ease}
+#page-family-faculty .rd-dc:hover{border-color:rgba(36,121,223,.54)!important;box-shadow:0 26px 48px -24px rgba(23,105,209,.48)!important;transform:translateY(-7px) rotateX(1deg)!important}
+#page-family-faculty .rd-dc:hover:after{opacity:1;transform:translateX(110%)}
+#page-family-faculty .rd-dc-plate{background:linear-gradient(110deg,var(--rd-blue-800),var(--rd-blue-600) 58%,var(--rd-blue-500))!important;border-bottom:2px solid var(--rd-blue-100)!important}
+#page-family-faculty .rd-dc-pid,#page-family-faculty .rd-dc-pst,#page-family-faculty .rd-dc-pst i,#page-family-faculty .rd-dc-pst svg{color:#fff!important}
+#page-family-faculty .rd-dc-pst{letter-spacing:.1em!important}
+#page-family-faculty .rd-dc-face{background:var(--rd-blue-50)!important;border:2px solid rgba(36,121,223,.28)!important;border-radius:50%!important;box-shadow:0 0 0 4px rgba(220,238,255,.72),0 12px 22px -16px rgba(23,105,209,.72)!important;transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s ease!important}
+#page-family-faculty .rd-dc:hover .rd-dc-face{box-shadow:0 0 0 5px rgba(220,238,255,.9),0 14px 24px -12px rgba(23,105,209,.62)!important;transform:scale(1.06) rotate(-3deg)}
+#page-family-faculty .rd-dc-mono{background:linear-gradient(145deg,#f1f7ff,#dceeff)!important;color:var(--rd-blue-800)!important}
+#page-family-faculty .rd-dc-name{color:var(--rd-blue-950)!important;font-family:'Plus Jakarta Sans','Noto Sans Bengali',sans-serif!important;font-weight:800!important}
+#page-family-faculty .rd-dc-role{color:var(--rd-blue-950)!important}
+#page-family-faculty .rd-dc-org,#page-family-faculty .rd-dc-posty{color:var(--rd-blue-700)!important}
+#page-family-faculty .rd-dc-post{background:var(--rd-blue-50)!important;border-color:rgba(36,121,223,.2)!important}
+#page-family-faculty .rd-dc-postv{color:var(--rd-blue-950)!important}
+#page-family-faculty .rd-dc-seg{background:rgba(241,247,255,.78)!important;border-color:rgba(36,121,223,.2)!important}
+#page-family-faculty .rd-dc-seg>*{border-color:rgba(36,121,223,.18)!important;color:var(--rd-blue-800)!important}
+#page-family-faculty .rd-dc-seg:before{background:var(--rd-blue-500)!important}
+#page-family-faculty .rd-dc-open:before{background:linear-gradient(90deg,#eaf3ff,var(--rd-blue-100))!important}
+#page-family-faculty .rd-dc:hover .rd-dc-open,#page-family-faculty .rd-dc-open:hover,#page-family-faculty .rd-dc-open:focus-visible{background:transparent!important;color:var(--rd-blue-800)!important}
+#page-family-faculty .rd-dc-open .rd-dc-arw{color:var(--rd-blue-700)!important}
+#page-family-faculty .rd-dc-call:hover{background:#e5f1ff!important;color:var(--rd-blue-700)!important}
+#page-family-faculty .rd-dc-flat{color:var(--rd-blue-800)!important}
+#page-family-faculty .faculty-kind-btn{border-color:rgba(23,105,209,.18)!important;color:var(--rd-blue-800)!important;background:#fff!important}
+#page-family-faculty .faculty-kind-btn:hover{background:var(--rd-blue-50)!important;border-color:var(--rd-blue-500)!important}
+#page-family-faculty .faculty-kind-btn.bg-indigo-600{background:linear-gradient(110deg,var(--rd-blue-800),var(--rd-blue-600))!important;color:#fff!important;border-color:var(--rd-blue-700)!important}
+@media(max-width:767px){#page-family-faculty .rd-dc:hover{transform:translateY(-3px)!important}#page-family-faculty .rd-dc:after{display:none}}
+@media(prefers-reduced-motion:reduce){#page-family-faculty .rd-dc:after{display:none}#page-family-faculty .rd-dc:hover{transform:none!important}#page-family-faculty .rd-dc-face{transition:none!important}}
