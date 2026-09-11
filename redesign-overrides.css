@@ -255,10 +255,10 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   .glass-nav #mobile-member-btn,.glass-nav #mobile-menu-btn{padding:.65rem}
 }
 
-/* Desktop brand lockup sits on the far right above the navigation strip. */
+/* Desktop brand lockup stays left above the navigation strip. */
 @media (min-width:1024px){
-  .glass-nav>.relative:first-child>.max-w-7xl{justify-content:flex-end;min-height:5.5rem}
-  .glass-nav>.relative:first-child>.max-w-7xl>.group{margin-left:auto;order:2}
+  .glass-nav>.relative:first-child>.max-w-7xl{justify-content:flex-start;min-height:5.5rem}
+  .glass-nav>.relative:first-child>.max-w-7xl>.group{margin-left:0;order:0}
   .glass-nav>.relative:first-child>.max-w-7xl>.group .brand-logo{width:3.55rem;height:3.55rem}
   .glass-nav>.relative:first-child>.max-w-7xl>.group .brand-name{font-size:1.35rem;letter-spacing:.045em}
   .glass-nav>.relative:first-child>.max-w-7xl>.group .brand-tag{font-size:.62rem;letter-spacing:.04em}
