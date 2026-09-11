@@ -198,7 +198,7 @@
      নতুন class যোগ করলে এই কমান্ড আবার চালাতে হবে — CDN আগে নিজে করত। -->
 <link rel="stylesheet" href="style.css"/>
 <link rel="stylesheet" href="custom.css"/>
-<link rel="stylesheet" href="redesign-overrides.css?v=20260911-11"/>
+<link rel="stylesheet" href="redesign-overrides.css?v=20260911-12"/>
 <script>
   /* style.css fallback: prebuilt sheet না এলে বা পুরনো হলে CDN ফিরিয়ে আনে।
      document.write এখানেই সঠিক — এই path শুধু তখনই চলে যখন পেজ ইতিমধ্যে
@@ -504,17 +504,17 @@
         <!-- The page's own little nav. The crest on the left, and the three
              buttons that actually go somewhere on the right. The rest of the
              page is found by scrolling, so it needs no button here. -->
-        <nav id="pdacc-nav" class="rd-pd-nav z-30 mb-5 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur-md shadow-sm px-3 sm:px-5 py-3 flex flex-wrap items-center gap-2 sm:gap-3">
-          <span class="flex items-center gap-2.5 min-w-0 mr-auto">
+        <nav id="pdacc-nav" class="rd-pd-nav z-30 mb-5 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur-md shadow-sm px-3 sm:px-5 py-3">
+          <div class="rd-pd-head"><span class="rd-pd-brand flex items-center gap-2.5 min-w-0">
             <span class="rd-pd-crest"><img id="pdacc-nav-logo" src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
             <span class="min-w-0">
               <strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PDACC</strong>
               <span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার</span>
             </span>
-          </span>
-          <button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PDACC Home</button>
+          </span><button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PDACC Home</button></div>
+          <div class="rd-pd-tabs">
           <button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-navbtn is-key">Admission guide</button>
-          <button type="button" onclick="openPdaccUpdates()" class="rd-pd-navbtn">All updates</button>
+          <button type="button" onclick="openPdaccUpdates()" class="rd-pd-navbtn">All updates</button></div>
         </nav>
         <!-- The figure PDACC prints about itself: 27 years. The owner's decision
              on 2026-09-04 is that it stays, because the books and the banners
@@ -723,14 +723,15 @@
   
   <!-- ================= SUB-PAGE: PDACC UPDATES ================= -->
   <div class="page-view" id="page-pdacc-updates">
-    <div class="subpage-bar">
-      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-        <button type="button" onclick="goBackFromSubPage('pdacc-updates')" class="subpage-back"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
-        <span class="text-sm font-bold text-slate-500 truncate min-w-0">PDACC</span>
-      </div>
-    </div>
     <section class="py-10 sm:py-14 bg-[#f8fafc] min-h-[75vh]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav id="pdacc-nav-updates" class="rd-pd-nav z-30 mb-8 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur-md shadow-sm px-3 sm:px-5 py-3">
+          <div class="rd-pd-head"><span class="rd-pd-brand flex items-center gap-2.5 min-w-0">
+            <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+            <span class="min-w-0"><strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PDACC</strong><span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার</span></span>
+          </span><button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PDACC Home</button></div>
+          <div class="rd-pd-tabs"><button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-navbtn">Admission guide</button><span class="rd-pd-navbtn is-key is-here" aria-current="page">All updates</span></div>
+        </nav>
         <div class="text-center max-w-2xl mx-auto mb-9">
           <div class="flex justify-center mb-4"><span class="rd-pd-crest is-big shadow-sm"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span></div>
           <span class="inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold uppercase tracking-widest"><i class="w-3.5 h-3.5" data-lucide="newspaper"></i> Latest update</span>
@@ -749,17 +750,18 @@
          back, and every button on it except this page's own returns to
          the PDACC page. -->
     <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
-        <nav id="pdacc-nav-sub" class="rd-pd-nav z-30 mb-6 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur-md shadow-sm px-3 sm:px-5 py-3 flex flex-wrap items-center gap-2 sm:gap-3">
-          <span class="flex items-center gap-2.5 min-w-0 mr-auto">
+        <nav id="pdacc-nav-sub" class="rd-pd-nav z-30 mb-6 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur-md shadow-sm px-3 sm:px-5 py-3">
+          <div class="rd-pd-head"><span class="rd-pd-brand flex items-center gap-2.5 min-w-0">
             <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
             <span class="min-w-0">
               <strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PDACC</strong>
               <span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার</span>
             </span>
           </span>
-          <button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PDACC Home</button>
+          </span><button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PDACC Home</button></div>
+          <div class="rd-pd-tabs">
           <span class="rd-pd-navbtn is-key is-here" aria-current="page">Admission guide</span>
-          <button type="button" onclick="openPdaccUpdates()" class="rd-pd-navbtn">All updates</button>
+          <button type="button" onclick="openPdaccUpdates()" class="rd-pd-navbtn">All updates</button></div>
         </nav>
     </div>
     <div class="rd-ad">
