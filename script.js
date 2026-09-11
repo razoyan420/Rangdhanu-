@@ -1286,9 +1286,9 @@
         const menu = document.getElementById('mobile-menu');
         const button = document.getElementById('mobile-menu-btn');
         if (!menu || menu.classList.contains('hidden') || menu.contains(event.target) || button?.contains(event.target)) return;
-        menu.classList.add('hidden');
-        syncMobileMenuButton();
+        closeMobileMenuAnimated();
       });
+      window.addEventListener('scroll', closeMobileMenuAnimated, { passive: true });
       const startPage = getPageFromLocation(false);
       history.replaceState({page: startPage}, '', window.location.pathname + (startPage==='home'?'':`#${pageUrlId(startPage)}`));
       switchPage(startPage, false);
@@ -9931,6 +9931,19 @@ f.reset();
       const m = document.getElementById("mobile-menu");
       m.classList.toggle("hidden");
       syncMobileMenuButton();
+    }
+    let rdMobileMenuCloseTimer = 0;
+    function closeMobileMenuAnimated() {
+      const m = document.getElementById('mobile-menu');
+      if (!m || m.classList.contains('hidden') || m.classList.contains('rd-menu-closing')) return;
+      m.classList.add('rd-menu-closing');
+      syncMobileMenuButton();
+      window.clearTimeout(rdMobileMenuCloseTimer);
+      rdMobileMenuCloseTimer = window.setTimeout(() => {
+        m.classList.add('hidden');
+        m.classList.remove('rd-menu-closing');
+        syncMobileMenuButton();
+      }, 220);
     }
     function syncMobileMenuButton() {
       const m = document.getElementById("mobile-menu"), b = document.getElementById("mobile-menu-btn");

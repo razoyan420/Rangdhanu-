@@ -55,7 +55,8 @@ body{background:#f5f9ff;color:var(--rd-ink)}
 .mobile-nav-item{border-bottom:1px solid var(--rd-line)!important;color:var(--rd-ink)!important;display:block;padding:.75rem .25rem!important;text-align:left;width:100%}
 .mobile-nav-item:hover,.mobile-nav-item.active{background:var(--rd-blue-50)!important;color:var(--rd-blue-700)!important}
 #mobile-menu{background:rgba(247,251,255,.98)!important;border-color:var(--rd-line)!important}
-#mobile-menu{left:auto!important;right:.75rem!important;width:52vw!important;max-width:18rem!important}
+#mobile-menu{left:auto!important;right:.75rem!important;width:52vw!important;max-width:18rem!important;transform:translateY(0) scale(1);opacity:1;transition:opacity .22s ease,transform .22s cubic-bezier(.22,1,.36,1)}
+#mobile-menu.rd-menu-closing{opacity:0;transform:translateY(-10px) scale(.97);pointer-events:none}
 #mobile-menu .nav-cta{border-radius:.85rem!important}
 .page-view.active{animation:none!important}
 @keyframes rdPageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
