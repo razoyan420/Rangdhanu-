@@ -827,7 +827,7 @@
       const go = function () {
         const box = document.getElementById(sectionId);
         if (!box || !box.scrollIntoView) return;
-        try { box.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        try { box.scrollIntoView({ behavior: 'auto', block: 'start' }); }
         catch (e) { box.scrollIntoView(); }
       };
       if (rdCurrentPageId !== 'home') { switchPage('home'); setTimeout(go, 320); }
@@ -1267,7 +1267,7 @@
     function pdaccAbout() {
       const box = document.getElementById('pdacc-about');
       if (!box || !box.scrollIntoView) return;
-      box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      box.scrollIntoView({ behavior: 'auto', block: 'start' });
     }
 
     /* For admission: straight to the newest Director's own message. Until a
@@ -2470,7 +2470,7 @@
       rdAlumniPage = Math.min(Math.max(1, Number(p) || 1), last);
       renderAlumniPage();
       const grid = document.getElementById("alumni-grid");
-      if (grid) { try { grid.scrollIntoView({behavior:'smooth', block:'start'}); } catch(e) { grid.scrollIntoView(); } }
+      if (grid) { try { grid.scrollIntoView({behavior:'auto', block:'start'}); } catch(e) { grid.scrollIntoView(); } }
     }
 
     function renderAlumniPage() {
@@ -2620,7 +2620,7 @@
       /* The line sits in the page flow, under the header. A member who was
          scrolled down would never see it, so the top of the page is brought
          back -- the same thing every page change already does. */
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'auto' });
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
       clearTimeout(rdFlash.timer);
       rdFlash.timer = setTimeout(function () { box.classList.add('hidden'); }, 4000);
@@ -4439,7 +4439,7 @@
           if (sl) { sl.classList.remove('show'); sl.textContent = ''; }
         });
       }
-      if (focus) { try { box.focus({preventScroll:true}); box.scrollIntoView({block:'center', behavior:'smooth'}); } catch(e) { box.focus(); } }
+      if (focus) { try { box.focus({preventScroll:true}); box.scrollIntoView({block:'center', behavior:'auto'}); } catch(e) { box.focus(); } }
       return true;
     }
 
@@ -5158,7 +5158,7 @@
     window.rdAdShowDept = function(paneId){
       show('p2', paneId);
       var tab = document.getElementById('t-' + paneId);
-      if (tab) tab.scrollIntoView({block:'center', behavior:'smooth'});
+      if (tab) tab.scrollIntoView({block:'center', behavior:'auto'});
     };
   })();
 
@@ -6292,7 +6292,7 @@
       if (!p) return;
       p.textContent = message;
       p.classList.remove('hidden');
-      mount.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      mount.scrollIntoView({ behavior: 'auto', block: 'center' });
     }
 
     function rdAddrClearError(name) {
@@ -7140,7 +7140,7 @@ f.reset();
       renderNoticeList();
       if (window.lucide) lucide.createIcons();
       const el = document.getElementById('notice-list');
-      if (el) window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 120), behavior: 'smooth' });
+      if (el) window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 120), behavior: 'auto' });
     }
 
     /* ---------- The file itself, on its own page (never a popup) ---------- */
@@ -7442,7 +7442,7 @@ f.reset();
       if (window.lucide) lucide.createIcons();
       const el = document.getElementById('pdacc-updates-list');
       if (el && el.getBoundingClientRect) {
-        window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 120), behavior: 'smooth' });
+        window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 120), behavior: 'auto' });
       }
     }
 
@@ -7450,7 +7450,7 @@ f.reset();
     function pdaccJump(id) {
       const box = document.getElementById(id);
       if (!box || !box.scrollIntoView) return;
-      box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      box.scrollIntoView({ behavior: 'auto', block: 'start' });
     }
 
     /* The PDACC nav strip is on two pages now: the PDACC page and the
@@ -8283,7 +8283,7 @@ f.reset();
     }
 
     function adminSlideNew() { RD_ADMIN.slEdit = ''; renderAdmin(); }
-    function adminSlideEdit(id) { RD_ADMIN.slEdit = id; renderAdmin(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function adminSlideEdit(id) { RD_ADMIN.slEdit = id; renderAdmin(); window.scrollTo({ top: 0, behavior: 'auto' }); }
 
     async function adminSlideSave() {
       const fileEl = document.getElementById('sl-file');
@@ -8526,7 +8526,7 @@ f.reset();
     }
 
     function adminNoticeNew() { RD_ADMIN.nbEdit = ''; renderAdmin(); }
-    function adminNoticeEdit(id) { RD_ADMIN.nbEdit = id; renderAdmin(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function adminNoticeEdit(id) { RD_ADMIN.nbEdit = id; renderAdmin(); window.scrollTo({ top: 0, behavior: 'auto' }); }
 
     async function adminNoticeSave() {
       const kindEl = document.getElementById('nb-kind');
@@ -8698,7 +8698,7 @@ f.reset();
     }
 
     function adminSocialNew() { RD_ADMIN.scEdit = ''; renderAdmin(); }
-    function adminSocialEdit(id) { RD_ADMIN.scEdit = id; renderAdmin(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function adminSocialEdit(id) { RD_ADMIN.scEdit = id; renderAdmin(); window.scrollTo({ top: 0, behavior: 'auto' }); }
 
     async function adminSocialSave() {
       const linkEl = document.getElementById('sc-link');
@@ -8879,7 +8879,7 @@ f.reset();
       RD_ADMIN.pdKind = String(row.kind || '') === 'UPDATE' ? 'UPDATE' : 'LINE';
       RD_ADMIN.pdEdit = id;
       renderAdmin();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'auto' });
     }
 
     function adminPdKindSwitch() {
