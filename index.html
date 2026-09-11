@@ -198,7 +198,7 @@
      নতুন class যোগ করলে এই কমান্ড আবার চালাতে হবে — CDN আগে নিজে করত। -->
 <link rel="stylesheet" href="style.css"/>
 <link rel="stylesheet" href="custom.css"/>
-<link rel="stylesheet" href="redesign-overrides.css?v=20260911-13"/>
+<link rel="stylesheet" href="redesign-overrides.css?v=20260911-15"/>
 <script>
   /* style.css fallback: prebuilt sheet না এলে বা পুরনো হলে CDN ফিরিয়ে আনে।
      document.write এখানেই সঠিক — এই path শুধু তখনই চলে যখন পেজ ইতিমধ্যে
@@ -508,12 +508,13 @@
           <div class="rd-pd-head"><span class="rd-pd-brand flex items-center gap-2.5 min-w-0">
             <span class="rd-pd-crest"><img id="pdacc-nav-logo" src="pdacc-logo.png" alt="PROKOSHALI crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
             <span class="min-w-0">
-              <strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PROKOUSHALI</strong>
+              <strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PROKAUSHALI</strong>
               <span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">DUET Admission Coaching Centre</span>
             </span>
-          </span><button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PROKOUSHALI Home</button></div>
+          </span></div>
           <div class="rd-pd-tabs">
-          <button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-navbtn is-key">Admission Guide</button>
+          <button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PROKAUSHALI Home</button>
+          <button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-navbtn">Admission Guide</button>
           <button type="button" onclick="openPdaccUpdates()" class="rd-pd-navbtn">Notice</button></div>
         </nav>
         <!-- The figure PDACC prints about itself: 27 years. The owner's decision
@@ -728,9 +729,9 @@
         <nav id="pdacc-nav-updates" class="rd-pd-nav z-30 mb-8 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur-md shadow-sm px-3 sm:px-5 py-3">
           <div class="rd-pd-head"><span class="rd-pd-brand flex items-center gap-2.5 min-w-0">
             <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PROKOSHALI crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
-            <span class="min-w-0"><strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PROKOUSHALI</strong><span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">DUET Admission Coaching Centre</span></span>
-          </span><button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PROKOUSHALI Home</button></div>
-          <div class="rd-pd-tabs"><button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-navbtn">Admission Guide</button><span class="rd-pd-navbtn is-key is-here" aria-current="page">Notice</span></div>
+            <span class="min-w-0"><strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PROKAUSHALI</strong><span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">DUET Admission Coaching Centre</span></span>
+          </span></div>
+          <div class="rd-pd-tabs"><button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PROKAUSHALI Home</button><button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-navbtn">Admission Guide</button><span class="rd-pd-navbtn is-key is-here" aria-current="page">Notice</span></div>
         </nav>
         <div class="text-center max-w-2xl mx-auto mb-9">
           <div class="flex justify-center mb-4"><span class="rd-pd-crest is-big shadow-sm"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span></div>
@@ -754,13 +755,13 @@
           <div class="rd-pd-head"><span class="rd-pd-brand flex items-center gap-2.5 min-w-0">
             <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PROKOSHALI crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
             <span class="min-w-0">
-              <strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PROKOUSHALI</strong>
+              <strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PROKAUSHALI</strong>
               <span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">DUET Admission Coaching Centre</span>
             </span>
           </span>
-          </span><button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PROKOUSHALI Home</button></div>
+          </span></div>
           <div class="rd-pd-tabs">
-          <span class="rd-pd-navbtn is-key is-here" aria-current="page">Admission Guide</span>
+          <button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PROKAUSHALI Home</button><span class="rd-pd-navbtn is-key is-here" aria-current="page">Admission Guide</span>
           <button type="button" onclick="openPdaccUpdates()" class="rd-pd-navbtn">Notice</button></div>
         </nav>
     </div>

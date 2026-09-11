@@ -338,18 +338,21 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 #page-profile .rd-seg-r:checked+.rd-seg-b i,#page-profile .rd-seg-r:checked+.rd-seg-b svg,#page-my-profile .rd-seg-r:checked+.rd-seg-b i,#page-my-profile .rd-seg-r:checked+.rd-seg-b svg{color:var(--rd-blue-700)}
 
 /* PDACC rail: a compact credential bar, not a row of oversized pills. */
-#pdacc-nav,#pdacc-nav-sub,#pdacc-nav-updates{align-items:center;border-radius:.75rem!important;border-color:rgba(36,121,223,.2)!important;background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(241,247,255,.94))!important;box-shadow:0 14px 32px -26px rgba(7,31,73,.55)!important;display:flex;gap:.65rem;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+#pdacc-nav,#pdacc-nav-sub,#pdacc-nav-updates{align-items:stretch;border-radius:.75rem!important;border-color:rgba(36,121,223,.2)!important;background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(241,247,255,.94))!important;box-shadow:0 14px 32px -26px rgba(7,31,73,.55)!important;display:flex;flex-direction:column;gap:0;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
 #pdacc-nav::-webkit-scrollbar,#pdacc-nav-sub::-webkit-scrollbar,#pdacc-nav-updates::-webkit-scrollbar{display:none}
-#pdacc-nav .rd-pd-head,#pdacc-nav-sub .rd-pd-head,#pdacc-nav-updates .rd-pd-head{align-items:center;display:contents}
+#pdacc-nav .rd-pd-head,#pdacc-nav-sub .rd-pd-head,#pdacc-nav-updates .rd-pd-head{align-items:center;display:flex!important;min-height:3.4rem;width:100%}
 #pdacc-nav .rd-pd-brand,#pdacc-nav-sub .rd-pd-brand,#pdacc-nav-updates .rd-pd-brand{min-width:0}
-#pdacc-nav .rd-pd-tabs,#pdacc-nav-sub .rd-pd-tabs,#pdacc-nav-updates .rd-pd-tabs{display:contents}
+#pdacc-nav .rd-pd-tabs,#pdacc-nav-sub .rd-pd-tabs,#pdacc-nav-updates .rd-pd-tabs{border-top:1px solid rgba(36,121,223,.12);display:flex!important;flex-wrap:nowrap;gap:.55rem;margin-top:.55rem;padding-top:.65rem;width:100%}
+#pdacc-nav .rd-pd-brand strong,#pdacc-nav-sub .rd-pd-brand strong,#pdacc-nav-updates .rd-pd-brand strong{font-size:1.15rem;letter-spacing:.04em}
+#pdacc-nav .rd-pd-brand>span:last-child,#pdacc-nav-sub .rd-pd-brand>span:last-child,#pdacc-nav-updates .rd-pd-brand>span:last-child{min-width:0}
+#pdacc-nav .rd-pd-brand>span:last-child>span,#pdacc-nav-sub .rd-pd-brand>span:last-child>span,#pdacc-nav-updates .rd-pd-brand>span:last-child>span{font-size:.7rem;letter-spacing:.02em;white-space:nowrap}
 #pdacc-nav .rd-pd-crest,#pdacc-nav-sub .rd-pd-crest,#pdacc-nav-updates .rd-pd-crest{border-radius:.55rem;border-color:rgba(36,121,223,.22);box-shadow:0 4px 12px -8px rgba(23,105,209,.55)}
 #pdacc-nav .rd-pd-navbtn,#pdacc-nav-sub .rd-pd-navbtn,#pdacc-nav-updates .rd-pd-navbtn{border-radius:.5rem;border-color:rgba(36,121,223,.2);background:#fff;color:var(--rd-blue-800);box-shadow:0 2px 5px -4px rgba(7,31,73,.35)}
 #pdacc-nav .rd-pd-navbtn:hover,#pdacc-nav-sub .rd-pd-navbtn:hover,#pdacc-nav-updates .rd-pd-navbtn:hover{border-color:var(--rd-blue-500);background:var(--rd-blue-50);color:var(--rd-blue-800);transform:translateY(-1px)}
 #pdacc-nav .rd-pd-navbtn.is-key,#pdacc-nav-sub .rd-pd-navbtn.is-key,#pdacc-nav-updates .rd-pd-navbtn.is-key{border-color:#9bc8f2;background:#eaf3ff;color:var(--rd-blue-800);box-shadow:0 5px 14px -10px rgba(23,105,209,.65)}
 #pdacc-nav .rd-pd-navbtn.is-key:hover,#pdacc-nav-sub .rd-pd-navbtn.is-key:hover,#pdacc-nav-updates .rd-pd-navbtn.is-key:hover{border-color:var(--rd-blue-500);background:#dceeff;color:var(--rd-blue-950)}
 #pdacc-nav .rd-pd-navbtn:focus-visible,#pdacc-nav-sub .rd-pd-navbtn:focus-visible,#pdacc-nav-updates .rd-pd-navbtn:focus-visible{outline:2px solid var(--rd-blue-500);outline-offset:2px}
-@media(max-width:430px){#pdacc-nav,#pdacc-nav-sub,#pdacc-nav-updates{gap:.45rem}#pdacc-nav .rd-pd-navbtn,#pdacc-nav-sub .rd-pd-navbtn,#pdacc-nav-updates .rd-pd-navbtn{padding:.5rem .6rem}}
+@media(max-width:430px){#pdacc-nav,#pdacc-nav-sub,#pdacc-nav-updates{gap:0}#pdacc-nav .rd-pd-navbtn,#pdacc-nav-sub .rd-pd-navbtn,#pdacc-nav-updates .rd-pd-navbtn{padding:.5rem .6rem}#pdacc-nav .rd-pd-brand strong,#pdacc-nav-sub .rd-pd-brand strong,#pdacc-nav-updates .rd-pd-brand strong{font-size:1.05rem}#pdacc-nav .rd-pd-brand>span:last-child>span,#pdacc-nav-sub .rd-pd-brand>span:last-child>span,#pdacc-nav-updates .rd-pd-brand>span:last-child>span{font-size:.62rem}}
 
 /* Responsive shell: full navigation on desktop, compact controls on phones. */
 @media (min-width:1024px){
