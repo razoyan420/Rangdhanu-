@@ -9950,7 +9950,7 @@ f.reset();
         m.classList.add('hidden');
         m.classList.remove('rd-menu-closing');
         syncMobileMenuButton();
-      }, 480);
+      }, 1000);
     }
     function syncMobileMenuButton() {
       const m = document.getElementById("mobile-menu"), b = document.getElementById("mobile-menu-btn");
