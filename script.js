@@ -134,6 +134,10 @@
     }, { passive: true });
 
     function openSubPage(pageId, backTo) {
+      if (pageId === 'committee-new' && !rdMemberSignedIn()) {
+        openMemberSignIn(backTo || rdCurrentPageId);
+        return;
+      }
       const parent = (RD_SUBPAGES[pageId] || {}).parent || 'home';
       const from = rdCurrentPageId !== pageId ? rdCurrentPageId : '';
       let back = backTo || from || parent;
@@ -251,6 +255,9 @@
       if (!page || !document.getElementById(`page-${page}`)) return 'home';
       const sub = RD_SUBPAGES[page];
       if (!allowSubPages && sub && sub.needsData) return sub.parent;
+      if (page === 'committee-new' && !rdMemberSignedIn() && !rdMemberWantsIn()) {
+        return 'member-signin';
+      }
       return page;
     }
     window.addEventListener('popstate', () => switchPage(getPageFromLocation(), false));
@@ -2776,7 +2783,13 @@
 
     function memberContact(memberId) {
       if (!RD_MEMBER.contacts || !memberId) return null;
-      return RD_MEMBER.contacts[String(memberId)] || null;
+      const wanted = String(memberId).trim();
+      if (RD_MEMBER.contacts[wanted]) return RD_MEMBER.contacts[wanted];
+      const normalized = wanted.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const key = Object.keys(RD_MEMBER.contacts).find(function (candidate) {
+        return String(candidate).trim().toLowerCase().replace(/[^a-z0-9]/g, '') === normalized;
+      });
+      return key ? RD_MEMBER.contacts[key] : null;
     }
 
     function memberSignOut() {
@@ -5749,11 +5762,13 @@
       const form = document.getElementById('ec-submit-form');
       if (!form) return;
       const set = (name, value) => { const el = form.querySelector('[name="' + name + '"]'); if (el) el.value = String(value || ''); };
+      const contact = memberContact(member['Member ID'] || member.memberId || member.id);
       set('fullName', member['Full Name (English)']);
-      set('mobile', member['Mobile Number']);
-      set('email', member['Email']);
-      set('department', member.Department);
-      set('series', member.Series);
+      set('mobile', member['Mobile Number'] || member.mobile || member.phone ||
+        (contact && (contact['Mobile Number'] || contact.mobile)));
+      set('email', member.Email || member.email || (contact && (contact.Email || contact.email)));
+      set('department', member.Department || member.department || member.dept);
+      set('series', member.Series || member.series);
     }
 
     function ecSearchMember(query) {
@@ -5772,13 +5787,18 @@
     function ecSelectMember(id) {
       const member = alumniData.find(a => String(a.id) === String(id));
       if (!member) return;
-      ecFillMemberForm({
+      const profile = {
         'Full Name (English)': member.name,
-        'Mobile Number': member.phone,
-        'Email': member.email,
+        'Member ID': member.memberId || member.id,
+        'Mobile Number': member.phone || '',
+        'Email': member.email || '',
         Department: member.dept,
         Series: member.series
-      });
+      };
+      ecFillMemberForm(profile);
+      if (rdMemberSignedIn() && !RD_MEMBER.contacts) {
+        memberLoadContacts().then(function () { ecFillMemberForm(profile); });
+      }
       document.getElementById('ec-target-member-id').value = String(member.id);
       document.getElementById('ec-other-search').value = member.name;
       document.getElementById('ec-other-results').innerHTML = '<p class="text-xs font-bold text-teal-700">Member information loaded. You may edit it before submitting.</p>';
