@@ -188,11 +188,23 @@
     @media (prefers-reduced-motion:reduce){.leader-track{transition:none;}}
     .brand-word{display:flex;flex-direction:column;gap:.2rem;line-height:1;}
     .brand-name{white-space:nowrap;font-size:clamp(.92rem,3vw,1.3rem);line-height:1;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#0f172a;text-shadow:none;}
-    .brand-duet{color:var(--rd-accent);}
+    .brand-duet{color:#a9772a;text-shadow:0 1px 0 rgba(255,255,255,.8);}
     .brand-tag{white-space:nowrap;font-size:.5rem;letter-spacing:.09em;text-transform:uppercase;font-weight:600;color:#64748b;}
     @media (max-width:1023px){ .brand-tag{white-space:normal;font-size:.42rem;letter-spacing:.04em;line-height:1.3;max-width:11.5rem;} }
     @media (max-width:359px){ .brand-tag{display:none;} }
     @media (min-width:1024px) and (max-width:1279px){ .brand-tag{font-size:.45rem;letter-spacing:.05em;} }
+
+    .rd-header-socials{padding-left:.9rem;border-left:1px solid rgba(148,163,184,.28);}
+    .rd-social-link{width:2rem;height:2rem;display:inline-flex;align-items:center;justify-content:center;
+      border-radius:999px;color:#64748b;background:rgba(255,255,255,.58);
+      border:1px solid rgba(148,163,184,.3);box-shadow:0 4px 12px -10px rgba(15,23,42,.7);
+      transition:color .22s ease,background-color .22s ease,border-color .22s ease,transform .22s ease,box-shadow .22s ease;}
+    .rd-social-link span{display:block;font-family:Arial,sans-serif;font-weight:700;line-height:1;}
+    .rd-social-facebook span{font-size:1.35rem;margin-top:.22rem;}
+    .rd-social-linkedin span{font-size:.76rem;letter-spacing:-.05em;}
+    .rd-social-link:hover{color:#fff;transform:translateY(-2px);box-shadow:0 9px 18px -12px rgba(15,23,42,.8);}
+    .rd-social-facebook:hover{background:#1877f2;border-color:#1877f2;}
+    .rd-social-linkedin:hover{background:#0a66c2;border-color:#0a66c2;}
 
     .mobile-nav-item{display:flex;align-items:center;gap:.65rem;width:100%;text-align:left;padding:.8rem 1rem;border-radius:12px;color:#334155;font-weight:700;}
     .mobile-nav-item:hover{background:rgba(14,165,233,.12);color:#0c4a6e;}
