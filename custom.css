@@ -2399,3 +2399,6 @@
 .rd-mpx-n{flex:1 1 12rem;min-width:0;margin:0;font-size:.78rem;line-height:1.5;
   color:var(--mp-mute)}
 @media (prefers-reduced-motion:reduce){.rd-mpx-b{transition:none}}
+body.rd-member-restoring #page-my-profile > * {
+  visibility: hidden;
+}

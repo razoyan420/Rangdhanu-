@@ -1284,6 +1284,7 @@
       lucide.createIcons();
       window.addEventListener('wheel', closeMobileMenuOnUserScroll, { passive: true });
       document.addEventListener('touchmove', closeMobileMenuOnUserScroll, { passive: true });
+      document.body.classList.add('rd-member-restoring');
       const startPage = getPageFromLocation(false);
       history.replaceState({page: startPage}, '', window.location.pathname + (startPage==='home'?'':`#${pageUrlId(startPage)}`));
       switchPage(startPage, false);
@@ -2882,11 +2883,12 @@
        Sign In and My Profile, the alumni page gets a sign-in / sign-out line,
        and the profile card unlocks. */
     function rdMemberNavPaint() {
+      const restoring = document.body.classList.contains('rd-member-restoring');
       const on = rdMemberSignedIn();
       const t = document.getElementById('nav-member-text');
-      if (t) t.textContent = on ? 'My Profile' : 'Sign In';
+      if (t) t.textContent = restoring ? 'Restoring...' : (on ? 'My Profile' : 'Sign In');
       const item = document.getElementById('mobile-member-item');
-      if (item) item.textContent = on ? 'My Profile' : 'Sign In';
+      if (item) item.textContent = restoring ? 'Restoring...' : (on ? 'My Profile' : 'Sign In');
       const btn = document.getElementById('mobile-member-btn');
       if (btn) btn.setAttribute('aria-label', on ? 'My Profile' : 'Member sign in');
       const icon = document.getElementById('mobile-member-icon');
@@ -3981,10 +3983,12 @@
 
     /* Where a reload leaves the member, once we know whether they are in. */
     function rdMemberLandedSignedIn() {
+      document.body.classList.remove('rd-member-restoring');
       if (rdCurrentPageId === 'my-profile') openMyProfile('home');
     }
 
     function rdMemberLandedSignedOut() {
+      document.body.classList.remove('rd-member-restoring');
       rdMemberPaintSignInLinks();
       if (rdCurrentPageId === 'my-profile') openMemberSignIn('home');
     }
