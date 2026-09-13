@@ -1551,6 +1551,20 @@
         </div>
         <form id="ec-submit-form" class="bg-white p-6 sm:p-9 rounded-[28px] border border-slate-200 shadow-xl grid sm:grid-cols-2 gap-5" onsubmit="submitExecutiveCommitteeForm(event)">
 
+          <div class="sm:col-span-2 rounded-2xl bg-slate-50 border border-slate-200 p-4">
+            <p class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Information belongs to</p>
+            <div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Information owner">
+              <button type="button" id="ec-own-mode" class="ec-owner-mode active" onclick="ecSetOwnerMode('own')">My information</button>
+              <button type="button" id="ec-other-mode" class="ec-owner-mode" onclick="ecSetOwnerMode('other')">Another member</button>
+            </div>
+            <p id="ec-owner-note" class="text-xs text-slate-500 mt-2">Your saved member information will be loaded into the form.</p>
+          </div>
+          <div class="sm:col-span-2 hidden" id="ec-other-search-wrap">
+            <label class="form-label" for="ec-other-search">Search existing member</label>
+            <input id="ec-other-search" class="form-input" type="search" placeholder="Type a name to load directory information" autocomplete="off" oninput="ecSearchMember(this.value)">
+            <div id="ec-other-results" class="mt-2 space-y-2"></div>
+            <p class="text-xs text-slate-500 mt-2">If no match exists, enter the person’s information manually below.</p>
+          </div>
           <div class="sm:col-span-2">
             <label class="form-label">Committee *</label>
             <select name="committee" required class="form-input" id="ec-form-committee" onchange="ecFillFormPositions()"></select>
@@ -1585,6 +1599,8 @@
 
           <div><label class="form-label">Mobile Number *</label><input name="mobile" required class="form-input" inputmode="tel" placeholder="01XXXXXXXXX"></div>
           <div><label class="form-label">Email *</label><input name="email" required type="email" class="form-input"></div>
+          <input type="hidden" name="targetMemberId" id="ec-target-member-id">
+          <input type="hidden" name="submissionMode" id="ec-submission-mode" value="own">
 
           <!-- Alumni Association members are working people, so the two
                professional fields are offered only to them, and never

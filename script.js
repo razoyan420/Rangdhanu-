@@ -5573,6 +5573,11 @@
       const btn = document.getElementById('ec-submit-btn');
       const fd = new FormData(form);
       clearFieldErrors(form);
+      if (!rdMemberSignedIn()) {
+        showToast('Please sign in before submitting committee information.', 'info');
+        openMemberSignIn('committee-new');
+        return;
+      }
 
       const position = ecResolvePosition(fd);
       if (!position) {
@@ -5608,6 +5613,8 @@
           designation: ecWantsProfession(fd.get('committee')) ? String(fd.get('designation') || '').trim() : '',
           organization: ecWantsProfession(fd.get('committee')) ? String(fd.get('organization') || '').trim() : '',
           message: fd.get('message') || '', photo: photo
+          , targetMemberId: String(fd.get('targetMemberId') || '').trim()
+          , submissionMode: String(fd.get('submissionMode') || 'own')
         }});
         form.reset();
         ecFillFormCommittees();
@@ -5620,6 +5627,71 @@
         btn.innerHTML = original;
         lucide.createIcons();
       }
+
+      let RD_EC_OWNER_MODE = 'own';
+      function ecSetOwnerMode(mode) {
+        RD_EC_OWNER_MODE = mode === 'other' ? 'other' : 'own';
+        const form = document.getElementById('ec-submit-form');
+        if (!form) return;
+        document.getElementById('ec-submission-mode').value = RD_EC_OWNER_MODE;
+        document.getElementById('ec-own-mode').classList.toggle('active', RD_EC_OWNER_MODE === 'own');
+        document.getElementById('ec-other-mode').classList.toggle('active', RD_EC_OWNER_MODE === 'other');
+        document.getElementById('ec-other-search-wrap').classList.toggle('hidden', RD_EC_OWNER_MODE !== 'other');
+        document.getElementById('ec-owner-note').textContent = RD_EC_OWNER_MODE === 'own'
+          ? 'Your saved member information will be loaded into the form.'
+          : 'Search an existing member, or enter another person’s information manually.';
+        if (RD_EC_OWNER_MODE === 'own') {
+          document.getElementById('ec-target-member-id').value = '';
+          ecFillMemberForm(RD_MEMBER.me);
+        } else {
+          form.querySelector('[name="fullName"]').value = '';
+          form.querySelector('[name="mobile"]').value = '';
+          form.querySelector('[name="email"]').value = '';
+          form.querySelector('[name="department"]').value = '';
+          form.querySelector('[name="series"]').value = '';
+          document.getElementById('ec-target-member-id').value = '';
+        }
+      }
+
+      function ecFillMemberForm(member) {
+        if (!member) return;
+        const form = document.getElementById('ec-submit-form');
+        if (!form) return;
+        const set = (name, value) => { const el = form.querySelector('[name="' + name + '"]'); if (el) el.value = String(value || ''); };
+        set('fullName', member['Full Name (English)']);
+        set('mobile', member['Mobile Number']);
+        set('email', member['Email']);
+        set('department', member.Department);
+        set('series', member.Series);
+        const photo = member['Passport Size Image'];
+        if (photo) document.getElementById('ec-owner-note').textContent = 'Loaded from your member profile. You can still correct the information before submitting.';
+      }
+
+      function ecSearchMember(query) {
+        const box = document.getElementById('ec-other-results');
+        const q = String(query || '').trim().toLowerCase();
+        if (!box) return;
+        if (q.length < 2) { box.innerHTML = ''; return; }
+        const hits = alumniData.filter(a => String(a.name || '').toLowerCase().indexOf(q) !== -1).slice(0, 6);
+        box.innerHTML = hits.map(a => '<button type="button" class="ec-member-result" onclick="ecSelectMember(\'' +
+          escapeHtml(String(a.id)) + '\')"><span><b class="block text-sm text-slate-800">' + escapeHtml(a.name) +
+          '</b><span class="text-xs text-slate-500">' + escapeHtml(a.dept) + ' • Series ' + escapeHtml(a.series) +
+          '</span></span><span class="text-xs font-bold text-teal-700">Use</span></button>').join('') ||
+          '<p class="text-xs text-slate-500">No directory match. You can enter the information manually.</p>';
+      }
+
+      function ecSelectMember(id) {
+        const member = alumniData.find(a => String(a.id) === String(id));
+        if (!member) return;
+        const form = document.getElementById('ec-submit-form');
+        if (!form) return;
+        const set = (name, value) => { const el = form.querySelector('[name="' + name + '"]'); if (el) el.value = String(value || ''); };
+        set('fullName', member.name); set('mobile', member.phone); set('email', member.email);
+        set('department', member.dept); set('series', member.series);
+        document.getElementById('ec-target-member-id').value = String(member.id);
+        document.getElementById('ec-other-search').value = member.name;
+        document.getElementById('ec-other-results').innerHTML = '<p class="text-xs font-bold text-teal-700">Member information loaded. You may edit it before submitting.</p>';
+      }
     }
 
     function ecFillFormCommittees() {
@@ -5628,6 +5700,7 @@
       sel.innerHTML = '<option value="">Select committee</option>' +
         RD_EC_COMMITTEES.map(c => '<option value="' + escapeHtml(c.name) + '">' + escapeHtml(c.name) + '</option>').join('');
       ecFillFormPositions();
+      if (rdMemberSignedIn()) ecSetOwnerMode('own');
     }
 
     /* PDACC is run by Directors and Rangdhanu by a President and a Secretary,
