@@ -2739,6 +2739,7 @@
       RD_MEMBER.email = (r && r.email) || '';
       await memberLoadContacts();
       rdMemberScheduleRenew(RD_MEMBER.token);
+      document.body.classList.remove('rd-member-restoring');
       if (quiet) { rdMemberPaintSignInLinks(); return; }
       rdMemberMsg('member-signin-msg', 'You are signed in.', 'ok');
       rdMemberPaintSignInLinks();
