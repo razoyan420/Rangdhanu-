@@ -2381,6 +2381,10 @@
       const open = `<button type="button" class="rd-dc-open" onclick="openAlumniModal('${escapeHtml(String(a.id))}')"><span class="rd-dc-lbl">Full profile</span>` +
         '<i data-lucide="arrow-right" class="rd-dc-arw"></i></button>';
       if (!c) {
+        if (rdMemberSignedIn()) {
+          return '<div class="rd-dc-seg has-1 is-gate">' + open +
+            '<span class="rd-dc-gate"><i data-lucide="loader-circle" class="animate-spin"></i> Loading contact</span></div>';
+        }
         return '<div class="rd-dc-seg has-1 is-gate">' + open +
           '<button type="button" class="rd-dc-gate" onclick="openMemberSignIn(\'alumni\')">' +
           '<i data-lucide="lock"></i> Sign in to see contact</button></div>';
@@ -2737,12 +2741,15 @@
     async function memberSignedIn(r, quiet) {
       RD_MEMBER.me = (r && r.member) || null;
       RD_MEMBER.email = (r && r.email) || '';
-      await memberLoadContacts();
       rdMemberScheduleRenew(RD_MEMBER.token);
       document.body.classList.remove('rd-member-restoring');
+      rdMemberPaintSignInLinks();
+      if (alumniData.length) renderAlumniPage();
+      memberLoadContacts().then(function () {
+        if (alumniData.length) renderAlumniPage();
+      });
       if (quiet) { rdMemberPaintSignInLinks(); return; }
       rdMemberMsg('member-signin-msg', 'You are signed in.', 'ok');
-      rdMemberPaintSignInLinks();
       rdMemberPaintLinkBox();
       /* No page of its own for this. A member who signs in is taken to the
          thing they signed in for -- the profile they were reading, or their own
