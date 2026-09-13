@@ -2498,6 +2498,21 @@ body.rd-member-restoring #page-my-profile > * {
     .rd-home-hero-copy { line-height: 1.8; }
     .rd-home-hero-actions button { width: min(100%, 18rem); }
   }
+  @media (min-width: 1280px) {
+    .rd-home-hero-title {
+      font-size: clamp(2.35rem, 3.35vw, 3.35rem);
+      line-height: 1.26;
+      letter-spacing: -.035em;
+    }
+    .rd-home-hero-copy {
+      max-width: 52rem;
+      font-size: 1rem;
+      line-height: 1.8;
+    }
+    .rd-home-hero-actions {
+      margin-top: 1.6rem;
+    }
+  }
   .nav-strip .premium-nav-item {
     font-family: 'Plus Jakarta Sans', 'Noto Sans Bengali', sans-serif;
     font-size: .76rem;
