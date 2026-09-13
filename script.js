@@ -4925,7 +4925,7 @@
       var want = [m.fullName, m.department, m.series].map(function (v) {
         return String(v || '').trim().toLowerCase();
       });
-      var hit = (typeof RD_ALUMNI !== 'undefined' ? RD_ALUMNI : []).find(function (a) {
+      var hit = alumniData.find(function (a) {
         return String(a.name || a.fullName || '').trim().toLowerCase() === want[0] &&
           String(a.department || '').trim().toLowerCase() === want[1] &&
           String(a.series || '').trim().toLowerCase() === want[2];
