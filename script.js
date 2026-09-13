@@ -4927,7 +4927,7 @@
       });
       var hit = alumniData.find(function (a) {
         return String(a.name || a.fullName || '').trim().toLowerCase() === want[0] &&
-          String(a.department || '').trim().toLowerCase() === want[1] &&
+          String(a.dept || a.department || '').trim().toLowerCase() === want[1] &&
           String(a.series || '').trim().toLowerCase() === want[2];
       });
       return hit ? String(hit.id || '') : '';
