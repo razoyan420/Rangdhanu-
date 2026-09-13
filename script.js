@@ -143,6 +143,7 @@
       rdSubReturn[pageId] = back;
       rdSubFrom[pageId] = from;   // the page sitting just behind us in history
       switchPage(pageId);
+      if (pageId === 'committee-new') ecPrepareSubmissionForm();
     }
 
     function goBackFromSubPage(pageId) {
@@ -4020,6 +4021,7 @@
     function rdMemberLandedSignedIn() {
       document.body.classList.remove('rd-member-restoring');
       rdMemberNavPaint();
+      if (rdCurrentPageId === 'committee-new') ecPrepareSubmissionForm();
       if (rdCurrentPageId === 'my-profile') openMyProfile('home');
     }
 
@@ -5629,6 +5631,12 @@
       }
 
       let RD_EC_OWNER_MODE = 'own';
+      function ecPrepareSubmissionForm() {
+        ecFillFormCommittees();
+        if (rdMemberSignedIn()) ecSetOwnerMode(RD_EC_OWNER_MODE);
+        if (!alumniData.length) loadPublicAlumni();
+      }
+
       function ecSetOwnerMode(mode) {
         RD_EC_OWNER_MODE = mode === 'other' ? 'other' : 'own';
         const form = document.getElementById('ec-submit-form');
