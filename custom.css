@@ -2468,6 +2468,107 @@ body.rd-member-restoring #page-my-profile > * {
     letter-spacing: -.01em;
     transition: transform .22s ease, box-shadow .22s ease, background-color .22s ease, border-color .22s ease;
   }
+
+  /* Executive committee: a calmer editorial surface with one clear visual
+     hierarchy for the leaders, selectors, and supporting member cards. */
+  .rd-committee-page {
+    background:
+      radial-gradient(circle at 50% 0%, rgba(15, 118, 110, .055), transparent 28rem),
+      #f7f9fc;
+  }
+  .rd-committee-kicker {
+    color: #0f766e;
+    background: rgba(240, 253, 250, .86);
+    border: 1px solid rgba(15, 118, 110, .18);
+  }
+  .rd-committee-title {
+    color: #102a43;
+    letter-spacing: -.035em;
+  }
+  .rd-committee-intro {
+    color: #64748b;
+  }
+  #ec-committee-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .ec-committee-tab {
+    min-height: 5.9rem;
+    background: rgba(255, 255, 255, .76);
+    border-color: rgba(148, 163, 184, .24);
+    box-shadow: 0 12px 28px -26px rgba(15, 23, 42, .7);
+  }
+  .ec-committee-tab:hover {
+    border-color: rgba(15, 118, 110, .35);
+    transform: translateY(-2px);
+  }
+  .ec-committee-tab.bg-blue-600 {
+    background: #102a43;
+    border-color: #102a43;
+    box-shadow: 0 16px 30px -22px rgba(16, 42, 67, .8);
+  }
+  #ec-session-tabs {
+    padding: .3rem;
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid rgba(148, 163, 184, .2);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .68);
+  }
+  .ec-session-tab {
+    border-color: transparent;
+  }
+  .ec-session-tab.bg-slate-900 {
+    background: #0f766e;
+    border-color: #0f766e;
+    box-shadow: 0 8px 18px -14px rgba(15, 118, 110, .9);
+  }
+  .ec-leader-card {
+    border-color: rgba(15, 118, 110, .2);
+    box-shadow: 0 18px 44px -30px rgba(16, 42, 67, .75);
+  }
+  .ec-leader-card:hover,
+  .ec-member-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 22px 42px -30px rgba(16, 42, 67, .72);
+  }
+  .ec-leader-card .bg-blue-600 {
+    background: #0f766e;
+  }
+  .ec-member-card {
+    border-color: rgba(148, 163, 184, .2);
+    box-shadow: 0 12px 28px -25px rgba(15, 23, 42, .65);
+  }
+  .ec-member-card .bg-blue-50 {
+    background: #ecfdf5;
+    border-color: #ccefe4;
+    color: #0f766e;
+  }
+  .rd-committee-submit {
+    background: linear-gradient(135deg, #102a43, #17416b);
+    border: 1px solid rgba(255, 255, 255, .1);
+    box-shadow: 0 22px 42px -30px rgba(16, 42, 67, .82);
+  }
+  .rd-committee-submit p {
+    color: rgba(255, 255, 255, .78);
+  }
+  .rd-committee-submit p:first-child {
+    color: #fff;
+  }
+  .rd-committee-submit button {
+    background: #fff;
+    color: #102a43;
+  }
+  .rd-committee-submit button:hover {
+    background: #ccfbf1;
+    color: #0f766e;
+  }
+  @media (max-width: 639px) {
+    #ec-committee-tabs { grid-template-columns: 1fr; }
+    .ec-committee-tab { min-height: 0; }
+    #ec-session-tabs { border-radius: 1rem; width: 100%; justify-content: center; }
+  }
   .rd-hero-primary {
     color: #fff;
     background: #102a43;

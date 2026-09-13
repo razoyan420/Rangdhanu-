@@ -4857,7 +4857,7 @@
     function ecLeaderCard(m, sessionLabel, showFull) {
       const msg = String(m.message || '').trim();
       return '' +
-      '<article class="rd-tile bg-white rounded-[28px] border border-blue-100 shadow-card ' +
+      '<article class="ec-leader-card rd-tile bg-white rounded-[28px] border border-blue-100 shadow-card ' +
         'overflow-hidden flex flex-col">' +
         '<div class="p-6 sm:p-8 flex items-start gap-5">' +
           ecPhotoBlock(m, 'w-24 h-24 sm:w-28 sm:h-28') +
@@ -5412,7 +5412,7 @@
         ? '<img src="' + escapeHtml(photo) + '" alt="' + escapeHtml(m.fullName) + '" loading="lazy" class="w-full h-full object-cover" onerror="rdPhotoFallback(this)"/>'
         : '';
       return '' +
-      '<article class="bg-white rounded-3xl border ' + (lead ? 'border-blue-200' : 'border-slate-200') + ' shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col">' +
+      '<article class="ec-member-card bg-white rounded-3xl border ' + (lead ? 'border-blue-200' : 'border-slate-200') + ' shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col">' +
         '<div class="p-6 flex items-start gap-4">' +
           '<div class="w-20 h-20 shrink-0 rounded-2xl bg-blue-50 border border-blue-100 text-blue-700 font-extrabold text-xl flex items-center justify-center overflow-hidden relative">' +
             '<span class="ec-initials">' + escapeHtml(ecInitials(m.fullName)) + '</span>' +
@@ -5457,7 +5457,7 @@
         const found = ecFindCommittee(c.name);
         const on = RD_EC.committee === c.name;
         return '<button type="button" onclick="selectEcCommittee(\'' + c.name.replace(/'/g, "\\'") + '\')" ' +
-          'class="text-left px-5 py-4 rounded-2xl border transition cursor-pointer ' +
+          'class="ec-committee-tab text-left px-5 py-4 rounded-2xl border transition cursor-pointer ' +
           (on ? 'bg-blue-600 border-blue-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-700 hover:border-blue-300') + '">' +
           '<span class="flex items-center gap-2 text-sm font-extrabold"><i data-lucide="' + c.icon + '" class="w-4 h-4"></i> ' + escapeHtml(c.bn) + '</span>' +
           '<span class="block mt-1 text-[11px] font-bold ' + (on ? 'text-blue-100' : 'text-slate-400') + '">' +
@@ -5475,7 +5475,7 @@
       sessBox.innerHTML = sessions.map(s => {
         const on = s.session === RD_EC.session;
         return '<button type="button" onclick="selectEcSession(\'' + String(s.session).replace(/'/g, "\\'") + '\')" ' +
-          'class="px-4 py-2.5 rounded-xl text-xs font-extrabold border transition cursor-pointer ' +
+          'class="ec-session-tab px-4 py-2.5 rounded-xl text-xs font-extrabold border transition cursor-pointer ' +
           (on ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-400') + '">' +
           escapeHtml(s.session) + ' <span class="' + (on ? 'text-slate-300' : 'text-slate-400') + '">(' + s.count + ')</span></button>';
       }).join('');
