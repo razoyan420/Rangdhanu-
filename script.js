@@ -2745,6 +2745,7 @@
       document.body.classList.remove('rd-member-restoring');
       rdMemberPaintSignInLinks();
       if (alumniData.length) renderAlumniPage();
+      if (RD_EC && RD_EC.state === 'ready') loadExecutiveCommittee(true);
       memberLoadContacts().then(function () {
         if (alumniData.length) renderAlumniPage();
       });
@@ -2936,6 +2937,21 @@
     function rdMemberMyProfile() {
       if (!rdMemberSignedIn()) { openMemberSignIn(rdCurrentPageId); return; }
       openMyProfile(rdCurrentPageId);
+    }
+
+    function rdMypMenuToggle(button) {
+      var menu = button && button.parentElement ? button.parentElement.querySelector('.rd-mpx-dropdown') : null;
+      if (!menu) return;
+      var open = menu.classList.toggle('hidden');
+      button.setAttribute('aria-expanded', String(!open));
+    }
+
+    function rdMypMenuClose() {
+      document.querySelectorAll('.rd-mpx-dropdown').forEach(function (menu) {
+        menu.classList.add('hidden');
+        var button = menu.parentElement && menu.parentElement.querySelector('[aria-haspopup="true"]');
+        if (button) button.setAttribute('aria-expanded', 'false');
+      });
     }
 
     /* ================= MY PROFILE ======================================
@@ -4611,7 +4627,7 @@
       RD_EC.error = '';
       renderExecutiveCommittee();
       try {
-        const res = await apiGet('executivecommittee');
+        const res = await apiGet('executivecommittee', rdMemberParams());
         RD_EC.data = Array.isArray(res.data) ? res.data : [];
         rdFeedRemember('committee', RD_EC.data);
         RD_EC.state = 'ready';
@@ -4881,7 +4897,9 @@
                                        'leading-8 whitespace-pre-line')) +
             '</div></div>'
           : '') +
-        '<div class="mt-auto border-t border-slate-100 grid grid-cols-2 divide-x ' +
+        ecProfileButton(m) +
+        (rdMemberSignedIn() && (m.mobile || m.email)
+          ? '<div class="mt-auto border-t border-slate-100 grid grid-cols-2 divide-x ' +
           'divide-slate-100 text-xs font-bold">' +
           '<button type="button" onclick="copyToClipboard(\'' + escapeHtml(m.mobile) + '\')" ' +
             'class="py-3.5 flex items-center justify-center gap-1.5 text-slate-600 ' +
@@ -4890,8 +4908,29 @@
           '<a href="mailto:' + escapeHtml(m.email) + '" class="py-3.5 flex items-center ' +
             'justify-center gap-1.5 text-slate-600 hover:bg-slate-50"><i data-lucide="mail" ' +
             'class="w-3.5 h-3.5 text-blue-600"></i> Email</a>' +
-        '</div>' +
+          '</div>'
+          : '') +
       '</article>';
+    }
+
+    function ecProfileButton(m) {
+      var id = ecDirectoryId(m);
+      return id
+        ? '<div class="px-6 sm:px-8 pb-4"><button type="button" onclick="openAlumniModal(\'' +
+          escapeHtml(id) + '\')" class="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-200 text-slate-600 hover:text-teal-700 text-xs font-extrabold cursor-pointer"><i data-lucide="user-round" class="w-3.5 h-3.5"></i> View profile</button></div>'
+        : '';
+    }
+
+    function ecDirectoryId(m) {
+      var want = [m.fullName, m.department, m.series].map(function (v) {
+        return String(v || '').trim().toLowerCase();
+      });
+      var hit = (typeof RD_ALUMNI !== 'undefined' ? RD_ALUMNI : []).find(function (a) {
+        return String(a.name || a.fullName || '').trim().toLowerCase() === want[0] &&
+          String(a.department || '').trim().toLowerCase() === want[1] &&
+          String(a.series || '').trim().toLowerCase() === want[2];
+      });
+      return hit ? String(hit.id || '') : '';
     }
 
     /* ---------- "View message" opens a real page, never a modal ---------- */
@@ -5438,10 +5477,13 @@
         (String(m.message || '').trim() && !ecIsLeader(m)
           ? '<div class="px-6 mb-5"><button type="button" onclick="openEcMessage(\'' + escapeHtml(m.entryId) + '\')" class="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-600 hover:text-white border border-blue-100 text-blue-700 text-xs font-extrabold cursor-pointer"><i data-lucide="message-square-quote" class="w-3.5 h-3.5"></i> View message</button></div>'
           : '') +
-        '<div class="mt-auto border-t border-slate-100 grid grid-cols-2 divide-x divide-slate-100 text-xs font-bold">' +
+        ecProfileButton(m) +
+        (rdMemberSignedIn() && (m.mobile || m.email)
+          ? '<div class="mt-auto border-t border-slate-100 grid grid-cols-2 divide-x divide-slate-100 text-xs font-bold">' +
           '<button type="button" onclick="copyToClipboard(\'' + escapeHtml(m.mobile) + '\')" class="py-3.5 flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50 cursor-pointer"><i data-lucide="phone" class="w-3.5 h-3.5 text-blue-600"></i> Mobile</button>' +
           '<a href="mailto:' + escapeHtml(m.email) + '" class="py-3.5 flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50"><i data-lucide="mail" class="w-3.5 h-3.5 text-blue-600"></i> Email</a>' +
-        '</div>' +
+          '</div>'
+          : '') +
       '</article>';
     }
 
