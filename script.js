@@ -2579,6 +2579,7 @@
        anything; only a revoked account falls through to the sign in page. */
     const RD_MEMBER_KEY = 'rd_member_token';
     const RD_MEMBER_KEEP = 'rd_member_keep';
+    let rdMemberRenewTimer = 0;
     let RD_MEMBER = { token: '', email: '', me: null, contacts: null, busy: false,
                       /* A Member ID typed before Google had answered. The code
                          is sent as soon as the token arrives, so Send code is
@@ -2590,6 +2591,10 @@
 
     function rdMemberRemember(token) {
       RD_MEMBER.token = token || '';
+      if (rdMemberRenewTimer) {
+        clearTimeout(rdMemberRenewTimer);
+        rdMemberRenewTimer = 0;
+      }
       try {
         if (token) {
           localStorage.setItem(RD_MEMBER_KEY, token);
@@ -2614,6 +2619,22 @@
         const body = JSON.parse(atob(String(token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
         return !body.exp || (body.exp * 1000) - Date.now() > 60000;
       } catch (err) { return true; }
+    }
+
+    function rdMemberScheduleRenew(token) {
+      if (rdMemberRenewTimer) clearTimeout(rdMemberRenewTimer);
+      rdMemberRenewTimer = 0;
+      try {
+        const body = JSON.parse(atob(String(token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+        if (!body.exp || !rdMemberWantsIn()) return;
+        const delay = Math.max(30000, (body.exp * 1000) - Date.now() - 120000);
+        rdMemberRenewTimer = setTimeout(function () {
+          rdMemberRenewTimer = 0;
+          rdMemberSilentRenew();
+        }, delay);
+      } catch (err) {
+        /* rdTokenLive/memberVerify will report malformed tokens normally. */
+      }
     }
 
     /* One line under the header instead of a page of its own. */
@@ -2716,10 +2737,10 @@
       RD_MEMBER.me = (r && r.member) || null;
       RD_MEMBER.email = (r && r.email) || '';
       await memberLoadContacts();
+      rdMemberScheduleRenew(RD_MEMBER.token);
       if (quiet) { rdMemberPaintSignInLinks(); return; }
       rdMemberMsg('member-signin-msg', 'You are signed in.', 'ok');
-      if (token) rdMemberPaintSignInLinks(true);
-      else rdMemberPaintSignInLinks();
+      rdMemberPaintSignInLinks();
       rdMemberPaintLinkBox();
       /* No page of its own for this. A member who signs in is taken to the
          thing they signed in for -- the profile they were reading, or their own
@@ -3905,7 +3926,7 @@
         }
       } catch (err) { token = ''; }
 
-      rdMemberPaintSignInLinks();
+      rdMemberPaintSignInLinks(!!(token || rdMemberWantsIn()));
 
       if (!token || !rdTokenLive(token)) {
         /* Nothing usable in hand. If the member never signed out, Google is
