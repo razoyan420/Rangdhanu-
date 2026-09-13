@@ -2402,3 +2402,50 @@
 body.rd-member-restoring #page-my-profile > * {
   visibility: hidden;
 }
+
+/* Keep the desktop navigation light and restrained: the active item reads as
+   frosted glass instead of a solid blue tab, while the strip stays bright. */
+@media (min-width: 1280px) {
+  .nav-strip {
+    background: rgba(255, 255, 255, .78);
+    border-top: 1px solid rgba(255, 255, 255, .85);
+    border-bottom: 1px solid rgba(148, 163, 184, .2);
+    backdrop-filter: blur(18px) saturate(135%);
+    -webkit-backdrop-filter: blur(18px) saturate(135%);
+    box-shadow: 0 10px 28px -24px rgba(15, 23, 42, .45);
+  }
+  .nav-strip .premium-nav-item {
+    font-family: 'Plus Jakarta Sans', 'Noto Sans Bengali', sans-serif;
+    font-size: .76rem;
+    font-weight: 600;
+    letter-spacing: .005em;
+    color: #475569;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+  }
+  .nav-strip .premium-nav-item:hover {
+    color: #0f3d63;
+    background: rgba(255, 255, 255, .72);
+    border-color: rgba(148, 163, 184, .24);
+    box-shadow: 0 5px 14px -12px rgba(15, 23, 42, .6);
+  }
+  .nav-strip .premium-nav-item.active {
+    color: #17416b;
+    background: rgba(255, 255, 255, .88);
+    border-color: rgba(148, 163, 184, .3);
+    box-shadow: 0 6px 16px -13px rgba(15, 23, 42, .7), inset 0 1px 0 rgba(255, 255, 255, .95);
+  }
+  .nav-strip .premium-nav-item.active::after {
+    display: block;
+    left: 16px;
+    right: 16px;
+    bottom: 3px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #38a5df, transparent);
+  }
+  .nav-strip .nav-cta {
+    font-family: 'Plus Jakarta Sans', 'Noto Sans Bengali', sans-serif;
+    font-weight: 600;
+  }
+}

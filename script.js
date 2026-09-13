@@ -2899,9 +2899,15 @@
       const item = document.getElementById('mobile-member-item');
       if (item) item.textContent = restoring ? 'Restoring...' : (on ? 'My Profile' : 'Sign In');
       const desktopApplication = document.getElementById('nav-membership-cta');
-      if (desktopApplication) desktopApplication.classList.toggle('hidden', !applicationVisible);
+      if (desktopApplication) {
+        desktopApplication.classList.toggle('hidden', !applicationVisible);
+        desktopApplication.style.display = applicationVisible ? '' : 'none';
+      }
       const mobileApplication = document.getElementById('mobile-membership-cta');
-      if (mobileApplication) mobileApplication.classList.toggle('hidden', !applicationVisible);
+      if (mobileApplication) {
+        mobileApplication.classList.toggle('hidden', !applicationVisible);
+        mobileApplication.style.display = applicationVisible ? '' : 'none';
+      }
       const btn = document.getElementById('mobile-member-btn');
       if (btn) btn.setAttribute('aria-label', on ? 'My Profile' : 'Member sign in');
       const icon = document.getElementById('mobile-member-icon');
