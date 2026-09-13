@@ -4914,21 +4914,32 @@
     }
 
     function ecProfileButton(m) {
-      var id = ecDirectoryId(m);
-      return id
-        ? '<div class="px-6 sm:px-8 pb-4"><button type="button" onclick="openAlumniModal(\'' +
-          escapeHtml(id) + '\')" class="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-200 text-slate-600 hover:text-teal-700 text-xs font-extrabold cursor-pointer"><i data-lucide="user-round" class="w-3.5 h-3.5"></i> View profile</button></div>'
-        : '';
+      return '<div class="px-6 sm:px-8 pb-4"><button type="button" onclick="ecOpenProfile(\'' +
+        escapeHtml(m.entryId) + '\')" class="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-200 text-slate-600 hover:text-teal-700 text-xs font-extrabold cursor-pointer"><i data-lucide="user-round" class="w-3.5 h-3.5"></i> View profile</button></div>';
+    }
+
+    function ecOpenProfile(entryId) {
+      var found = ecLookupMember(entryId);
+      var id = found ? ecDirectoryId(found.member) : '';
+      if (id) {
+        openAlumniModal(id);
+        return;
+      }
+      showToast('This committee member does not have a directory profile yet.', 'info');
+    }
+
+    function ecNormProfileValue(value) {
+      return String(value || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
     }
 
     function ecDirectoryId(m) {
       var want = [m.fullName, m.department, m.series].map(function (v) {
-        return String(v || '').trim().toLowerCase();
+        return ecNormProfileValue(v);
       });
       var hit = alumniData.find(function (a) {
-        return String(a.name || a.fullName || '').trim().toLowerCase() === want[0] &&
-          String(a.dept || a.department || '').trim().toLowerCase() === want[1] &&
-          String(a.series || '').trim().toLowerCase() === want[2];
+        return ecNormProfileValue(a.name || a.fullName) === want[0] &&
+          ecNormProfileValue(a.dept || a.department) === want[1] &&
+          ecNormProfileValue(a.series) === want[2];
       });
       return hit ? String(hit.id || '') : '';
     }
