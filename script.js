@@ -3985,11 +3985,13 @@
     /* Where a reload leaves the member, once we know whether they are in. */
     function rdMemberLandedSignedIn() {
       document.body.classList.remove('rd-member-restoring');
+      rdMemberNavPaint();
       if (rdCurrentPageId === 'my-profile') openMyProfile('home');
     }
 
     function rdMemberLandedSignedOut() {
       document.body.classList.remove('rd-member-restoring');
+      rdMemberNavPaint();
       rdMemberPaintSignInLinks();
       if (rdCurrentPageId === 'my-profile') openMemberSignIn('home');
     }
