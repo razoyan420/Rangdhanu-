@@ -2893,10 +2893,15 @@
     function rdMemberNavPaint() {
       const restoring = document.body.classList.contains('rd-member-restoring');
       const on = rdMemberSignedIn();
+      const applicationVisible = !restoring && !on;
       const t = document.getElementById('nav-member-text');
       if (t) t.textContent = restoring ? 'Restoring...' : (on ? 'My Profile' : 'Sign In');
       const item = document.getElementById('mobile-member-item');
       if (item) item.textContent = restoring ? 'Restoring...' : (on ? 'My Profile' : 'Sign In');
+      const desktopApplication = document.getElementById('nav-membership-cta');
+      if (desktopApplication) desktopApplication.classList.toggle('hidden', !applicationVisible);
+      const mobileApplication = document.getElementById('mobile-membership-cta');
+      if (mobileApplication) mobileApplication.classList.toggle('hidden', !applicationVisible);
       const btn = document.getElementById('mobile-member-btn');
       if (btn) btn.setAttribute('aria-label', on ? 'My Profile' : 'Member sign in');
       const icon = document.getElementById('mobile-member-icon');
