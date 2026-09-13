@@ -5667,8 +5667,9 @@
         if (!form) return;
         const set = (name, value) => { const el = form.querySelector('[name="' + name + '"]'); if (el) el.value = String(value || ''); };
         set('fullName', member['Full Name (English)']);
-        set('mobile', member['Mobile Number']);
-        set('email', member['Email']);
+        const contact = memberContact(member['Member ID']);
+        set('mobile', member['Mobile Number'] || (contact && contact['Mobile Number']));
+        set('email', member['Email'] || (contact && contact.Email));
         set('department', member.Department);
         set('series', member.Series);
         const photo = member['Passport Size Image'];
@@ -5688,13 +5689,17 @@
           '<p class="text-xs text-slate-500">No directory match. You can enter the information manually.</p>';
       }
 
-      function ecSelectMember(id) {
+      async function ecSelectMember(id) {
         const member = alumniData.find(a => String(a.id) === String(id));
         if (!member) return;
+        if (rdMemberSignedIn() && !RD_MEMBER.contacts) await memberLoadContacts();
         const form = document.getElementById('ec-submit-form');
         if (!form) return;
         const set = (name, value) => { const el = form.querySelector('[name="' + name + '"]'); if (el) el.value = String(value || ''); };
-        set('fullName', member.name); set('mobile', member.phone); set('email', member.email);
+        const contact = memberContact(member.memberId || member.id);
+        set('fullName', member.name);
+        set('mobile', member.phone || (contact && contact['Mobile Number']));
+        set('email', member.email || (contact && contact.Email));
         set('department', member.dept); set('series', member.series);
         document.getElementById('ec-target-member-id').value = String(member.id);
         document.getElementById('ec-other-search').value = member.name;
@@ -5732,6 +5737,11 @@
       ecFillFormCommittees();
       if (rdMemberSignedIn()) ecSetOwnerMode(RD_EC_FORM_OWNER_MODE);
       if (!alumniData.length) loadPublicAlumni();
+      if (rdMemberSignedIn() && !RD_MEMBER.contacts) {
+        memberLoadContacts().then(function () {
+          if (RD_EC_FORM_OWNER_MODE === 'own') ecFillMemberForm(RD_MEMBER.me);
+        });
+      }
     }
 
     function ecFillMemberForm(member) {
