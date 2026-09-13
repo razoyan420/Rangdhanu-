@@ -255,7 +255,7 @@
       if (!page || !document.getElementById(`page-${page}`)) return 'home';
       const sub = RD_SUBPAGES[page];
       if (!allowSubPages && sub && sub.needsData) return sub.parent;
-      if (page === 'committee-new' && !rdMemberSignedIn() && !rdMemberWantsIn()) {
+      if (page === 'committee-new' && !rdMemberSignedIn()) {
         return 'member-signin';
       }
       return page;
