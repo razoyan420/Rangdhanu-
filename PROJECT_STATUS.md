@@ -26,6 +26,9 @@ backend.
   deployment. The `adminunclaimedmatches` action now reaches the live backend
   (an unauthenticated probe correctly returns an authentication error rather
   than an invalid-action error).
+- The merge-linking phase was deployed to the same web app as `@67`. The live
+  `adminunclaimedaudits` route was probed without credentials and correctly
+  returned an authentication error.
 
 ## Completed and live-tested
 
@@ -103,21 +106,40 @@ until it is implemented and live-tested:
 
 The unclaimed record and 3-of-4 matching phases are live in Apps Script. The
 admin panel now has `Unclaimed Profiles` and `Possible Matches` tabs, with
-`Merge records` and `Keep separate` actions. Merge is allowed only after the
-membership application is approved; the unclaimed record remains as the
-committee-history source and the merge is written to `Activity_Log`.
-Duplicate handling and full undo remain pending.
+`Merge records` and `Keep separate` actions. The Possible Matches review now
+shows old committee values beside new membership values and flags field
+conflicts. Merge is allowed only after the membership application is approved;
+verified registration data is the Alumni profile source, and approved
+committee history is linked into Alumni with source-entry IDs and duplicate
+checks. A dedicated `Unclaimed_Merge_Audit` sheet stores admin identity,
+timestamps, both source IDs, complete pre-merge snapshots, and post-merge
+values. The Merge Audit tab exposes a guarded undo path that refuses to
+overwrite later edits and restores the pre-merge values while leaving the
+original committee entry intact.
+
+The live backend implementation has not yet been owner-tested with a
+controlled real/test record. The owner must verify approved other-person
+committee entry -> unclaimed row -> approved matching membership -> side-by-
+side review -> merge, duplicate/conflict behavior, keep-separate, and safe
+undo before this workflow is considered fully live-tested.
 - The owner live-tested the Possible Matches tab after deployment `@64`; it
   loaded successfully and showed “No possible matches yet”.
 
 ## Validation already performed
 
-- `node --check script.js` passed after the latest authentication fix.
+- `node --check script.js` passed after the merge review UI changes.
+- `node --check` passed for `backend/Unclaimed_Merge.js`, `backend/Code.js`,
+  `backend/Registration_API.js`, and `backend/Executive Comittee.js`.
 - `git diff --check` passed.
 - Live sign-in, profile display, committee form opening, another-member
   autofill, authenticated submission, admin approval, and Drive photo
   visibility were verified in a browser.
-- The unclaimed/merge workflow has not been implemented or end-to-end tested.
+- Apps Script push and deployment to the existing web app completed at `@67`.
+- A live unauthenticated request to `adminunclaimedaudits` returned
+  `Authenticated user could not be identified`, confirming the route is
+  deployed and protected.
+- No production/test merge record was created by the agent. Real-data
+  end-to-end merge, conflict, and undo behavior remains owner-tested work.
 
 ## Important implementation notes
 

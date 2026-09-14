@@ -7834,6 +7834,7 @@ f.reset();
       { key: 'activity',      label: 'Edit History',            icon: 'history',      action: 'getadminactivity',    custom: true },
       { key: 'unclaimed',     label: 'Unclaimed Profiles',       icon: 'user-round-search', action: 'adminunclaimedprofiles', custom: true },
       { key: 'unclaimed-matches', label: 'Possible Matches',      icon: 'git-compare-arrows', action: 'adminunclaimedmatches', custom: true },
+      { key: 'unclaimed-audits', label: 'Merge Audit',             icon: 'file-check-2', action: 'adminunclaimedaudits', custom: true },
       { key: 'summary',       label: 'Members Summary',         icon: 'bar-chart-3',  action: '',                    custom: true }
     ];
     const RD_ADMIN_STATUSES = ['PENDING', 'DUPLICATE', 'APPROVED', 'REJECTED', 'ALL'];
@@ -8437,7 +8438,7 @@ f.reset();
 
       const res = await apiGet(adminTabMeta(tab).action, {});
       const rows = Array.isArray(res.rows) ? res.rows : [];
-      return rows.map(r => Object.assign({}, r, { id: String(r.noticeId || r.postId || r.slideId || r.lineId || r.updateId || r.unclaimedId || r.matchId || '').trim() }))
+      return rows.map(r => Object.assign({}, r, { id: String(r.noticeId || r.postId || r.slideId || r.lineId || r.updateId || r.unclaimedId || r.matchId || r['Audit ID'] || '').trim() }))
                  .filter(r => r.id);
     }
 
@@ -8450,7 +8451,12 @@ f.reset();
       if (tab === 'activity') return adminActivityHtml();
       if (tab === 'unclaimed') return adminUnclaimedHtml();
       if (tab === 'unclaimed-matches') return adminUnclaimedMatchesHtml();
+      if (tab === 'unclaimed-audits') return adminUnclaimedAuditsHtml();
       return adminSummaryHtml();
+    }
+
+    function adminReviewValue(value) {
+      return escapeHtml(value == null || value === '' ? 'Not provided' : String(value));
     }
 
     function adminUnclaimedMatchesHtml() {
@@ -8460,26 +8466,50 @@ f.reset();
           'A match appears when three of four normalized fields agree.', 'empty');
       }
       return '<div class="space-y-3">' +
-        rows.map(r => '<article class="rounded-3xl border border-indigo-200 bg-indigo-50/60 p-5">' +
-          '<div class="flex flex-wrap items-center gap-3">' +
-            '<h3 class="font-extrabold text-slate-900">' + escapeHtml(r.matchId || '(match)') + '</h3>' +
-            '<span class="rounded-lg border border-indigo-300 bg-white px-2.5 py-1 text-[11px] font-extrabold text-indigo-800">' +
-              escapeHtml(r.status || 'PENDING') + '</span>' +
-            '<span class="ml-auto text-xs font-extrabold text-indigo-700">' + escapeHtml(r.matchCount || '') + '/4 fields</span>' +
-          '</div>' +
-          '<div class="mt-3 grid gap-2 text-xs font-semibold text-slate-600 sm:grid-cols-2">' +
-            '<div>Unclaimed: ' + escapeHtml(r.unclaimedId || '') + '</div>' +
-            '<div>Registration: ' + escapeHtml(r.registrationId || '') + '</div>' +
-            '<div class="sm:col-span-2">Matched fields: ' + escapeHtml(r.matchedFields || '') + '</div>' +
-          '</div>' +
-          '<p class="mt-3 text-[11px] font-bold text-slate-500">No automatic merge was performed. Membership status: ' +
-            escapeHtml(r.registration && r.registration.Status ? r.registration.Status : 'not found') + '</p>' +
-          (r.status === 'PENDING' ? '<div class="mt-4 flex flex-wrap gap-2">' +
-            '<button type="button" onclick="adminMergeUnclaimed(\'' + escapeHtml(r.matchId) + '\')" class="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-700 cursor-pointer">Merge records</button>' +
-            '<button type="button" onclick="adminKeepUnclaimedSeparate(\'' + escapeHtml(r.matchId) + '\')" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 hover:border-slate-500 cursor-pointer">Keep separate</button>' +
-          '</div>' : '') +
-        '</article>').join('') +
-      '</div>';
+        rows.map(r => {
+          const old = r.unclaimed || {};
+          const fresh = r.registration || {};
+          const conflicts = Array.isArray(r.conflicts) ? r.conflicts : [];
+          const field = (label, oldValue, newValue) =>
+            '<div class="rounded-2xl border border-slate-200 bg-white p-3"><div class="text-[10px] font-black uppercase tracking-wide text-slate-500">' +
+            escapeHtml(label) + '</div><div class="mt-1 grid gap-2 sm:grid-cols-2"><div><span class="text-[10px] font-bold text-amber-700">Old committee record</span><div class="font-bold text-slate-800">' +
+            adminReviewValue(oldValue) + '</div></div><div><span class="text-[10px] font-bold text-emerald-700">New membership record</span><div class="font-bold text-slate-800">' +
+            adminReviewValue(newValue) + '</div></div></div></div>';
+          return '<article class="rounded-3xl border border-indigo-200 bg-indigo-50/60 p-5">' +
+            '<div class="flex flex-wrap items-center gap-3"><h3 class="font-extrabold text-slate-900">' + escapeHtml(r.matchId || '(match)') + '</h3>' +
+            '<span class="rounded-lg border border-indigo-300 bg-white px-2.5 py-1 text-[11px] font-extrabold text-indigo-800">' + escapeHtml(r.status || 'PENDING') + '</span>' +
+            '<span class="ml-auto text-xs font-extrabold text-indigo-700">' + escapeHtml(r.matchCount || '') + '/4 fields</span></div>' +
+            '<div class="mt-3 text-xs font-semibold text-slate-600">Unclaimed ' + escapeHtml(r.unclaimedId || '') + ' • Registration ' + escapeHtml(r.registrationId || '') + '</div>' +
+            '<div class="mt-4 grid gap-2">' +
+              field('Name', old.fullName, fresh['Full Name (English)']) +
+              field('Department', old.department, fresh.Department) +
+              field('Series', old.series, fresh.Series) +
+              field('Mobile', old.mobile, fresh['Mobile Number']) +
+            '</div>' +
+            (conflicts.length ? '<div class="mt-3 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-800"><div>Conflicts require review</div>' +
+              conflicts.map(c => '<div class="mt-1">' + escapeHtml(c.field) + ': ' + adminReviewValue(c.oldValue) + ' → ' + adminReviewValue(c.newValue) + '</div>').join('') + '</div>' : '') +
+            '<p class="mt-3 text-[11px] font-bold text-slate-500">Verified membership data becomes the profile source; committee history is linked only after duplicate checks.</p>' +
+            (r.status === 'PENDING' ? '<div class="mt-4 flex flex-wrap gap-2">' +
+              '<button type="button" onclick="adminMergeUnclaimed(\'' + escapeHtml(r.matchId) + '\')" class="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-700 cursor-pointer">Merge records</button>' +
+              '<button type="button" onclick="adminKeepUnclaimedSeparate(\'' + escapeHtml(r.matchId) + '\')" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 hover:border-slate-500 cursor-pointer">Keep separate</button>' +
+            '</div>' : '') +
+          '</article>';
+        }).join('') + '</div>';
+    }
+
+    function adminUnclaimedAuditsHtml() {
+      const rows = RD_ADMIN.rows['unclaimed-audits'] || [];
+      if (!rows.length) return adminInfoBox('file-check-2', 'No merge audits yet',
+        'Completed merges and their immutable snapshots will appear here.', 'empty');
+      return '<div class="space-y-3">' + rows.map(r =>
+        '<article class="rounded-3xl border border-slate-200 bg-white p-5"><div class="flex flex-wrap items-center gap-3">' +
+        '<h3 class="font-extrabold text-slate-900">' + escapeHtml(r['Audit ID'] || '') + '</h3>' +
+        '<span class="rounded-lg border border-slate-300 px-2.5 py-1 text-[11px] font-extrabold">' + escapeHtml(r.Status || '') + '</span>' +
+        '<span class="ml-auto text-xs font-bold text-slate-500">' + escapeHtml(r['Merged Date'] || '') + '</span></div>' +
+        '<p class="mt-3 text-xs font-semibold text-slate-600">Match ' + escapeHtml(r['Match ID'] || '') + ' • ' +
+          escapeHtml(r['Unclaimed ID'] || '') + ' → ' + escapeHtml(r['Registration ID'] || '') + ' • Admin ' + escapeHtml(r['Admin Email'] || '') + '</p>' +
+        (r.Status === 'MERGED' ? '<button type="button" onclick="adminUndoUnclaimed(\'' + escapeHtml(r['Audit ID']) + '\')" class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-800 hover:bg-rose-100 cursor-pointer">Undo merge safely</button>' : '') +
+        '</article>').join('') + '</div>';
     }
 
     async function adminMergeUnclaimed(id) {
@@ -8496,6 +8526,15 @@ f.reset();
       try {
         await apiPost('keepunclaimedseparate', { matchId: id });
         showToast('Records kept separate.', 'success');
+        await loadAdminDashboard(true);
+      } catch (err) { reportError(err); }
+    }
+
+    async function adminUndoUnclaimed(id) {
+      if (!window.confirm('Undo this merge and restore the exact pre-merge profile values? The source committee entry will remain preserved.')) return;
+      try {
+        await apiPost('undounclaimedmerge', { auditId: id });
+        showToast('Merge undone safely.', 'success');
         await loadAdminDashboard(true);
       } catch (err) { reportError(err); }
     }

@@ -95,28 +95,35 @@ These paths need a controlled test with a non-production/test record before
 claiming full success. Do not create fake production records without the
 owner's approval.
 
-## Still incomplete
+## Implemented in the latest merge-linking phase; owner test still required
 
 1. Show old and new record details side by side in the match review UI,
-   including all conflicts.
+   including all conflicts. **Implemented; owner review still required.**
 2. Make merge update/link the profile data in the real Alumni/member data
    model, not only mark the unclaimed record with a registration ID.
+   **Implemented; owner test still required.**
 3. Preserve and deduplicate all committee history during merge.
+   **Implemented with source-entry IDs and duplicate blocking; owner test still
+   required.**
 4. Detect duplicate committee history conflicts and route them to review.
+   **Implemented with `CONFLICT_REVIEW`; owner test still required.**
 5. Add a complete merge audit record containing:
    - admin identity
    - timestamp
    - both source record IDs
    - complete pre-merge values
    - post-merge result
+   **Implemented in `Unclaimed_Merge_Audit`; owner test still required.**
 6. Implement safe undo/rollback for a merge without deleting source history.
+   **Implemented with post-merge change detection; owner test still required.**
 7. Add explicit review status transitions and robust authorization checks for
-   merge, keep-separate, and undo.
+   merge, keep-separate, and undo. **Implemented for merge, keep-separate,
+   conflict review, and undo.**
 8. Run a controlled end-to-end test:
    approved other-person committee record -> unclaimed row -> matching
    membership application -> admin review -> keep separate or merge -> audit.
 9. Verify the Apps Script deployment after every backend change; `clasp push`
-   alone is not enough. The live web-app deployment must be updated.
+   alone is not enough. The live web-app deployment was updated to `@67`.
 10. Update `PROJECT_STATUS.md` after each verified phase.
 
 ## Important deployment details
@@ -129,7 +136,7 @@ owner's approval.
 - Frontend cache-busting script version is in `index.html`; update it after
   frontend changes.
 - Current Apps Script web-app deployment used by the frontend is the deployment
-  whose URL is in `script.js` as `API_BASE_URL`; it was updated to `@64`.
+  whose URL is in `script.js` as `API_BASE_URL`; it was updated to `@67`.
 - Use the existing repository/worktree changes; do not reset or discard user
   changes.
 
