@@ -2616,6 +2616,19 @@
       return rdMemberSignedIn();
     }
 
+    async function ecOpenSubmissionForm() {
+      if (rdMemberSignedIn()) {
+        openSubPage('committee-new');
+        return;
+      }
+      if (RD_MEMBER.token && !RD_MEMBER.busy && await rdMemberEnsureSession()) {
+        openSubPage('committee-new');
+        return;
+      }
+      showToast('Please sign in before submitting committee information.', 'info');
+      openMemberSignIn('committee');
+    }
+
     function rdMemberRemember(token) {
       RD_MEMBER.token = token || '';
       if (rdMemberRenewTimer) {
@@ -5637,12 +5650,6 @@
       const btn = document.getElementById('ec-submit-btn');
       const fd = new FormData(form);
       clearFieldErrors(form);
-      if (!(await rdMemberEnsureSession())) {
-        showToast('Please sign in before submitting committee information.', 'info');
-        openMemberSignIn('committee-new');
-        return;
-      }
-
       const position = ecResolvePosition(fd);
       if (!position) {
         setFieldError(form, String(fd.get('position') || '') === 'Others' ? 'positionOther' : 'position',
