@@ -7833,6 +7833,7 @@ f.reset();
       { key: 'faculty',       label: 'Rangdhanu Family',        icon: 'users-round',  action: 'getadminfaculty',     custom: true },
       { key: 'activity',      label: 'Edit History',            icon: 'history',      action: 'getadminactivity',    custom: true },
       { key: 'unclaimed',     label: 'Unclaimed Profiles',       icon: 'user-round-search', action: 'adminunclaimedprofiles', custom: true },
+      { key: 'unclaimed-matches', label: 'Possible Matches',      icon: 'git-compare-arrows', action: 'adminunclaimedmatches', custom: true },
       { key: 'summary',       label: 'Members Summary',         icon: 'bar-chart-3',  action: '',                    custom: true }
     ];
     const RD_ADMIN_STATUSES = ['PENDING', 'DUPLICATE', 'APPROVED', 'REJECTED', 'ALL'];
@@ -8436,7 +8437,7 @@ f.reset();
 
       const res = await apiGet(adminTabMeta(tab).action, {});
       const rows = Array.isArray(res.rows) ? res.rows : [];
-      return rows.map(r => Object.assign({}, r, { id: String(r.noticeId || r.postId || r.slideId || r.lineId || r.updateId || r.unclaimedId || '').trim() }))
+      return rows.map(r => Object.assign({}, r, { id: String(r.noticeId || r.postId || r.slideId || r.lineId || r.updateId || r.unclaimedId || r.matchId || '').trim() }))
                  .filter(r => r.id);
     }
 
@@ -8448,7 +8449,32 @@ f.reset();
       if (tab === 'faculty') return adminFacultyHtml();
       if (tab === 'activity') return adminActivityHtml();
       if (tab === 'unclaimed') return adminUnclaimedHtml();
+      if (tab === 'unclaimed-matches') return adminUnclaimedMatchesHtml();
       return adminSummaryHtml();
+    }
+
+    function adminUnclaimedMatchesHtml() {
+      const rows = RD_ADMIN.rows['unclaimed-matches'] || [];
+      if (!rows.length) {
+        return adminInfoBox('git-compare-arrows', 'No possible matches yet',
+          'A match appears when three of four normalized fields agree.', 'empty');
+      }
+      return '<div class="space-y-3">' +
+        rows.map(r => '<article class="rounded-3xl border border-indigo-200 bg-indigo-50/60 p-5">' +
+          '<div class="flex flex-wrap items-center gap-3">' +
+            '<h3 class="font-extrabold text-slate-900">' + escapeHtml(r.matchId || '(match)') + '</h3>' +
+            '<span class="rounded-lg border border-indigo-300 bg-white px-2.5 py-1 text-[11px] font-extrabold text-indigo-800">' +
+              escapeHtml(r.status || 'PENDING') + '</span>' +
+            '<span class="ml-auto text-xs font-extrabold text-indigo-700">' + escapeHtml(r.matchCount || '') + '/4 fields</span>' +
+          '</div>' +
+          '<div class="mt-3 grid gap-2 text-xs font-semibold text-slate-600 sm:grid-cols-2">' +
+            '<div>Unclaimed: ' + escapeHtml(r.unclaimedId || '') + '</div>' +
+            '<div>Registration: ' + escapeHtml(r.registrationId || '') + '</div>' +
+            '<div class="sm:col-span-2">Matched fields: ' + escapeHtml(r.matchedFields || '') + '</div>' +
+          '</div>' +
+          '<p class="mt-3 text-[11px] font-bold text-slate-500">No automatic merge was performed.</p>' +
+        '</article>').join('') +
+      '</div>';
     }
 
     function adminUnclaimedHtml() {

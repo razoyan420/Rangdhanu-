@@ -17,6 +17,10 @@ backend.
 - Phase 1 of the unclaimed-record model was deployed to Apps Script on
   2026-09-14. It creates the `Unclaimed_Profiles` sheet on first use and
   exposes an admin-only `adminunclaimedprofiles` endpoint.
+- Phase 2 was deployed to Apps Script on 2026-09-14. Membership applications
+  now compare normalized Name, Series, Department, and Mobile against open
+  unclaimed records. Three or four matches create a pending `Unclaimed_Matches`
+  row; no automatic merge occurs.
 
 ## Completed and live-tested
 
@@ -73,10 +77,10 @@ until it is implemented and live-tested:
    unclaimed record linked to the source committee entry.
 2. Keep the submitter only as internal `Submitted By`; never make the submitter
    the profile owner.
-3. When the named person later submits a membership application, normalize and
-   compare Name, Series, Department, and Mobile.
-4. Flag a possible match when any 3 of those 4 fields match exactly after
-   normalization.
+3. **Implemented:** When the named person later submits a membership
+   application, normalize and compare Name, Series, Department, and Mobile.
+4. **Implemented:** Flag a possible match when any 3 of those 4 fields match
+   exactly after normalization.
 5. Show an admin notification containing the old and new records, including
    conflicts.
 6. Require an explicit admin choice: `Merge records` or `Keep separate`.
@@ -92,10 +96,10 @@ until it is implemented and live-tested:
 12. Add admin UI and backend routes for match review, merge, keep-separate,
     audit, and undo.
 
-The unclaimed record phase is live in Apps Script. The admin panel now has an
-`Unclaimed Profiles` tab that reads these records. The record is not yet
-automatically matched to a later membership application, and merge/review/
-audit/undo remain pending.
+The unclaimed record and 3-of-4 matching phases are live in Apps Script. The
+admin panel now has `Unclaimed Profiles` and `Possible Matches` tabs. The
+record is not yet manually mergeable from the panel; merge/review/audit/undo
+remain pending.
 
 ## Validation already performed
 
