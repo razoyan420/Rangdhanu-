@@ -135,7 +135,14 @@
 
     function openSubPage(pageId, backTo) {
       if (pageId === 'committee-new' && !rdMemberSignedIn()) {
-        openMemberSignIn(backTo || rdCurrentPageId);
+        if (RD_MEMBER.token && !RD_MEMBER.busy) {
+          memberVerify(true).then(function () {
+            if (rdMemberSignedIn()) openSubPage(pageId, backTo);
+            else openMemberSignIn(backTo || rdCurrentPageId);
+          });
+        } else {
+          openMemberSignIn(backTo || rdCurrentPageId);
+        }
         return;
       }
       const parent = (RD_SUBPAGES[pageId] || {}).parent || 'home';
