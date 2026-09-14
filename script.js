@@ -2609,6 +2609,13 @@
     function rdMemberParams() { return RD_MEMBER.token ? { memberToken: RD_MEMBER.token } : {}; }
     function rdMemberSignedIn() { return !!(RD_MEMBER.token && RD_MEMBER.me); }
 
+    async function rdMemberEnsureSession() {
+      if (rdMemberSignedIn()) return true;
+      if (!RD_MEMBER.token || RD_MEMBER.busy) return false;
+      await memberVerify(true);
+      return rdMemberSignedIn();
+    }
+
     function rdMemberRemember(token) {
       RD_MEMBER.token = token || '';
       if (rdMemberRenewTimer) {
@@ -5630,7 +5637,7 @@
       const btn = document.getElementById('ec-submit-btn');
       const fd = new FormData(form);
       clearFieldErrors(form);
-      if (!rdMemberSignedIn()) {
+      if (!(await rdMemberEnsureSession())) {
         showToast('Please sign in before submitting committee information.', 'info');
         openMemberSignIn('committee-new');
         return;
