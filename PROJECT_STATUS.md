@@ -21,6 +21,11 @@ backend.
   now compare normalized Name, Series, Department, and Mobile against open
   unclaimed records. Three or four matches create a pending `Unclaimed_Matches`
   row; no automatic merge occurs.
+- The live Apps Script web-app deployment was updated to version `@64` after
+  the admin panel initially showed `Invalid API action` from the old `@63`
+  deployment. The `adminunclaimedmatches` action now reaches the live backend
+  (an unauthenticated probe correctly returns an authentication error rather
+  than an invalid-action error).
 
 ## Completed and live-tested
 
