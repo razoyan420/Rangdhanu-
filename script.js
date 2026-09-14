@@ -8472,9 +8472,32 @@ f.reset();
             '<div>Registration: ' + escapeHtml(r.registrationId || '') + '</div>' +
             '<div class="sm:col-span-2">Matched fields: ' + escapeHtml(r.matchedFields || '') + '</div>' +
           '</div>' +
-          '<p class="mt-3 text-[11px] font-bold text-slate-500">No automatic merge was performed.</p>' +
+          '<p class="mt-3 text-[11px] font-bold text-slate-500">No automatic merge was performed. Membership status: ' +
+            escapeHtml(r.registration && r.registration.Status ? r.registration.Status : 'not found') + '</p>' +
+          (r.status === 'PENDING' ? '<div class="mt-4 flex flex-wrap gap-2">' +
+            '<button type="button" onclick="adminMergeUnclaimed(\'' + escapeHtml(r.matchId) + '\')" class="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-700 cursor-pointer">Merge records</button>' +
+            '<button type="button" onclick="adminKeepUnclaimedSeparate(\'' + escapeHtml(r.matchId) + '\')" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 hover:border-slate-500 cursor-pointer">Keep separate</button>' +
+          '</div>' : '') +
         '</article>').join('') +
       '</div>';
+    }
+
+    async function adminMergeUnclaimed(id) {
+      if (!window.confirm('Merge this unclaimed profile with the approved membership application?')) return;
+      try {
+        await apiPost('mergeunclaimed', { matchId: id });
+        showToast('Records merged and committee history retained.', 'success');
+        await loadAdminDashboard(true);
+      } catch (err) { reportError(err); }
+    }
+
+    async function adminKeepUnclaimedSeparate(id) {
+      if (!window.confirm('Keep these records separate?')) return;
+      try {
+        await apiPost('keepunclaimedseparate', { matchId: id });
+        showToast('Records kept separate.', 'success');
+        await loadAdminDashboard(true);
+      } catch (err) { reportError(err); }
     }
 
     function adminUnclaimedHtml() {

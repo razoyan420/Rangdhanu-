@@ -97,9 +97,11 @@ until it is implemented and live-tested:
     audit, and undo.
 
 The unclaimed record and 3-of-4 matching phases are live in Apps Script. The
-admin panel now has `Unclaimed Profiles` and `Possible Matches` tabs. The
-record is not yet manually mergeable from the panel; merge/review/audit/undo
-remain pending.
+admin panel now has `Unclaimed Profiles` and `Possible Matches` tabs, with
+`Merge records` and `Keep separate` actions. Merge is allowed only after the
+membership application is approved; the unclaimed record remains as the
+committee-history source and the merge is written to `Activity_Log`.
+Duplicate handling and full undo remain pending.
 
 ## Validation already performed
 
