@@ -134,15 +134,8 @@
     }, { passive: true });
 
     function openSubPage(pageId, backTo) {
-      if (pageId === 'committee-new' && !rdMemberSignedIn()) {
-        if (RD_MEMBER.token && !RD_MEMBER.busy) {
-          memberVerify(true).then(function () {
-            if (rdMemberSignedIn()) openSubPage(pageId, backTo);
-            else openMemberSignIn(backTo || rdCurrentPageId);
-          });
-        } else {
-          openMemberSignIn(backTo || rdCurrentPageId);
-        }
+      if (pageId === 'committee-new' && !RD_MEMBER.token) {
+        openMemberSignIn(backTo || rdCurrentPageId);
         return;
       }
       const parent = (RD_SUBPAGES[pageId] || {}).parent || 'home';
@@ -262,7 +255,7 @@
       if (!page || !document.getElementById(`page-${page}`)) return 'home';
       const sub = RD_SUBPAGES[page];
       if (!allowSubPages && sub && sub.needsData) return sub.parent;
-      if (page === 'committee-new' && !rdMemberSignedIn()) {
+      if (page === 'committee-new' && !RD_MEMBER.token) {
         return 'member-signin';
       }
       return page;
@@ -2617,11 +2610,7 @@
     }
 
     async function ecOpenSubmissionForm() {
-      if (rdMemberSignedIn()) {
-        openSubPage('committee-new');
-        return;
-      }
-      if (RD_MEMBER.token && !RD_MEMBER.busy && await rdMemberEnsureSession()) {
+      if (RD_MEMBER.token) {
         openSubPage('committee-new');
         return;
       }
