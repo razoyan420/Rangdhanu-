@@ -7832,6 +7832,7 @@ f.reset();
       { key: 'pdacc',         label: 'PDACC Page',              icon: 'graduation-cap', action: 'getadminpdacc',     custom: true },
       { key: 'faculty',       label: 'Rangdhanu Family',        icon: 'users-round',  action: 'getadminfaculty',     custom: true },
       { key: 'activity',      label: 'Edit History',            icon: 'history',      action: 'getadminactivity',    custom: true },
+      { key: 'unclaimed',     label: 'Unclaimed Profiles',       icon: 'user-round-search', action: 'adminunclaimedprofiles', custom: true },
       { key: 'summary',       label: 'Members Summary',         icon: 'bar-chart-3',  action: '',                    custom: true }
     ];
     const RD_ADMIN_STATUSES = ['PENDING', 'DUPLICATE', 'APPROVED', 'REJECTED', 'ALL'];
@@ -8435,7 +8436,7 @@ f.reset();
 
       const res = await apiGet(adminTabMeta(tab).action, {});
       const rows = Array.isArray(res.rows) ? res.rows : [];
-      return rows.map(r => Object.assign({}, r, { id: String(r.noticeId || r.postId || r.slideId || r.lineId || r.updateId || '').trim() }))
+      return rows.map(r => Object.assign({}, r, { id: String(r.noticeId || r.postId || r.slideId || r.lineId || r.updateId || r.unclaimedId || '').trim() }))
                  .filter(r => r.id);
     }
 
@@ -8446,7 +8447,37 @@ f.reset();
       if (tab === 'pdacc') return adminPdaccHtml();
       if (tab === 'faculty') return adminFacultyHtml();
       if (tab === 'activity') return adminActivityHtml();
+      if (tab === 'unclaimed') return adminUnclaimedHtml();
       return adminSummaryHtml();
+    }
+
+    function adminUnclaimedHtml() {
+      const rows = RD_ADMIN.rows.unclaimed || [];
+      if (!rows.length) {
+        return adminInfoBox('user-round-search', 'No unclaimed profiles yet',
+          'Approved committee submissions for another member will appear here.', 'empty');
+      }
+      return '<div class="space-y-3">' +
+        rows.map(r => '<article class="rounded-3xl border border-amber-200 bg-amber-50/60 p-5">' +
+          '<div class="flex flex-wrap items-start gap-3">' +
+            '<div class="min-w-0">' +
+              '<h3 class="font-extrabold text-slate-900">' + escapeHtml(r.fullName || '(no name)') + '</h3>' +
+              '<p class="mt-1 text-xs font-bold text-slate-500">' +
+                escapeHtml([r.department, r.series ? 'Series ' + r.series : '', r.status].filter(Boolean).join(' • ')) +
+              '</p>' +
+            '</div>' +
+            '<span class="ml-auto rounded-lg border border-amber-300 bg-white px-2.5 py-1 text-[11px] font-extrabold text-amber-800">' +
+              escapeHtml(r.unclaimedId) + '</span>' +
+          '</div>' +
+          '<div class="mt-4 grid gap-2 text-xs font-semibold text-slate-600 sm:grid-cols-2">' +
+            '<div>Mobile: ' + escapeHtml(r.mobile || 'Not provided') + '</div>' +
+            '<div>Email: ' + escapeHtml(r.email || 'Not provided') + '</div>' +
+            '<div>Committee: ' + escapeHtml([r.committee, r.session, r.position].filter(Boolean).join(' • ')) + '</div>' +
+            '<div>Source entry: ' + escapeHtml(r.sourceEntryId || 'Not available') + '</div>' +
+          '</div>' +
+          '<p class="mt-3 text-[11px] font-bold text-slate-500">Submitted by: ' + escapeHtml(r.submittedBy || 'Not available') + '</p>' +
+        '</article>').join('') +
+      '</div>';
     }
 
     /* ---------- Edit History tab ---------------------------------------

@@ -14,6 +14,9 @@ backend.
 - The live page was verified serving `script.js?v=20260914-1455`.
 - Backend deployment is separate from GitHub Pages; backend changes must be
   deployed to the Apps Script web app before live backend behavior changes.
+- Phase 1 of the unclaimed-record model was deployed to Apps Script on
+  2026-09-14. It creates the `Unclaimed_Profiles` sheet on first use and
+  exposes an admin-only `adminunclaimedprofiles` endpoint.
 
 ## Completed and live-tested
 
@@ -60,13 +63,14 @@ backend.
 - Committee redesign, committee/session tabs, leader/member cards, and
   profile/message actions are implemented.
 
-## Not implemented yet: unclaimed profile and manual merge model
+## Partially implemented: unclaimed profile and manual merge model
 
 The following requested model is still pending. Do not claim that it exists
 until it is implemented and live-tested:
 
-1. When one member submits another person's committee information and an admin
-   approves it, create a distinct unclaimed directory/profile record.
+1. **Implemented:** When one member submits another person's committee
+   information and an admin approves it, create one distinct `UP-####`
+   unclaimed record linked to the source committee entry.
 2. Keep the submitter only as internal `Submitted By`; never make the submitter
    the profile owner.
 3. When the named person later submits a membership application, normalize and
@@ -88,10 +92,10 @@ until it is implemented and live-tested:
 12. Add admin UI and backend routes for match review, merge, keep-separate,
     audit, and undo.
 
-Current behavior for an approved `Another member` submission is only a
-committee record plus its internal submitter metadata. It is not yet an
-unclaimed profile and it is not linked automatically to a later membership
-application.
+The unclaimed record phase is live in Apps Script. The admin panel now has an
+`Unclaimed Profiles` tab that reads these records. The record is not yet
+automatically matched to a later membership application, and merge/review/
+audit/undo remain pending.
 
 ## Validation already performed
 
