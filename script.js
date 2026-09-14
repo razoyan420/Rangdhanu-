@@ -2956,7 +2956,17 @@
        member reaches it too: the server answers from the member's own row, and
        that row exists long before the public feed carries it. */
     function rdMemberMyProfile() {
-      if (!rdMemberSignedIn()) { openMemberSignIn(rdCurrentPageId); return; }
+      if (!rdMemberSignedIn()) {
+        if (RD_MEMBER.token && !RD_MEMBER.busy) {
+          memberVerify(true).then(function () {
+            if (rdMemberSignedIn()) rdMemberMyProfile();
+            else openMemberSignIn(rdCurrentPageId);
+          });
+        } else {
+          openMemberSignIn(rdCurrentPageId);
+        }
+        return;
+      }
       openMyProfile(rdCurrentPageId);
     }
 
