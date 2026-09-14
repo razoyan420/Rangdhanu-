@@ -29,6 +29,11 @@ backend.
 - The merge-linking phase was deployed to the same web app as `@67`. The live
   `adminunclaimedaudits` route was probed without credentials and correctly
   returned an authentication error.
+- A safe legacy backfill route was deployed to the same web app as `@69`.
+  Admins can preview and then apply migration for older approved
+  `Another member` committee entries. Exact single Alumni matches are linked;
+  unmatched entries become unclaimed profiles; ambiguous cases are not
+  auto-merged.
 
 ## Completed and live-tested
 
@@ -122,6 +127,10 @@ controlled real/test record. The owner must verify approved other-person
 committee entry -> unclaimed row -> approved matching membership -> side-by-
 side review -> merge, duplicate/conflict behavior, keep-separate, and safe
 undo before this workflow is considered fully live-tested.
+
+The admin `Unclaimed Profiles` tab now includes `Scan older approved committee
+records`. It performs a dry-run preview first and requires explicit
+confirmation before creating unclaimed rows or linking exact Alumni matches.
 - The owner live-tested the Possible Matches tab after deployment `@64`; it
   loaded successfully and showed “No possible matches yet”.
 
@@ -140,6 +149,8 @@ undo before this workflow is considered fully live-tested.
   deployed and protected.
 - No production/test merge record was created by the agent. Real-data
   end-to-end merge, conflict, and undo behavior remains owner-tested work.
+- Legacy backfill has not been applied by the agent; the owner must review the
+  dry-run counts before confirming the migration.
 
 ## Important implementation notes
 

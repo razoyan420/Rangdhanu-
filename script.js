@@ -8542,10 +8542,13 @@ f.reset();
     function adminUnclaimedHtml() {
       const rows = RD_ADMIN.rows.unclaimed || [];
       if (!rows.length) {
-        return adminInfoBox('user-round-search', 'No unclaimed profiles yet',
-          'Approved committee submissions for another member will appear here.', 'empty');
+        return '<div class="space-y-3">' +
+          '<button type="button" onclick="adminBackfillUnclaimed()" class="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 hover:bg-amber-100 cursor-pointer">Scan older approved committee records</button>' +
+          adminInfoBox('user-round-search', 'No unclaimed profiles yet',
+            'Approved committee submissions for another member will appear here.', 'empty') + '</div>';
       }
       return '<div class="space-y-3">' +
+        '<button type="button" onclick="adminBackfillUnclaimed()" class="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 hover:bg-amber-100 cursor-pointer">Scan older approved committee records</button>' +
         rows.map(r => '<article class="rounded-3xl border border-amber-200 bg-amber-50/60 p-5">' +
           '<div class="flex flex-wrap items-start gap-3">' +
             '<div class="min-w-0">' +
@@ -8566,6 +8569,18 @@ f.reset();
           '<p class="mt-3 text-[11px] font-bold text-slate-500">Submitted by: ' + escapeHtml(r.submittedBy || 'Not available') + '</p>' +
         '</article>').join('') +
       '</div>';
+    }
+
+    async function adminBackfillUnclaimed() {
+      try {
+        const preview = await apiPost('backfillunclaimedprofiles', { apply: 'false' });
+        const message = 'Scan found ' + (preview.linked || 0) + ' exact Alumni link(s) and ' +
+          (preview.toCreate || 0) + ' record(s) needing Unclaimed Profiles. Apply this migration now?';
+        if (!window.confirm(message)) return;
+        await apiPost('backfillunclaimedprofiles', { apply: 'true' });
+        showToast('Older committee records migrated safely.', 'success');
+        await loadAdminDashboard(true);
+      } catch (err) { reportError(err); }
     }
 
     /* ---------- Edit History tab ---------------------------------------
