@@ -107,6 +107,8 @@ admin panel now has `Unclaimed Profiles` and `Possible Matches` tabs, with
 membership application is approved; the unclaimed record remains as the
 committee-history source and the merge is written to `Activity_Log`.
 Duplicate handling and full undo remain pending.
+- The owner live-tested the Possible Matches tab after deployment `@64`; it
+  loaded successfully and showed “No possible matches yet”.
 
 ## Validation already performed
 
