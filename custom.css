@@ -2401,8 +2401,6 @@
 .rd-mpx-dropdown:not(.hidden){display:block}
 .rd-mpx-dropdown button{display:flex;align-items:center;gap:.45rem;width:100%;padding:.55rem .65rem;border-radius:.55rem;color:#b42318;font-size:.78rem;font-weight:700;text-align:left}
 .rd-mpx-dropdown button:hover{background:#fff1f2}
-.rd-nav-logout{color:#b42318!important}
-.rd-nav-logout:hover{color:#991b1b!important;background:#fff1f2!important}
 .ec-owner-mode{padding:.55rem .9rem;border:1px solid rgba(148,163,184,.3);border-radius:.7rem;background:rgba(255,255,255,.68);color:#475569;font-size:.78rem;font-weight:800;cursor:pointer;transition:.2s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .ec-owner-mode:hover{background:rgba(255,255,255,.9);border-color:rgba(15,118,110,.28)}
 .ec-owner-mode.active{background:rgba(255,255,255,.9);border-color:rgba(15,118,110,.38);color:#0f766e;box-shadow:0 8px 18px -14px rgba(15,118,110,.7),inset 0 1px 0 rgba(255,255,255,.95)}
