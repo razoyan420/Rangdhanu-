@@ -2920,6 +2920,10 @@
       if (t) t.textContent = restoring ? 'Restoring...' : (on ? 'My Profile' : 'Sign In');
       const item = document.getElementById('mobile-member-item');
       if (item) item.textContent = restoring ? 'Restoring...' : (on ? 'My Profile' : 'Sign In');
+      document.querySelectorAll('.rd-nav-profile-dropdown').forEach(function (menu) {
+        if (!on) menu.classList.add('hidden');
+      });
+      if (!on) rdNavProfileMenuClose();
       const desktopApplication = document.getElementById('nav-membership-cta');
       if (desktopApplication) {
         desktopApplication.classList.toggle('hidden', !applicationVisible);
@@ -2968,6 +2972,27 @@
         return;
       }
       openMyProfile(rdCurrentPageId);
+    }
+
+    function rdNavProfileMenuToggle(button) {
+      if (!rdMemberSignedIn()) {
+        rdMemberNavClick();
+        return;
+      }
+      var menu = button && button.parentElement
+        ? button.parentElement.querySelector('.rd-nav-profile-dropdown')
+        : null;
+      if (!menu) return;
+      var open = menu.classList.toggle('hidden');
+      button.setAttribute('aria-expanded', String(!open));
+    }
+
+    function rdNavProfileMenuClose() {
+      document.querySelectorAll('.rd-nav-profile-dropdown').forEach(function (menu) {
+        menu.classList.add('hidden');
+        var button = menu.parentElement && menu.parentElement.querySelector('[aria-haspopup="true"]');
+        if (button) button.setAttribute('aria-expanded', 'false');
+      });
     }
 
     function rdMypMenuToggle(button) {
