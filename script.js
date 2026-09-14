@@ -2915,6 +2915,7 @@
     function rdMemberNavPaint() {
       const restoring = document.body.classList.contains('rd-member-restoring');
       const on = rdMemberSignedIn();
+      const hasMemberSession = on || !!RD_MEMBER.token || rdMemberWantsIn();
       const applicationVisible = !restoring && !on;
       const t = document.getElementById('nav-member-text');
       if (t) t.textContent = restoring ? 'Restoring...' : (on ? 'My Profile' : 'Sign In');
@@ -2932,6 +2933,10 @@
       }
       const btn = document.getElementById('mobile-member-btn');
       if (btn) btn.setAttribute('aria-label', on ? 'My Profile' : 'Member sign in');
+      ['nav-member-logout', 'mobile-member-logout'].forEach(function (id) {
+        const logout = document.getElementById(id);
+        if (logout) logout.classList.toggle('hidden', !hasMemberSession);
+      });
       const icon = document.getElementById('mobile-member-icon');
       if (icon) {
         icon.outerHTML = '<i id="mobile-member-icon" class="w-6 h-6" data-lucide="' +
