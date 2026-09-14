@@ -4647,7 +4647,12 @@
 
     /* The admin token rides along only when one exists; every public call
        is byte-for-byte what it was before. */
-    function rdAuthParams() { return RD_ADMIN_TOKEN ? { adminToken: RD_ADMIN_TOKEN } : {}; }
+    function rdAuthParams() {
+      const params = {};
+      if (RD_ADMIN_TOKEN) params.adminToken = RD_ADMIN_TOKEN;
+      if (RD_MEMBER && RD_MEMBER.token) params.memberToken = RD_MEMBER.token;
+      return params;
+    }
     async function apiGet(action, params={}){ const q=new URLSearchParams({action,...params,...rdAuthParams(),_:Date.now()}); const r=await fetch(API_BASE_URL+'?'+q.toString()); const j=await r.json(); if(!j.success) throw new Error(j.message); return j; }
 
     /* ================= EXECUTIVE COMMITTEE =============================
