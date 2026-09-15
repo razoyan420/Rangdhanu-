@@ -6,6 +6,8 @@
        the old behaviour. Nothing else on the site uses this. */
     const RD_ADMIN_CLIENT_ID = '849137353830-55alqovkjo713pr94v65k2ld8sidekq8.apps.googleusercontent.com';
     let RD_ADMIN_TOKEN = '';
+    const RD_ADMIN_KEY = 'rd_admin_token';
+    const RD_ADMIN_KEEP = 'rd_admin_keep';
     const ALUMNI_API_URL = API_BASE_URL + '?action=alumni';
 
     const staticEvents = [
@@ -1312,6 +1314,7 @@
       rdAddrInitAll();
       rdSocialInitAll();
       rdMemberRestore();
+      rdAdminRestore();
       loadExecutiveCommittee();
       renderCgpa();
       /* loadPublicAlumni() and loadPublicEvents() used to run here.  The home
@@ -8002,12 +8005,69 @@ f.reset();
        The browser never states who it is. */
     let rdGsiDrawn = false;
 
+    function rdAdminWantsIn() {
+      try { return localStorage.getItem(RD_ADMIN_KEEP) === '1'; } catch (err) { return false; }
+    }
+
+    function rdAdminRemember(token) {
+      RD_ADMIN_TOKEN = token || '';
+      try {
+        if (token) {
+          localStorage.setItem(RD_ADMIN_KEY, token);
+          localStorage.setItem(RD_ADMIN_KEEP, '1');
+        } else {
+          localStorage.removeItem(RD_ADMIN_KEY);
+          localStorage.removeItem(RD_ADMIN_KEEP);
+        }
+      } catch (err) { /* private mode: the current page can still authenticate */ }
+    }
+
+    function rdAdminNavPaint() {
+      const on = RD_ADMIN.gate === 'open' && !!RD_ADMIN_TOKEN;
+      ['nav-admin-menu', 'mobile-admin-menu'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.toggle('hidden', !on);
+          if (id === 'nav-admin-menu') el.classList.toggle('flex', on);
+        }
+      });
+      const pending = (RD_ADMIN.rows.registrations || []).filter(r => r.status === 'PENDING' || r.status === 'DUPLICATE').length +
+        (RD_ADMIN.rows.unclaimed ? RD_ADMIN.rows.unclaimed.length : 0) +
+        (RD_ADMIN.rows['unclaimed-matches'] ? RD_ADMIN.rows['unclaimed-matches'].filter(r => String(r.status || 'PENDING').toUpperCase() === 'PENDING').length : 0);
+      ['nav-admin-badge', 'mobile-admin-badge'].forEach(function (id) {
+        const badge = document.getElementById(id);
+        if (!badge) return;
+        badge.textContent = pending ? String(pending) : '';
+        badge.classList.toggle('hidden', !on || !pending);
+        badge.classList.toggle('inline-flex', on && !!pending);
+        badge.classList.toggle('items-center', on && !!pending);
+        badge.classList.toggle('justify-center', on && !!pending);
+        badge.classList.toggle('min-w-[1.25rem]', on && !!pending);
+        badge.classList.toggle('h-5', on && !!pending);
+        badge.classList.toggle('px-1', on && !!pending);
+        badge.classList.toggle('rounded-md', on && !!pending);
+        badge.classList.toggle('bg-amber-100', on && !!pending);
+        badge.classList.toggle('text-amber-800', on && !!pending);
+        badge.classList.toggle('text-[10px]', on && !!pending);
+        badge.classList.toggle('font-black', on && !!pending);
+      });
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
+
+    function adminOpenNotifications() {
+      switchPage('admin');
+      setTimeout(function () {
+        const summary = document.getElementById('admin-action-summary');
+        if (summary) summary.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+
     function rdGsiReady() {
       return !!(RD_ADMIN_CLIENT_ID && window.google && google.accounts && google.accounts.id);
     }
 
     function adminGoogleCredential(resp) {
-      RD_ADMIN_TOKEN = (resp && resp.credential) || '';
+      rdAdminRemember((resp && resp.credential) || '');
       if (!RD_ADMIN_TOKEN) { adminGateLock('The Google sign-in did not complete.'); return; }
       adminGateVerify();
     }
@@ -8042,6 +8102,10 @@ f.reset();
     function adminEnterPage() {
       if (RD_ADMIN.gate === 'open') { adminGateRender(); loadAdminDashboard(); return; }
       if (RD_ADMIN.gate === 'checking') return;
+      if (RD_ADMIN_TOKEN && rdAdminWantsIn()) {
+        adminGateVerify();
+        return;
+      }
       RD_ADMIN.gate = 'locked';
       RD_ADMIN.error = '';
       adminGateRender();
@@ -8088,6 +8152,7 @@ f.reset();
         RD_ADMIN.gate = 'open';
         adminGateRender();
         renderAdmin();
+        rdAdminNavPaint();
         preloadAdminActionQueues();
       } catch (err) {
         if (rdIsRoleError(err)) { await adminOpenPdaccOnly(); return; }
@@ -8114,11 +8179,12 @@ f.reset();
       RD_ADMIN.error = message || '';
       /* An expired sign-in must not be sent a second time. */
       if (/sign in again|expired|not be verified|not be identified/i.test(RD_ADMIN.error)) {
-        RD_ADMIN_TOKEN = '';
+        rdAdminRemember('');
         try { if (rdGsiReady()) google.accounts.id.disableAutoSelect(); } catch (err) {}
       }
       RD_ADMIN.rows = { registrations: null, events: null, committee: null };
       adminGateRender();
+      rdAdminNavPaint();
     }
 
     /* Signing out is the gate closing on purpose. The token is dropped, Google
@@ -8127,7 +8193,7 @@ f.reset();
        sign-in card with nothing of the last admin left on screen. No popup:
        the page simply goes back to its locked state. */
     function adminSignOut() {
-      RD_ADMIN_TOKEN = '';
+      rdAdminRemember('');
       try { if (rdGsiReady()) google.accounts.id.disableAutoSelect(); } catch (err) {}
       RD_ADMIN.gate = 'locked';
       RD_ADMIN.state = 'idle';
@@ -8142,7 +8208,21 @@ f.reset();
       RD_ADMIN.askWhat = '';
       RD_ADMIN.askId = '';
       adminGateRender();
+      rdAdminNavPaint();
       if (!rdDrawGsiButton()) setTimeout(rdDrawGsiButton, 700);
+    }
+
+    function rdAdminRestore() {
+      let token = '';
+      try { token = localStorage.getItem(RD_ADMIN_KEY) || ''; } catch (err) { token = ''; }
+      if (!token || !rdAdminWantsIn()) {
+        rdAdminNavPaint();
+        return;
+      }
+      RD_ADMIN_TOKEN = token;
+      RD_ADMIN.gate = 'checking';
+      adminGateRender();
+      adminGateVerify();
     }
 
     async function loadAdminDashboard(force) {
@@ -8409,6 +8489,7 @@ f.reset();
               '<i data-lucide="' + item.icon + '" class="h-4 w-4 shrink-0"></i><span class="min-w-0 flex-1">' + item.label + '</span><strong class="text-sm">' + item.count + '</strong></button>'
           ).join('') + '</div></div>';
       }
+      rdAdminNavPaint();
       const st = document.getElementById('admin-auth-status');
       if (st) {
         st.innerHTML = RD_ADMIN.state === 'ready'

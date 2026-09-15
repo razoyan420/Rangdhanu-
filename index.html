@@ -276,6 +276,10 @@
           <button type="button" class="rd-nav-profile-danger" onclick="memberSignOut(); rdNavProfileMenuClose();">Log out</button>
         </div>
       </div>
+      <div id="nav-admin-menu" class="hidden items-center gap-1 ml-2">
+        <button type="button" class="nav-btn premium-nav-item" onclick="adminOpenNotifications()"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span id="nav-admin-badge" class="hidden"></span></button>
+        <button type="button" class="nav-btn premium-nav-item" onclick="switchPage('admin')"><i data-lucide="shield-check" class="w-4 h-4"></i><span>Admin Dashboard</span></button>
+      </div>
       <button id="nav-membership-cta" class="nav-cta ml-3" onclick="switchPage('register')">Membership Application</button>
     </div>
   </nav>
@@ -296,6 +300,10 @@
         <button type="button" onclick="rdMemberMyProfile(); rdMypTab('edit'); rdNavProfileMenuClose();">Update profile</button>
         <button type="button" class="rd-nav-profile-danger" onclick="memberSignOut(); rdNavProfileMenuClose();">Log out</button>
       </div>
+    </div>
+    <div id="mobile-admin-menu" class="hidden border-t border-slate-100 mt-2 pt-2">
+      <button type="button" class="mobile-nav-item flex items-center gap-2" onclick="adminOpenNotifications()"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span id="mobile-admin-badge" class="hidden"></span></button>
+      <button type="button" class="mobile-nav-item flex items-center gap-2" onclick="switchPage('admin')"><i data-lucide="shield-check" class="w-4 h-4"></i> Admin Dashboard</button>
     </div>
     <button id="mobile-membership-cta" class="nav-cta w-full mt-3 justify-center" onclick="switchPage('register')">Membership Application</button>
   </div>
@@ -2597,6 +2605,6 @@ Do not modify social links or structure without permission.
 </footer>
 
 <!-- JAVASCRIPT LOGIC -->
-<script src="script.js?v=20260915-1600" defer></script>
+<script src="script.js?v=20260915-1700" defer></script>
 </body>
 </html>
