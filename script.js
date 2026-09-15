@@ -7854,7 +7854,8 @@ f.reset();
                      nbEdit: '', scEdit: '', evEdit: '', slEdit: '', slPlace: 'home',
                      pdKind: 'LINE', pdEdit: '', role: 'ALL',
                      facEdit: '', facMissing: [],
-                     askWhat: '', askId: '', backfillPreview: null, backfillChoices: {} };
+                     askWhat: '', askId: '', backfillPreview: null, backfillChoices: {},
+                     queueErrors: {} };
 
     function adminTabMeta(key) {
       return RD_ADMIN_TABS.find(t => t.key === key) || RD_ADMIN_TABS[0];
@@ -8087,6 +8088,7 @@ f.reset();
         RD_ADMIN.gate = 'open';
         adminGateRender();
         renderAdmin();
+        preloadAdminActionQueues();
       } catch (err) {
         if (rdIsRoleError(err)) { await adminOpenPdaccOnly(); return; }
         adminGateLock(friendlyError(err).msg);
@@ -8171,6 +8173,20 @@ f.reset();
            one has already been softened. */
         if (rdIsAuthError(err)) { adminGateLock(RD_ADMIN.error); return; }
       }
+      renderAdmin();
+    }
+
+    async function preloadAdminActionQueues() {
+      if (RD_ADMIN.role === 'PDACC' || RD_ADMIN.gate !== 'open') return;
+      const queueTabs = ['unclaimed', 'unclaimed-matches', 'unclaimed-audits'];
+      await Promise.all(queueTabs.map(async function (tab) {
+        try {
+          RD_ADMIN.rows[tab] = await adminLoadCustom(tab);
+          delete RD_ADMIN.queueErrors[tab];
+        } catch (err) {
+          RD_ADMIN.queueErrors[tab] = friendlyError(err).msg;
+        }
+      }));
       renderAdmin();
     }
 
@@ -8304,9 +8320,17 @@ f.reset();
       tabs.forEach(t => {
         const list = RD_ADMIN.rows[t.key];
         /* A duplicate also waits on the admin, so the badge counts it. */
-        counts[t.key] = (list && !t.custom)
-          ? list.filter(r => r.status === 'PENDING' || r.status === 'DUPLICATE').length
-          : null;
+        if (list && !t.custom) {
+          counts[t.key] = list.filter(r => r.status === 'PENDING' || r.status === 'DUPLICATE').length;
+        } else if (t.key === 'unclaimed') {
+          counts[t.key] = list ? list.length : null;
+        } else if (t.key === 'unclaimed-matches') {
+          counts[t.key] = list ? list.filter(r => String(r.status || 'PENDING').toUpperCase() === 'PENDING').length : null;
+        } else if (t.key === 'unclaimed-audits') {
+          counts[t.key] = list ? list.filter(r => String(r.Status || r.status || '').toUpperCase() === 'MERGED').length : null;
+        } else {
+          counts[t.key] = null;
+        }
       });
       box.innerHTML = tabs.map(t => {
         const on = RD_ADMIN.tab === t.key;
@@ -8358,6 +8382,33 @@ f.reset();
     function renderAdmin() {
       adminRenderTabs();
       adminRenderFilters();
+      const summary = document.getElementById('admin-action-summary');
+      if (summary) {
+        const registrations = (RD_ADMIN.rows.registrations || []).filter(r => r.status === 'PENDING' || r.status === 'DUPLICATE').length;
+        const unclaimed = RD_ADMIN.rows.unclaimed ? RD_ADMIN.rows.unclaimed.length : null;
+        const matches = RD_ADMIN.rows['unclaimed-matches']
+          ? RD_ADMIN.rows['unclaimed-matches'].filter(r => String(r.status || 'PENDING').toUpperCase() === 'PENDING').length : null;
+        const undo = RD_ADMIN.rows['unclaimed-audits']
+          ? RD_ADMIN.rows['unclaimed-audits'].filter(r => String(r.Status || r.status || '').toUpperCase() === 'MERGED').length : null;
+        const items = [
+          { key: 'registrations', label: 'Membership review', count: registrations, icon: 'user-check', tone: 'amber' },
+          { key: 'unclaimed', label: 'Unclaimed profiles', count: unclaimed, icon: 'user-round-search', tone: 'blue' },
+          { key: 'unclaimed-matches', label: 'Possible matches', count: matches, icon: 'git-compare-arrows', tone: 'indigo' },
+          { key: 'unclaimed-audits', label: 'Undo available', count: undo, icon: 'rotate-ccw', tone: 'slate' }
+        ];
+        const available = items.filter(item => item.count !== null);
+        const total = [registrations, unclaimed, matches].filter(count => count !== null)
+          .reduce((sum, count) => sum + count, 0);
+        const tone = { amber: 'border-amber-200 bg-amber-50 text-amber-800', blue: 'border-blue-200 bg-blue-50 text-blue-800', indigo: 'border-indigo-200 bg-indigo-50 text-indigo-800', slate: 'border-slate-200 bg-slate-50 text-slate-700' };
+        summary.innerHTML = '<div class="rounded-2xl border ' + (total ? 'border-amber-200 bg-amber-50/70' : 'border-emerald-200 bg-emerald-50/70') + ' p-4">' +
+          '<div class="flex flex-wrap items-center gap-2"><span class="text-sm font-black text-slate-900">' + (total ? total + ' review item' + (total === 1 ? '' : 's') + ' need attention' : 'No pending admin reviews') + '</span>' +
+          (RD_ADMIN.queueErrors.unclaimed || RD_ADMIN.queueErrors['unclaimed-matches'] ? '<span class="text-[11px] font-bold text-rose-700">Some review queues could not be loaded.</span>' : '') + '</div>' +
+          '<div class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">' +
+          items.filter(item => item.count !== null && item.count > 0).map(item =>
+            '<button type="button" onclick="adminSwitchTab(\'' + item.key + '\')" class="flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs font-extrabold ' + tone[item.tone] + ' hover:brightness-95 cursor-pointer">' +
+              '<i data-lucide="' + item.icon + '" class="h-4 w-4 shrink-0"></i><span class="min-w-0 flex-1">' + item.label + '</span><strong class="text-sm">' + item.count + '</strong></button>'
+          ).join('') + '</div></div>';
+      }
       const st = document.getElementById('admin-auth-status');
       if (st) {
         st.innerHTML = RD_ADMIN.state === 'ready'
