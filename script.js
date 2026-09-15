@@ -7854,7 +7854,7 @@ f.reset();
                      nbEdit: '', scEdit: '', evEdit: '', slEdit: '', slPlace: 'home',
                      pdKind: 'LINE', pdEdit: '', role: 'ALL',
                      facEdit: '', facMissing: [],
-                     askWhat: '', askId: '' };
+                     askWhat: '', askId: '', backfillPreview: null };
 
     function adminTabMeta(key) {
       return RD_ADMIN_TABS.find(t => t.key === key) || RD_ADMIN_TABS[0];
@@ -8489,10 +8489,14 @@ f.reset();
             (conflicts.length ? '<div class="mt-3 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-800"><div>Conflicts require review</div>' +
               conflicts.map(c => '<div class="mt-1">' + escapeHtml(c.field) + ': ' + adminReviewValue(c.oldValue) + ' → ' + adminReviewValue(c.newValue) + '</div>').join('') + '</div>' : '') +
             '<p class="mt-3 text-[11px] font-bold text-slate-500">Verified membership data becomes the profile source; committee history is linked only after duplicate checks.</p>' +
-            (r.status === 'PENDING' ? '<div class="mt-4 flex flex-wrap gap-2">' +
-              '<button type="button" onclick="adminMergeUnclaimed(\'' + escapeHtml(r.matchId) + '\')" class="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-700 cursor-pointer">Merge records</button>' +
-              '<button type="button" onclick="adminKeepUnclaimedSeparate(\'' + escapeHtml(r.matchId) + '\')" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 hover:border-slate-500 cursor-pointer">Keep separate</button>' +
-            '</div>' : '') +
+            (r.status === 'PENDING' ? (adminAskArmed('merge-unclaimed', r.matchId)
+              ? adminConfirmStrip('Merge this reviewed record and link its approved committee history to the verified membership profile?', 'Merge records', 'adminMergeUnclaimed(\'' + escapeHtml(r.matchId) + '\')')
+              : (adminAskArmed('separate-unclaimed', r.matchId)
+                ? adminConfirmStrip('Keep these records separate and close this match without linking history?', 'Keep separate', 'adminKeepUnclaimedSeparate(\'' + escapeHtml(r.matchId) + '\')')
+                : '<div class="mt-4 flex flex-wrap gap-2">' +
+                  '<button type="button" onclick="adminAsk(\'merge-unclaimed\', \'' + escapeHtml(r.matchId) + '\')" class="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-700 cursor-pointer">Merge records</button>' +
+                  '<button type="button" onclick="adminAsk(\'separate-unclaimed\', \'' + escapeHtml(r.matchId) + '\')" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 hover:border-slate-500 cursor-pointer">Keep separate</button>' +
+                '</div>')) : '') +
           '</article>';
         }).join('') + '</div>';
     }
@@ -8508,13 +8512,15 @@ f.reset();
         '<span class="ml-auto text-xs font-bold text-slate-500">' + escapeHtml(r['Merged Date'] || '') + '</span></div>' +
         '<p class="mt-3 text-xs font-semibold text-slate-600">Match ' + escapeHtml(r['Match ID'] || '') + ' • ' +
           escapeHtml(r['Unclaimed ID'] || '') + ' → ' + escapeHtml(r['Registration ID'] || '') + ' • Admin ' + escapeHtml(r['Admin Email'] || '') + '</p>' +
-        (r.Status === 'MERGED' ? '<button type="button" onclick="adminUndoUnclaimed(\'' + escapeHtml(r['Audit ID']) + '\')" class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-800 hover:bg-rose-100 cursor-pointer">Undo merge safely</button>' : '') +
+        (r.Status === 'MERGED' ? (adminAskArmed('undo-unclaimed', r['Audit ID'])
+          ? adminConfirmStrip('Restore the exact pre-merge values? Undo is blocked if any record changed after the merge.', 'Undo merge safely', 'adminUndoUnclaimed(\'' + escapeHtml(r['Audit ID']) + '\')')
+          : '<button type="button" onclick="adminAsk(\'undo-unclaimed\', \'' + escapeHtml(r['Audit ID']) + '\')" class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-800 hover:bg-rose-100 cursor-pointer">Undo merge safely</button>') : '') +
         '</article>').join('') + '</div>';
     }
 
     async function adminMergeUnclaimed(id) {
-      if (!window.confirm('Merge this unclaimed profile with the approved membership application?')) return;
       try {
+        adminAskClear();
         await apiPost('mergeunclaimed', { matchId: id });
         showToast('Records merged and committee history retained.', 'success');
         await loadAdminDashboard(true);
@@ -8522,8 +8528,8 @@ f.reset();
     }
 
     async function adminKeepUnclaimedSeparate(id) {
-      if (!window.confirm('Keep these records separate?')) return;
       try {
+        adminAskClear();
         await apiPost('keepunclaimedseparate', { matchId: id });
         showToast('Records kept separate.', 'success');
         await loadAdminDashboard(true);
@@ -8531,8 +8537,8 @@ f.reset();
     }
 
     async function adminUndoUnclaimed(id) {
-      if (!window.confirm('Undo this merge and restore the exact pre-merge profile values? The source committee entry will remain preserved.')) return;
       try {
+        adminAskClear();
         await apiPost('undounclaimedmerge', { auditId: id });
         showToast('Merge undone safely.', 'success');
         await loadAdminDashboard(true);
@@ -8541,14 +8547,18 @@ f.reset();
 
     function adminUnclaimedHtml() {
       const rows = RD_ADMIN.rows.unclaimed || [];
+      const preview = RD_ADMIN.backfillPreview;
+      const previewHtml = preview ? adminBackfillPreviewHtml(preview) : '';
       if (!rows.length) {
         return '<div class="space-y-3">' +
-          '<button type="button" onclick="adminBackfillUnclaimed()" class="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 hover:bg-amber-100 cursor-pointer">Scan older approved committee records</button>' +
+          '<button type="button" onclick="adminBackfillUnclaimed()" class="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 hover:bg-amber-100 cursor-pointer"><i data-lucide="scan-search" class="h-4 w-4"></i> Review older committee records</button>' +
+          previewHtml +
           adminInfoBox('user-round-search', 'No unclaimed profiles yet',
             'Approved committee submissions for another member will appear here.', 'empty') + '</div>';
       }
       return '<div class="space-y-3">' +
-        '<button type="button" onclick="adminBackfillUnclaimed()" class="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 hover:bg-amber-100 cursor-pointer">Scan older approved committee records</button>' +
+        '<button type="button" onclick="adminBackfillUnclaimed()" class="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 hover:bg-amber-100 cursor-pointer"><i data-lucide="scan-search" class="h-4 w-4"></i> Review older committee records</button>' +
+        previewHtml +
         rows.map(r => '<article class="rounded-3xl border border-amber-200 bg-amber-50/60 p-5">' +
           '<div class="flex flex-wrap items-start gap-3">' +
             '<div class="min-w-0">' +
@@ -8571,22 +8581,57 @@ f.reset();
       '</div>';
     }
 
+    function adminBackfillValue(value) {
+      return escapeHtml(value == null || value === '' ? 'Not available' : String(value));
+    }
+
+    function adminBackfillPreviewHtml(preview) {
+      const plan = Array.isArray(preview.plan) ? preview.plan : [];
+      return '<section class="rounded-3xl border border-blue-200 bg-blue-50/70 p-5 sm:p-6">' +
+        '<div class="flex flex-wrap items-start gap-3">' +
+          '<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-700 shadow-sm"><i data-lucide="clipboard-check" class="h-5 w-5"></i></div>' +
+          '<div class="min-w-0"><h3 class="text-base font-extrabold text-slate-900">Legacy committee review</h3>' +
+          '<p class="mt-1 text-xs font-semibold leading-relaxed text-slate-600">Review every record below before creating anything. Exact Alumni matches are shown for reference only and will not be linked automatically.</p></div>' +
+          '<button type="button" onclick="adminClearBackfillPreview()" class="ml-auto rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-extrabold text-slate-600 hover:border-slate-500 cursor-pointer">Close</button>' +
+        '</div>' +
+        '<div class="mt-5 grid gap-3 sm:grid-cols-3">' +
+          '<div class="rounded-2xl bg-white p-3"><div class="text-[10px] font-black uppercase tracking-wide text-slate-500">Records found</div><div class="mt-1 text-xl font-black text-slate-900">' + (preview.total || 0) + '</div></div>' +
+          '<div class="rounded-2xl bg-white p-3"><div class="text-[10px] font-black uppercase tracking-wide text-slate-500">New unclaimed</div><div class="mt-1 text-xl font-black text-amber-700">' + (preview.toCreate || 0) + '</div></div>' +
+          '<div class="rounded-2xl bg-white p-3"><div class="text-[10px] font-black uppercase tracking-wide text-slate-500">Needs review</div><div class="mt-1 text-xl font-black text-blue-700">' + (preview.linked || 0) + '</div></div>' +
+        '</div>' +
+        (plan.length ? '<div class="mt-5 space-y-2">' + plan.map(item =>
+          '<article class="rounded-2xl border border-white bg-white p-4">' +
+            '<div class="flex flex-wrap items-start gap-2"><span class="rounded-lg px-2 py-1 text-[10px] font-black ' +
+              (item.action === 'REVIEW_ALUMNI' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800') + '">' +
+              (item.action === 'REVIEW_ALUMNI' ? 'ALUMNI MATCH — REVIEW' : 'CREATE UNCLAIMED') + '</span>' +
+              '<span class="ml-auto text-[11px] font-black text-slate-500">' + adminBackfillValue(item.entryId) + '</span></div>' +
+            '<h4 class="mt-3 font-extrabold text-slate-900">' + adminBackfillValue(item.fullName) + '</h4>' +
+            '<p class="mt-1 text-xs font-semibold text-slate-600">' + adminBackfillValue(item.committee) + ' <span class="text-slate-400">•</span> ' + adminBackfillValue(item.session) + ' <span class="text-slate-400">•</span> ' + adminBackfillValue(item.position) + '</p>' +
+            (item.action === 'REVIEW_ALUMNI' ? '<div class="mt-3 rounded-xl bg-blue-50 p-3 text-xs font-semibold text-blue-900">Possible Alumni profile: <strong>' + adminBackfillValue(item.memberId) + '</strong> — ' + adminBackfillValue(item.alumniName) + ', ' + adminBackfillValue(item.alumniDepartment) + ', Series ' + adminBackfillValue(item.alumniSeries) + ', ' + adminBackfillValue(item.alumniMobile) + '</div>' : '') +
+          '</article>'
+        ).join('') + '</div>' : '<div class="mt-5 rounded-2xl bg-white p-4 text-sm font-bold text-slate-600">No eligible legacy records were found.</div>') +
+        (preview.toCreate ? '<div class="mt-5 flex flex-wrap items-center gap-3"><button type="button" onclick="adminApplyBackfill()" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-extrabold text-white hover:bg-blue-700 cursor-pointer"><i data-lucide="user-round-plus" class="h-4 w-4"></i> Create ' + preview.toCreate + ' unclaimed profile' + (preview.toCreate === 1 ? '' : 's') + '</button><span class="text-xs font-semibold text-slate-500">Only CREATE UNCLAIMED records will be changed.</span></div>' : '') +
+      '</section>';
+    }
+
     async function adminBackfillUnclaimed() {
       try {
         const preview = await apiPost('backfillunclaimedprofiles', { apply: 'false' });
-        const details = (Array.isArray(preview.plan) ? preview.plan : []).map(item =>
-          item.action === 'REVIEW_ALUMNI'
-            ? 'REVIEW: ' + item.entryId + ' — ' + item.fullName + ' (' + item.committee + ', ' + item.session + ', ' + item.position + ')' +
-              ' matches ' + item.memberId + ' — ' + item.alumniName + ', ' + item.alumniDepartment + ', Series ' + item.alumniSeries + ', ' + item.alumniMobile
-            : 'UNCLAIMED: ' + item.entryId + ' — ' + item.fullName + ' (' + item.committee + ', ' + item.session + ', ' + item.position + ')'
-        ).join('\n');
-        const message = 'Preview only — no changes yet.\n\n' + details +
-          '\n\n' + (preview.toCreate || 0) + ' Unclaimed Profile(s) will be created.' +
-          '\n' + (preview.linked || 0) + ' exact Alumni match(es) require review and will NOT be auto-linked.' +
-          '\n\nReview the names above before applying migration.';
-        if (!window.confirm(message)) return;
+        RD_ADMIN.backfillPreview = preview;
+        renderAdmin();
+      } catch (err) { reportError(err); }
+    }
+
+    function adminClearBackfillPreview() {
+      RD_ADMIN.backfillPreview = null;
+      renderAdmin();
+    }
+
+    async function adminApplyBackfill() {
+      try {
         await apiPost('backfillunclaimedprofiles', { apply: 'true' });
-        showToast('Older committee records migrated safely.', 'success');
+        RD_ADMIN.backfillPreview = null;
+        showToast('Unclaimed profiles created safely.', 'success');
         await loadAdminDashboard(true);
       } catch (err) { reportError(err); }
     }
