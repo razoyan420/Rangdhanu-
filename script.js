@@ -7854,7 +7854,7 @@ f.reset();
                      nbEdit: '', scEdit: '', evEdit: '', slEdit: '', slPlace: 'home',
                      pdKind: 'LINE', pdEdit: '', role: 'ALL',
                      facEdit: '', facMissing: [],
-                     askWhat: '', askId: '', backfillPreview: null };
+                     askWhat: '', askId: '', backfillPreview: null, backfillChoices: {} };
 
     function adminTabMeta(key) {
       return RD_ADMIN_TABS.find(t => t.key === key) || RD_ADMIN_TABS[0];
@@ -8591,7 +8591,7 @@ f.reset();
         '<div class="flex flex-wrap items-start gap-3">' +
           '<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-700 shadow-sm"><i data-lucide="clipboard-check" class="h-5 w-5"></i></div>' +
           '<div class="min-w-0"><h3 class="text-base font-extrabold text-slate-900">Legacy committee review</h3>' +
-          '<p class="mt-1 text-xs font-semibold leading-relaxed text-slate-600">Review every record below before creating anything. Exact Alumni matches are shown for reference only and will not be linked automatically.</p></div>' +
+          '<p class="mt-1 text-xs font-semibold leading-relaxed text-slate-600">Choose one decision for every record. Linking adds committee history to the selected Alumni profile; creating unclaimed keeps it separate; Skip makes no change.</p></div>' +
           '<button type="button" onclick="adminClearBackfillPreview()" class="ml-auto rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-extrabold text-slate-600 hover:border-slate-500 cursor-pointer">Close</button>' +
         '</div>' +
         '<div class="mt-5 grid gap-3 sm:grid-cols-3">' +
@@ -8607,10 +8607,15 @@ f.reset();
               '<span class="ml-auto text-[11px] font-black text-slate-500">' + adminBackfillValue(item.entryId) + '</span></div>' +
             '<h4 class="mt-3 font-extrabold text-slate-900">' + adminBackfillValue(item.fullName) + '</h4>' +
             '<p class="mt-1 text-xs font-semibold text-slate-600">' + adminBackfillValue(item.committee) + ' <span class="text-slate-400">•</span> ' + adminBackfillValue(item.session) + ' <span class="text-slate-400">•</span> ' + adminBackfillValue(item.position) + '</p>' +
-            (item.action === 'REVIEW_ALUMNI' ? '<div class="mt-3 rounded-xl bg-blue-50 p-3 text-xs font-semibold text-blue-900">Possible Alumni profile: <strong>' + adminBackfillValue(item.memberId) + '</strong> — ' + adminBackfillValue(item.alumniName) + ', ' + adminBackfillValue(item.alumniDepartment) + ', Series ' + adminBackfillValue(item.alumniSeries) + ', ' + adminBackfillValue(item.alumniMobile) + '</div>' : '') +
+            (item.action === 'REVIEW_ALUMNI' ? '<div class="mt-3 rounded-xl bg-blue-50 p-3 text-xs font-semibold text-blue-900">Possible Alumni profile: <strong>' + adminBackfillValue(item.memberId) + '</strong> — ' + adminBackfillValue(item.alumniName) + ', ' + adminBackfillValue(item.alumniDepartment) + ', Series ' + adminBackfillValue(item.alumniSeries) + ', ' + adminBackfillValue(item.alumniMobile) + ' <span class="text-blue-700">(' + adminBackfillValue(item.matchScore) + '/4 fields)</span></div>' : '') +
+            '<fieldset class="mt-4 flex flex-wrap gap-2" aria-label="Decision for ' + adminBackfillValue(item.entryId) + '">' +
+              '<label class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-extrabold text-emerald-800"><input type="radio" name="backfill-' + adminBackfillValue(item.entryId) + '" value="' + (item.action === 'REVIEW_ALUMNI' ? 'LINK_ALUMNI' : 'CREATE_UNCLAIMED') + '" ' + ((RD_ADMIN.backfillChoices[item.entryId] || (item.action === 'REVIEW_ALUMNI' ? 'LINK_ALUMNI' : 'CREATE_UNCLAIMED')) === (item.action === 'REVIEW_ALUMNI' ? 'LINK_ALUMNI' : 'CREATE_UNCLAIMED') ? 'checked' : '') + ' onchange="adminSetBackfillChoice(\'' + adminBackfillValue(item.entryId) + '\', this.value)"> ' + (item.action === 'REVIEW_ALUMNI' ? 'Link to this Alumni profile' : 'Create unclaimed profile') + '</label>' +
+              (item.action === 'REVIEW_ALUMNI' ? '<label class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-800"><input type="radio" name="backfill-' + adminBackfillValue(item.entryId) + '" value="CREATE_UNCLAIMED" ' + (RD_ADMIN.backfillChoices[item.entryId] === 'CREATE_UNCLAIMED' ? 'checked' : '') + ' onchange="adminSetBackfillChoice(\'' + adminBackfillValue(item.entryId) + '\', this.value)"> Create unclaimed instead</label>' : '') +
+              '<label class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-600"><input type="radio" name="backfill-' + adminBackfillValue(item.entryId) + '" value="SKIP" ' + (RD_ADMIN.backfillChoices[item.entryId] === 'SKIP' ? 'checked' : '') + ' onchange="adminSetBackfillChoice(\'' + adminBackfillValue(item.entryId) + '\', this.value)"> Skip</label>' +
+            '</fieldset>' +
           '</article>'
         ).join('') + '</div>' : '<div class="mt-5 rounded-2xl bg-white p-4 text-sm font-bold text-slate-600">No eligible legacy records were found.</div>') +
-        (preview.toCreate ? '<div class="mt-5 flex flex-wrap items-center gap-3"><button type="button" onclick="adminApplyBackfill()" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-extrabold text-white hover:bg-blue-700 cursor-pointer"><i data-lucide="user-round-plus" class="h-4 w-4"></i> Create ' + preview.toCreate + ' unclaimed profile' + (preview.toCreate === 1 ? '' : 's') + '</button><span class="text-xs font-semibold text-slate-500">Only CREATE UNCLAIMED records will be changed.</span></div>' : '') +
+        (plan.length ? '<div class="mt-5 flex flex-wrap items-center gap-3"><button type="button" onclick="adminApplyBackfill()" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-extrabold text-white hover:bg-blue-700 cursor-pointer"><i data-lucide="check-check" class="h-4 w-4"></i> Apply selected decisions</button><span class="text-xs font-semibold text-slate-500">Link, create unclaimed, or skip each record above.</span></div>' : '') +
       '</section>';
     }
 
@@ -8618,19 +8623,34 @@ f.reset();
       try {
         const preview = await apiPost('backfillunclaimedprofiles', { apply: 'false' });
         RD_ADMIN.backfillPreview = preview;
+        RD_ADMIN.backfillChoices = {};
         renderAdmin();
       } catch (err) { reportError(err); }
     }
 
     function adminClearBackfillPreview() {
       RD_ADMIN.backfillPreview = null;
+      RD_ADMIN.backfillChoices = {};
+      renderAdmin();
+    }
+
+    function adminSetBackfillChoice(entryId, choice) {
+      RD_ADMIN.backfillChoices[entryId] = choice;
       renderAdmin();
     }
 
     async function adminApplyBackfill() {
       try {
-        await apiPost('backfillunclaimedprofiles', { apply: 'true' });
+        const plan = Array.isArray(RD_ADMIN.backfillPreview && RD_ADMIN.backfillPreview.plan)
+          ? RD_ADMIN.backfillPreview.plan : [];
+        const decisions = {};
+        plan.forEach(item => {
+          decisions[item.entryId] = RD_ADMIN.backfillChoices[item.entryId] ||
+            (item.action === 'REVIEW_ALUMNI' ? 'LINK_ALUMNI' : 'CREATE_UNCLAIMED');
+        });
+        await apiPost('backfillunclaimedprofiles', { apply: 'true', decisions: decisions });
         RD_ADMIN.backfillPreview = null;
+        RD_ADMIN.backfillChoices = {};
         showToast('Unclaimed profiles created safely.', 'success');
         await loadAdminDashboard(true);
       } catch (err) { reportError(err); }

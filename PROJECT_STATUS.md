@@ -11,7 +11,8 @@ backend.
 - Repository: `razoyan420/Rangdhanu-`.
 - Main branch includes the latest committee authentication fix at commit
   `b4eb8eb` (`Fix member token on committee submissions`).
-- The live page was verified serving `script.js?v=20260914-1455`.
+- The live page cache version is `script.js?v=20260915-1300` after the
+  per-record migration UI update.
 - Backend deployment is separate from GitHub Pages; backend changes must be
   deployed to the Apps Script web app before live backend behavior changes.
 - Phase 1 of the unclaimed-record model was deployed to Apps Script on
@@ -38,6 +39,10 @@ backend.
   the first UI attempt returned `Invalid POST action`. An unauthenticated live
   POST now correctly reaches admin authorization and returns
   `Authenticated user could not be identified`.
+- Per-record migration decisions (link to Alumni, create unclaimed, or skip)
+  were deployed as `@76`. The preview now shows candidate profile details and
+  the apply request sends an explicit decision map; no record is changed
+  unless its decision is selected.
 
 ## Completed and live-tested
 
