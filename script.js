@@ -8574,8 +8574,16 @@ f.reset();
     async function adminBackfillUnclaimed() {
       try {
         const preview = await apiPost('backfillunclaimedprofiles', { apply: 'false' });
-        const message = 'Scan found ' + (preview.linked || 0) + ' exact Alumni link(s) and ' +
-          (preview.toCreate || 0) + ' record(s) needing Unclaimed Profiles. Apply this migration now?';
+        const details = (Array.isArray(preview.plan) ? preview.plan : []).map(item =>
+          item.action === 'REVIEW_ALUMNI'
+            ? 'REVIEW: ' + item.entryId + ' — ' + item.fullName + ' (' + item.committee + ', ' + item.session + ', ' + item.position + ')' +
+              ' matches ' + item.memberId + ' — ' + item.alumniName + ', ' + item.alumniDepartment + ', Series ' + item.alumniSeries + ', ' + item.alumniMobile
+            : 'UNCLAIMED: ' + item.entryId + ' — ' + item.fullName + ' (' + item.committee + ', ' + item.session + ', ' + item.position + ')'
+        ).join('\n');
+        const message = 'Preview only — no changes yet.\n\n' + details +
+          '\n\n' + (preview.toCreate || 0) + ' Unclaimed Profile(s) will be created.' +
+          '\n' + (preview.linked || 0) + ' exact Alumni match(es) require review and will NOT be auto-linked.' +
+          '\n\nReview the names above before applying migration.';
         if (!window.confirm(message)) return;
         await apiPost('backfillunclaimedprofiles', { apply: 'true' });
         showToast('Older committee records migrated safely.', 'success');
