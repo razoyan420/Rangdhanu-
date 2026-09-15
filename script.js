@@ -8054,14 +8054,6 @@ f.reset();
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
     }
 
-    function adminOpenNotifications() {
-      switchPage('admin');
-      setTimeout(function () {
-        const summary = document.getElementById('admin-action-summary');
-        if (summary) summary.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 100);
-    }
-
     function rdGsiReady() {
       return !!(RD_ADMIN_CLIENT_ID && window.google && google.accounts && google.accounts.id);
     }
