@@ -8212,7 +8212,7 @@ f.reset();
         return;
       }
       RD_ADMIN_TOKEN = token;
-      RD_ADMIN.gate = 'checking';
+      RD_ADMIN.gate = 'locked';
       adminGateRender();
       adminGateVerify();
     }
