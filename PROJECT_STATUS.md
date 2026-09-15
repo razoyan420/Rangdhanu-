@@ -32,9 +32,9 @@ backend.
   returned an authentication error.
 - A safe legacy backfill route was deployed to the same web app as `@69`.
   Admins can preview and then apply migration for older approved
-  `Another member` committee entries. Exact single Alumni matches are linked;
-  unmatched entries become unclaimed profiles; ambiguous cases are not
-  auto-merged.
+  `Another member` committee entries. Candidate Alumni matches are shown for
+  review; the admin explicitly chooses link, create an unclaimed profile, or
+  skip for each record.
 - The legacy backfill POST route was corrected and redeployed as `@71` after
   the first UI attempt returned `Invalid POST action`. An unauthenticated live
   POST now correctly reaches admin authorization and returns
