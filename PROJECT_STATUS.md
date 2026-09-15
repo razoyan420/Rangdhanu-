@@ -34,6 +34,10 @@ backend.
   `Another member` committee entries. Exact single Alumni matches are linked;
   unmatched entries become unclaimed profiles; ambiguous cases are not
   auto-merged.
+- The legacy backfill POST route was corrected and redeployed as `@71` after
+  the first UI attempt returned `Invalid POST action`. An unauthenticated live
+  POST now correctly reaches admin authorization and returns
+  `Authenticated user could not be identified`.
 
 ## Completed and live-tested
 
