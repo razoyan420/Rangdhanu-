@@ -2243,8 +2243,8 @@
         empType: rdMpReal(a.emp_type),
         /* Contact cells only exist once a member has signed in; until then the
            whole object is null and every row here is empty by construction. */
-        mobile: g('Mobile Number') || (canView ? (a.phone || a.mobile || '') : ''),
-        whatsapp: g('WhatsApp Number') || (canView ? (a.whatsapp || a.wa || a.phone || a.mobile || '') : ''),
+        mobile: formatBdMobile(g('Mobile Number') || (canView ? (a.phone || a.mobile || '') : '')),
+        whatsapp: formatBdMobile(g('WhatsApp Number') || (canView ? (a.whatsapp || a.wa || a.phone || a.mobile || '') : '')),
         email: g('Email') || (canView ? (a.email || '') : ''),
         permanent: g('Permanent Address') || rdMpReal(a.address),
         present: g('Present Address'),
@@ -2270,7 +2270,7 @@
         batch: String(r['Batch'] || '').trim(), blood: g('Blood Group'),
         desig: g('Current Designation'), org: g('Current Organization / Company'),
         loc: g('Work Location (Division / Country)'), empType: g('Employment Type'),
-        mobile: g('Mobile Number'), whatsapp: g('WhatsApp Number'), email: g('Email'),
+        mobile: formatBdMobile(g('Mobile Number')), whatsapp: formatBdMobile(g('WhatsApp Number')), email: g('Email'),
         permanent: g('Permanent Address'), present: g('Present Address'),
         social: r['Social Links'] || '',
         status: r['Status'],
@@ -2349,7 +2349,7 @@
     function rdAlumniShape(rows) {
       return (Array.isArray(rows) ? rows : []).map((m, i) => ({
           id: m['Member ID'] || (i + 1), memberId: String(m['Member ID']||'').trim(), name: String(m['Full Name (English)']||'').trim(),
-          phone: String(m['Mobile Number']||'').trim(), wa: String(m['WhatsApp Number']||m['Mobile Number']||'').trim(),
+          phone: formatBdMobile(m['Mobile Number']), wa: formatBdMobile(m['WhatsApp Number'] || m['Mobile Number']),
           email: String(m['Email']||'').trim(), address: String(m['Permanent Address']||'').trim(),
           blood: String(m['Blood Group']||'').trim(), dept: String(m['Department']||'').trim(),
           series: String(m['Series']||'').trim(), batch: String(m['Batch']||'').trim(),
@@ -4691,11 +4691,19 @@
        local 01xxxxxxxxx shape (so duplicate-matching against the sheet keeps
        working), and anything else is accepted as an international number. */
     function normalizeBdMobile(value) {
-      let v = String(value == null ? '' : value).trim().replace(/[\s\-().]/g, '');
+      if (value == null || value === '') return '';
+      let str = String(value).trim();
+      if (!/\d/.test(str)) return str;
+      let v = str.replace(/^'+/, '').replace(/[\s\-().]/g, '');
       if (/^00\d{7,}$/.test(v)) v = '+' + v.slice(2);          // 00880… -> +880…
       if (/^\+?8801\d{9}$/.test(v)) return v.replace(/^\+?880/, '0');
-      if (/^1[3-9]\d{8}$/.test(v)) return '0' + v;             // 17xxxxxxxx -> 017xxxxxxxx
-      return v;
+      if (/^1\d{9}$/.test(v)) return '0' + v;             // 17xxxxxxxx -> 017xxxxxxxx
+      if (/^01\d{9}$/.test(v)) return v;
+      return str;
+    }
+
+    function formatBdMobile(value) {
+      return normalizeBdMobile(value);
     }
     /* Valid = a local BD number, OR a +countrycode number, OR a plain foreign
        number. A number that looks Bangladeshi but is malformed (01 + wrong
@@ -5138,7 +5146,7 @@
         (rdCanViewContacts() && (m.mobile || m.email)
           ? '<div class="mt-auto border-t border-slate-100 grid grid-cols-2 divide-x ' +
           'divide-slate-100 text-xs font-bold">' +
-          '<button type="button" onclick="copyToClipboard(\'' + escapeHtml(m.mobile) + '\')" ' +
+          '<button type="button" onclick="copyToClipboard(\'' + escapeHtml(formatBdMobile(m.mobile)) + '\')" ' +
             'class="py-3.5 flex items-center justify-center gap-1.5 text-slate-600 ' +
             'hover:bg-slate-50 cursor-pointer"><i data-lucide="phone" ' +
             'class="w-3.5 h-3.5 text-blue-600"></i> Mobile</button>' +
@@ -5779,7 +5787,7 @@
         ecProfileButton(m) +
         (rdCanViewContacts() && (m.mobile || m.email)
           ? '<div class="mt-auto border-t border-slate-100 grid grid-cols-2 divide-x divide-slate-100 text-xs font-bold">' +
-          '<button type="button" onclick="copyToClipboard(\'' + escapeHtml(m.mobile) + '\')" class="py-3.5 flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50 cursor-pointer"><i data-lucide="phone" class="w-3.5 h-3.5 text-blue-600"></i> Mobile</button>' +
+          '<button type="button" onclick="copyToClipboard(\'' + escapeHtml(formatBdMobile(m.mobile)) + '\')" class="py-3.5 flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50 cursor-pointer"><i data-lucide="phone" class="w-3.5 h-3.5 text-blue-600"></i> Mobile</button>' +
           '<a href="mailto:' + escapeHtml(m.email) + '" class="py-3.5 flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50"><i data-lucide="mail" class="w-3.5 h-3.5 text-blue-600"></i> Email</a>' +
           '</div>'
           : '') +
@@ -8124,7 +8132,7 @@ f.reset();
           status: String(raw['Status'] || '').trim().toUpperCase(),
           photo: raw['Passport Size Image'] || '',
           note: raw['Rejection Reason'] || raw['Admin Note'] || '',
-          meta: [['Mobile', raw['Mobile Number']], ['Email', raw['Email']],
+          meta: [['Mobile', formatBdMobile(raw['Mobile Number'])], ['Email', raw['Email']],
                  ['Blood', raw['Blood Group']], ['Batch', raw['Batch']],
                  ['Employment', raw['Employment Type']],
                  ['Organization', raw['Current Organization / Company']],
@@ -8145,7 +8153,7 @@ f.reset();
           note: raw['Admin Note'] || '',
           featured: String(raw['Featured'] || '').trim().toUpperCase() === 'YES',
           meta: [['Venue', raw['Venue']], ['Organized by', raw['Organized By']],
-                 ['Contact', raw['Contact Person']], ['Contact no.', raw['Contact Number']],
+                 ['Contact', raw['Contact Person']], ['Contact no.', formatBdMobile(raw['Contact Number'])],
                  ['Submitted by', raw['Submitted By']], ['Submitter email', raw['Submitter Email']],
                  ['Submitted', raw['Submitted Date']]]
         };
@@ -8157,7 +8165,7 @@ f.reset();
         status: String(raw.status || '').trim().toUpperCase(),
         photo: raw.photo || '', note: raw.adminNote || '',
         meta: [['Committee', raw.committee], ['Department', raw.department],
-               ['Series', raw.series], ['Mobile', raw.mobile], ['Email', raw.email],
+               ['Series', raw.series], ['Mobile', formatBdMobile(raw.mobile)], ['Email', raw.email],
                ['Submitted', raw.submittedDate], ['Approved', raw.approvedDate]]
       };
     }
@@ -9165,7 +9173,7 @@ f.reset();
               field('Name', old.fullName, fresh['Full Name (English)']) +
               field('Department', old.department, fresh.Department) +
               field('Series', old.series, fresh.Series) +
-              field('Mobile', old.mobile, fresh['Mobile Number']) +
+              field('Mobile', formatBdMobile(old.mobile), formatBdMobile(fresh['Mobile Number'])) +
             '</div>' +
             (conflicts.length ? '<div class="mt-3 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-800"><div>Conflicts require review</div>' +
               conflicts.map(c => '<div class="mt-1">' + escapeHtml(c.field) + ': ' + adminReviewValue(c.oldValue) + ' → ' + adminReviewValue(c.newValue) + '</div>').join('') + '</div>' : '') +
@@ -9252,7 +9260,7 @@ f.reset();
               escapeHtml(r.unclaimedId) + '</span>' +
           '</div>' +
           '<div class="mt-4 grid gap-2 text-xs font-semibold text-slate-600 sm:grid-cols-2">' +
-            '<div>Mobile: ' + escapeHtml(r.mobile || 'Not provided') + '</div>' +
+            '<div>Mobile: ' + escapeHtml(formatBdMobile(r.mobile) || 'Not provided') + '</div>' +
             '<div>Email: ' + escapeHtml(r.email || 'Not provided') + '</div>' +
             '<div>Committee: ' + escapeHtml([r.committee, r.session, r.position].filter(Boolean).join(' • ')) + '</div>' +
             '<div>Source entry: ' + escapeHtml(r.sourceEntryId || 'Not available') + '</div>' +
@@ -9288,7 +9296,7 @@ f.reset();
               '<span class="ml-auto text-[11px] font-black text-slate-500">' + adminBackfillValue(item.entryId) + '</span></div>' +
             '<h4 class="mt-3 font-extrabold text-slate-900">' + adminBackfillValue(item.fullName) + '</h4>' +
             '<p class="mt-1 text-xs font-semibold text-slate-600">' + adminBackfillValue(item.committee) + ' <span class="text-slate-400">•</span> ' + adminBackfillValue(item.session) + ' <span class="text-slate-400">•</span> ' + adminBackfillValue(item.position) + '</p>' +
-            (item.action === 'REVIEW_ALUMNI' ? '<div class="mt-3 rounded-xl bg-blue-50 p-3 text-xs font-semibold text-blue-900"><span class="font-black">Directory profile candidate:</span> <strong>' + adminBackfillValue(item.memberId) + '</strong> — ' + adminBackfillValue(item.alumniName) + ', ' + adminBackfillValue(item.alumniDepartment) + ', Series ' + adminBackfillValue(item.alumniSeries) + ', ' + adminBackfillValue(item.alumniMobile) + ' <span class="text-blue-700">(' + adminBackfillValue(item.matchScore) + '/4 fields matched)</span></div>' : '<div class="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-semibold text-amber-900">' + (item.existingUnclaimedId ? 'No Directory profile matched. The existing unclaimed profile will remain separate.' : 'No Directory profile matched. Applying this will create an unclaimed profile, not a Directory profile.') + '</div>') +
+            (item.action === 'REVIEW_ALUMNI' ? '<div class="mt-3 rounded-xl bg-blue-50 p-3 text-xs font-semibold text-blue-900"><span class="font-black">Directory profile candidate:</span> <strong>' + adminBackfillValue(item.memberId) + '</strong> — ' + adminBackfillValue(item.alumniName) + ', ' + adminBackfillValue(item.alumniDepartment) + ', Series ' + adminBackfillValue(item.alumniSeries) + ', ' + adminBackfillValue(formatBdMobile(item.alumniMobile)) + ' <span class="text-blue-700">(' + adminBackfillValue(item.matchScore) + '/4 fields matched)</span></div>' : '<div class="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-semibold text-amber-900">' + (item.existingUnclaimedId ? 'No Directory profile matched. The existing unclaimed profile will remain separate.' : 'No Directory profile matched. Applying this will create an unclaimed profile, not a Directory profile.') + '</div>') +
             '<fieldset class="mt-4 flex flex-wrap gap-2" aria-label="Decision for ' + adminBackfillValue(item.entryId) + '">' +
               '<label class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-extrabold text-emerald-800"><input type="radio" name="backfill-' + adminBackfillValue(item.entryId) + '" value="' + (item.action === 'REVIEW_ALUMNI' ? 'LINK_ALUMNI' : 'CREATE_UNCLAIMED') + '" ' + ((RD_ADMIN.backfillChoices[item.entryId] || (item.action === 'REVIEW_ALUMNI' ? 'LINK_ALUMNI' : 'CREATE_UNCLAIMED')) === (item.action === 'REVIEW_ALUMNI' ? 'LINK_ALUMNI' : 'CREATE_UNCLAIMED') ? 'checked' : '') + ' onchange="adminSetBackfillChoice(\'' + adminBackfillValue(item.entryId) + '\', this.value)"> ' + (item.action === 'REVIEW_ALUMNI' ? 'Link to this Alumni profile' : 'Create unclaimed profile') + '</label>' +
               (item.action === 'REVIEW_ALUMNI' ? '<label class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-800"><input type="radio" name="backfill-' + adminBackfillValue(item.entryId) + '" value="CREATE_UNCLAIMED" ' + (RD_ADMIN.backfillChoices[item.entryId] === 'CREATE_UNCLAIMED' ? 'checked' : '') + ' onchange="adminSetBackfillChoice(\'' + adminBackfillValue(item.entryId) + '\', this.value)"> Create unclaimed instead</label>' : '') +
