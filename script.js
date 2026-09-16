@@ -8,6 +8,7 @@
     let RD_ADMIN_TOKEN = '';
     const RD_ADMIN_KEY = 'rd_admin_token';
     const RD_ADMIN_KEEP = 'rd_admin_keep';
+    const RD_ADMIN_PROFILE_KEY = 'rd_admin_profile';
     const ALUMNI_API_URL = API_BASE_URL + '?action=alumni';
 
     const staticEvents = [
@@ -1580,6 +1581,26 @@
 
     /* ---------- reading the four list columns ---------------------------- */
     function rdMpParsePosts(raw) {
+      if (!raw) return [];
+      if (Array.isArray(raw)) {
+        return raw.map(p => ({
+          body: rdMpBodyOf(p && (p.body || p.committee)).key,
+          session: (p && p.session) || '',
+          post: rdMpReal(p && (p.post || p.position))
+        })).filter(r => r.post);
+      }
+      if (typeof raw === 'string' && raw.trim().startsWith('[')) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            return parsed.map(p => ({
+              body: rdMpBodyOf(p && (p.body || p.committee)).key,
+              session: (p && p.session) || '',
+              post: rdMpReal(p && (p.post || p.position))
+            })).filter(r => r.post);
+          }
+        } catch (e) {}
+      }
       return rdMpRows(raw, true).map(line => {
         const p = rdMpCut(line);
         return { body: rdMpBodyOf(p[0]).key, session: p[1] || '', post: rdMpReal(p[2]) };
@@ -1970,8 +1991,16 @@
       String(mp.formerPos || '').split(';').forEach(p => {
         p = p.trim();
         if (!p || RD_MP_NOTHING.test(p)) return;
-        const m = /^(.*?),\s*([0-9]{4}(?:-[0-9]{2,4})?)$/.exec(p);
-        ev.push({ y: m ? m[2] : '', v: m ? m[1] : p });
+        let session = '', post = p;
+        const sessMatch = /(?:\(|\b)(\d{4}(?:-\d{2,4})?)\)?\s*$/.exec(p);
+        if (sessMatch) {
+          session = sessMatch[1];
+          post = p.substring(0, sessMatch.index).trim().replace(/[,\s(-]+$/, '').trim();
+        } else {
+          const m = /^(.*?),\s*([0-9]{4}(?:-[0-9]{2,4})?)$/.exec(p);
+          if (m) { session = m[2]; post = m[1]; }
+        }
+        ev.push({ y: session, v: post || p });
       });
       const inner = ev.map(e => rdMpSvTerm(e.y, e.v, '', false, '')).join('') +
         rdMpSvTerm('Today', rdMpStanding(mp.status), RD_MP_ORG, true, '');
@@ -2392,7 +2421,7 @@
       const open = `<button type="button" class="rd-dc-open" onclick="openAlumniModal('${escapeHtml(String(a.id))}')"><span class="rd-dc-lbl">Full profile</span>` +
         '<i data-lucide="arrow-right" class="rd-dc-arw"></i></button>';
       if (!c) {
-        if (rdMemberSignedIn()) {
+        if (rdCanViewContacts()) {
           return '<div class="rd-dc-seg has-1 is-gate">' + open +
             '<span class="rd-dc-gate"><i data-lucide="loader-circle" class="animate-spin"></i> Loading contact</span></div>';
         }
@@ -2603,8 +2632,17 @@
                          never a press that does nothing. */
                       pendingLinkId: '' };
 
-    function rdMemberParams() { return RD_MEMBER.token ? { memberToken: RD_MEMBER.token } : {}; }
+    function rdMemberParams() {
+      if (RD_MEMBER.token) return { memberToken: RD_MEMBER.token };
+      if (typeof RD_ADMIN !== 'undefined' && RD_ADMIN.gate === 'open' && RD_ADMIN_TOKEN) {
+        return { adminToken: RD_ADMIN_TOKEN };
+      }
+      return {};
+    }
     function rdMemberSignedIn() { return !!(RD_MEMBER.token && RD_MEMBER.me); }
+    function rdCanViewContacts() {
+      return rdMemberSignedIn() || (typeof RD_ADMIN !== 'undefined' && RD_ADMIN.gate === 'open' && !!RD_ADMIN_TOKEN);
+    }
 
     async function rdMemberEnsureSession() {
       if (rdMemberSignedIn()) return true;
@@ -2796,7 +2834,7 @@
        never in sessionStorage, so a signed-out tab cannot be read back. */
     async function memberLoadContacts() {
       RD_MEMBER.contacts = null;
-      if (!RD_MEMBER.token) return;
+      if (!RD_MEMBER.token && !(typeof RD_ADMIN !== 'undefined' && RD_ADMIN.gate === 'open' && RD_ADMIN_TOKEN)) return;
       try {
         const r = await apiGet('membercontacts', rdMemberParams());
         RD_MEMBER.contacts = (r && r.contacts) || {};
@@ -5034,7 +5072,7 @@
             '</div></div>'
           : '') +
         ecProfileButton(m) +
-        (rdMemberSignedIn() && (m.mobile || m.email)
+        (rdCanViewContacts() && (m.mobile || m.email)
           ? '<div class="mt-auto border-t border-slate-100 grid grid-cols-2 divide-x ' +
           'divide-slate-100 text-xs font-bold">' +
           '<button type="button" onclick="copyToClipboard(\'' + escapeHtml(m.mobile) + '\')" ' +
@@ -5054,7 +5092,17 @@
         escapeHtml(m.entryId) + '\')" class="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-200 text-slate-600 hover:text-teal-700 text-xs font-extrabold cursor-pointer"><i data-lucide="user-round" class="w-3.5 h-3.5"></i> View profile</button></div>';
     }
 
-    function ecOpenProfile(entryId) {
+    async function ecOpenProfile(entryId) {
+      if (!Array.isArray(alumniData) || !alumniData.length) {
+        showToast('Loading directory data...', 'info');
+        try {
+          if (typeof loadPublicAlumni === 'function') {
+            await loadPublicAlumni();
+          }
+        } catch (e) {
+          console.error('Error loading alumniData:', e);
+        }
+      }
       var found = ecLookupMember(entryId);
       var id = found ? ecDirectoryId(found.member) : '';
       if (id) {
@@ -5064,18 +5112,32 @@
       showToast('This committee member does not have a directory profile yet.', 'info');
     }
 
+    function ecNormName(value) {
+      return String(value || '').toLowerCase()
+        .replace(/^(md|engr|engr\.|mohammad|mohammed|mst)\b/gi, '')
+        .replace(/[^\p{L}\p{N}]+/gu, '');
+    }
+
     function ecNormProfileValue(value) {
       return String(value || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
     }
 
     function ecDirectoryId(m) {
-      var want = [m.fullName, m.department, m.series].map(function (v) {
-        return ecNormProfileValue(v);
-      });
+      if (!m) return '';
+      if (m.targetMemberId) {
+        var directHit = alumniData.find(function (a) {
+          return String(a.id || a.memberId || '').trim() === String(m.targetMemberId).trim();
+        });
+        if (directHit) return String(directHit.id || '');
+      }
+      var mName = ecNormName(m.fullName);
+      var mDept = ecNormProfileValue(m.department);
+      var mSeries = String(m.series || '').replace(/[^\d]/g, '');
       var hit = alumniData.find(function (a) {
-        return ecNormProfileValue(a.name || a.fullName) === want[0] &&
-          ecNormProfileValue(a.dept || a.department) === want[1] &&
-          ecNormProfileValue(a.series) === want[2];
+        var aName = ecNormName(a.name || a.fullName);
+        var aDept = ecNormProfileValue(a.dept || a.department);
+        var aSeries = String(a.series || '').replace(/[^\d]/g, '');
+        return aName && aName === mName && aDept && aDept === mDept && aSeries && aSeries === mSeries;
       });
       return hit ? String(hit.id || '') : '';
     }
@@ -5625,7 +5687,7 @@
           ? '<div class="px-6 mb-5"><button type="button" onclick="openEcMessage(\'' + escapeHtml(m.entryId) + '\')" class="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-600 hover:text-white border border-blue-100 text-blue-700 text-xs font-extrabold cursor-pointer"><i data-lucide="message-square-quote" class="w-3.5 h-3.5"></i> View message</button></div>'
           : '') +
         ecProfileButton(m) +
-        (rdMemberSignedIn() && (m.mobile || m.email)
+        (rdCanViewContacts() && (m.mobile || m.email)
           ? '<div class="mt-auto border-t border-slate-100 grid grid-cols-2 divide-x divide-slate-100 text-xs font-bold">' +
           '<button type="button" onclick="copyToClipboard(\'' + escapeHtml(m.mobile) + '\')" class="py-3.5 flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50 cursor-pointer"><i data-lucide="phone" class="w-3.5 h-3.5 text-blue-600"></i> Mobile</button>' +
           '<a href="mailto:' + escapeHtml(m.email) + '" class="py-3.5 flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50"><i data-lucide="mail" class="w-3.5 h-3.5 text-blue-600"></i> Email</a>' +
@@ -7920,7 +7982,7 @@ f.reset();
                      pdKind: 'LINE', pdEdit: '', role: 'ALL',
                      facEdit: '', facMissing: [],
                      askWhat: '', askId: '', backfillPreview: null, backfillChoices: {},
-                     queueErrors: {} };
+                     queueErrors: {}, selected: {} };
 
     function adminTabMeta(key) {
       return RD_ADMIN_TABS.find(t => t.key === key) || RD_ADMIN_TABS[0];
@@ -8080,6 +8142,7 @@ f.reset();
         } else {
           localStorage.removeItem(RD_ADMIN_KEY);
           localStorage.removeItem(RD_ADMIN_KEEP);
+          localStorage.removeItem(RD_ADMIN_PROFILE_KEY);
         }
       } catch (err) { /* private mode: the current page can still authenticate */ }
     }
@@ -8094,7 +8157,8 @@ f.reset();
         }
       });
       const pending = (RD_ADMIN.rows.registrations || []).filter(r => r.status === 'PENDING' || r.status === 'DUPLICATE').length +
-        (RD_ADMIN.rows.unclaimed ? RD_ADMIN.rows.unclaimed.length : 0) +
+        (RD_ADMIN.rows.committee || []).filter(r => r.status === 'PENDING').length +
+        (RD_ADMIN.rows.events || []).filter(r => r.status === 'PENDING').length +
         (RD_ADMIN.rows['unclaimed-matches'] ? RD_ADMIN.rows['unclaimed-matches'].filter(r => String(r.status || 'PENDING').toUpperCase() === 'PENDING').length : 0);
       ['nav-admin-badge', 'mobile-admin-badge'].forEach(function (id) {
         const badge = document.getElementById(id);
@@ -8136,7 +8200,7 @@ f.reset();
         google.accounts.id.initialize({
           client_id: RD_ADMIN_CLIENT_ID,
           callback: adminGoogleCredential,
-          auto_select: false,
+          auto_select: true,
           cancel_on_tap_outside: true
         });
         google.accounts.id.renderButton(box, {
@@ -8157,6 +8221,23 @@ f.reset();
       if (RD_ADMIN.gate === 'open') { adminGateRender(); loadAdminDashboard(); return; }
       if (RD_ADMIN.gate === 'checking') return;
       if (RD_ADMIN_TOKEN && rdAdminWantsIn()) {
+        try {
+          const cached = localStorage.getItem(RD_ADMIN_PROFILE_KEY);
+          if (cached) {
+            const adm = JSON.parse(cached);
+            if (adm && adm.admin) {
+              RD_ADMIN.admin = adm.admin;
+              if (adm.role) RD_ADMIN.role = adm.role;
+              RD_ADMIN.gate = 'open';
+              RD_ADMIN.state = 'ready';
+              adminGateRender();
+              rdAdminNavPaint();
+              memberLoadContacts();
+              adminGateVerify(true);
+              return;
+            }
+          }
+        } catch (err) {}
         adminGateVerify();
         return;
       }
@@ -8168,6 +8249,7 @@ f.reset();
     }
 
     async function adminGateVerify() {
+      const quiet = !!arguments[0];
       if (RD_ADMIN.gate === 'checking') return;
       /* Pressed with no token in hand: ask Google first. */
       if (rdGsiReady() && !RD_ADMIN_TOKEN) {
@@ -8176,9 +8258,11 @@ f.reset();
           return;
         }
       }
-      RD_ADMIN.gate = 'checking';
-      RD_ADMIN.error = '';
-      adminGateRender();
+      if (!quiet || RD_ADMIN.gate !== 'open') {
+        RD_ADMIN.gate = 'checking';
+        RD_ADMIN.error = '';
+        adminGateRender();
+      }
 
       /* Ask who this is before asking for anything they may not be allowed to
          see. This used to be inferred from the refusal that came back when a
@@ -8204,9 +8288,13 @@ f.reset();
         RD_ADMIN.tab = 'registrations';
         RD_ADMIN.state = 'ready';
         RD_ADMIN.gate = 'open';
+        try {
+          localStorage.setItem(RD_ADMIN_PROFILE_KEY, JSON.stringify({ admin: RD_ADMIN.admin, role: RD_ADMIN.role || 'ALL' }));
+        } catch (cacheErr) {}
         adminGateRender();
         renderAdmin();
         rdAdminNavPaint();
+        memberLoadContacts();
         preloadAdminActionQueues();
       } catch (err) {
         if (rdIsRoleError(err)) { await adminOpenPdaccOnly(); return; }
@@ -8274,6 +8362,23 @@ f.reset();
         return;
       }
       RD_ADMIN_TOKEN = token;
+      try {
+        const cached = localStorage.getItem(RD_ADMIN_PROFILE_KEY);
+        if (cached) {
+          const adm = JSON.parse(cached);
+          if (adm && adm.admin) {
+            RD_ADMIN.admin = adm.admin;
+            if (adm.role) RD_ADMIN.role = adm.role;
+            RD_ADMIN.gate = 'open';
+            RD_ADMIN.state = 'ready';
+            adminGateRender();
+            rdAdminNavPaint();
+            memberLoadContacts();
+            adminGateVerify(true);
+            return;
+          }
+        }
+      } catch (err) {}
       RD_ADMIN.gate = 'locked';
       adminGateRender();
       adminGateVerify();
@@ -8313,14 +8418,43 @@ f.reset();
     async function preloadAdminActionQueues() {
       if (RD_ADMIN.role === 'PDACC' || RD_ADMIN.gate !== 'open') return;
       const queueTabs = ['unclaimed', 'unclaimed-matches', 'unclaimed-audits'];
-      await Promise.all(queueTabs.map(async function (tab) {
+      const loadCommittee = !RD_ADMIN.rows.committee ? (async function () {
         try {
-          RD_ADMIN.rows[tab] = await adminLoadCustom(tab);
-          delete RD_ADMIN.queueErrors[tab];
-        } catch (err) {
-          RD_ADMIN.queueErrors[tab] = friendlyError(err).msg;
-        }
-      }));
+          const res = await apiGet('adminexecutivecommittee', { status: 'ALL' });
+          const raw = Array.isArray(res.data) ? res.data : [];
+          RD_ADMIN.rows.committee = raw.map(r => adminNormalize('committee', r)).filter(r => r.id);
+        } catch (err) {}
+      })() : Promise.resolve();
+
+      const loadRegistrations = !RD_ADMIN.rows.registrations ? (async function () {
+        try {
+          const res = await apiGet('getadminregistrations', {});
+          const raw = Array.isArray(res.data) ? res.data : [];
+          RD_ADMIN.rows.registrations = raw.map(r => adminNormalize('registrations', r)).filter(r => r.id);
+        } catch (err) {}
+      })() : Promise.resolve();
+
+      const loadEvents = !RD_ADMIN.rows.events ? (async function () {
+        try {
+          const res = await apiGet('getadminevents', {});
+          const raw = Array.isArray(res.data) ? res.data : [];
+          RD_ADMIN.rows.events = raw.map(r => adminNormalize('events', r)).filter(r => r.id);
+        } catch (err) {}
+      })() : Promise.resolve();
+
+      await Promise.all([
+        loadCommittee,
+        loadRegistrations,
+        loadEvents,
+        ...queueTabs.map(async function (tab) {
+          try {
+            RD_ADMIN.rows[tab] = await adminLoadCustom(tab);
+            delete RD_ADMIN.queueErrors[tab];
+          } catch (err) {
+            RD_ADMIN.queueErrors[tab] = friendlyError(err).msg;
+          }
+        })
+      ]);
       renderAdmin();
     }
 
@@ -8328,6 +8462,7 @@ f.reset();
       if (RD_ADMIN.tab === key) return;
       if (!adminTabAllowed(key)) return;
       RD_ADMIN.tab = key;
+      RD_ADMIN.selected = {};
       /* Events and Committee have no DUPLICATE status; do not strand the view
          on a filter that can never match. */
       if (RD_ADMIN.status === 'DUPLICATE' && key !== 'registrations') RD_ADMIN.status = 'PENDING';
@@ -8343,6 +8478,7 @@ f.reset();
 
     function adminSetStatus(status) {
       RD_ADMIN.status = status;
+      RD_ADMIN.selected = {};
       RD_ADMIN.noteOpen = '';
       renderAdmin();
     }
@@ -8358,9 +8494,249 @@ f.reset();
         (map[status] || 'bg-slate-100 border-slate-200 text-slate-600') + '">' + escapeHtml(status || 'UNKNOWN') + '</span>';
     }
 
+    function adminGetPendingRows() {
+      if (RD_ADMIN.tab === 'unclaimed-matches') {
+        return (RD_ADMIN.rows['unclaimed-matches'] || []).filter(r => String(r.status || 'PENDING').toUpperCase() === 'PENDING');
+      }
+      if (!adminTabMeta(RD_ADMIN.tab).custom) {
+        return adminRows().filter(r => r.status === 'PENDING' || r.status === 'DUPLICATE');
+      }
+      return [];
+    }
+
+    function adminGetSelectedCount() {
+      const pending = adminGetPendingRows();
+      return pending.reduce((count, r) => count + (RD_ADMIN.selected[r.id || r.matchId] ? 1 : 0), 0);
+    }
+
+    function adminToggleSelect(id, checked) {
+      RD_ADMIN.selected[id] = !!checked;
+      adminUpdateBatchToolbar();
+      renderAdmin();
+    }
+
+    function adminToggleSelectAll(checked) {
+      const pending = adminGetPendingRows();
+      pending.forEach(r => {
+        RD_ADMIN.selected[r.id || r.matchId] = !!checked;
+      });
+      adminUpdateBatchToolbar();
+      renderAdmin();
+    }
+
+    function adminUpdateBatchToolbar() {
+      const pending = adminGetPendingRows();
+      const count = adminGetSelectedCount();
+      const total = pending.length;
+      const allCb = document.getElementById('admin-select-all');
+      if (allCb) {
+        allCb.checked = total > 0 && count === total;
+        allCb.indeterminate = count > 0 && count < total;
+      }
+      const countEl = document.getElementById('admin-batch-count');
+      if (countEl) {
+        countEl.textContent = count + ' of ' + total + ' selected';
+      }
+      const btnApprove = document.getElementById('admin-batch-approve-btn');
+      if (btnApprove) btnApprove.disabled = count === 0;
+      const btnReject = document.getElementById('admin-batch-reject-btn');
+      if (btnReject) btnReject.disabled = count === 0;
+    }
+
+    function adminBatchToolbarHtml() {
+      const pending = adminGetPendingRows();
+      if (!pending.length) return '';
+      const count = adminGetSelectedCount();
+      const total = pending.length;
+      const isMatches = RD_ADMIN.tab === 'unclaimed-matches';
+      const allChecked = total > 0 && count === total;
+      const rejectNoteOpen = RD_ADMIN.batchRejectOpen;
+
+      let actions = '';
+      if (isMatches) {
+        actions = '<div class="flex flex-wrap items-center gap-2">' +
+          '<button type="button" id="admin-batch-approve-btn" onclick="adminBatchMergeUnclaimed()" ' +
+          (count === 0 ? 'disabled ' : '') +
+          'class="admin-glass-btn inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-black shadow-xs hover:bg-emerald-700 disabled:opacity-40 disabled:pointer-events-none cursor-pointer">' +
+          '<i data-lucide="git-merge" class="w-3.5 h-3.5"></i> Merge Selected (' + count + ')</button>' +
+          '<button type="button" id="admin-batch-reject-btn" onclick="adminBatchSeparateUnclaimed()" ' +
+          (count === 0 ? 'disabled ' : '') +
+          'class="admin-glass-btn inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-xs font-black hover:border-slate-400 disabled:opacity-40 disabled:pointer-events-none cursor-pointer">' +
+          '<i data-lucide="split" class="w-3.5 h-3.5"></i> Keep Separate (' + count + ')</button>' +
+        '</div>';
+      } else {
+        actions = '<div class="flex flex-wrap items-center gap-2">' +
+          '<button type="button" id="admin-batch-approve-btn" onclick="adminBatchApprove()" ' +
+          (count === 0 ? 'disabled ' : '') +
+          'class="admin-glass-btn inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-black shadow-xs hover:bg-emerald-700 disabled:opacity-40 disabled:pointer-events-none cursor-pointer">' +
+          '<i data-lucide="check-check" class="w-3.5 h-3.5"></i> Approve Selected (' + count + ')</button>' +
+          '<button type="button" id="admin-batch-reject-btn" onclick="adminBatchToggleReject()" ' +
+          (count === 0 ? 'disabled ' : '') +
+          'class="admin-glass-btn inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 text-xs font-black hover:bg-rose-100 disabled:opacity-40 disabled:pointer-events-none cursor-pointer">' +
+          '<i data-lucide="circle-x" class="w-3.5 h-3.5"></i> Reject Selected (' + count + ')</button>' +
+        '</div>';
+      }
+
+      const rejectBox = rejectNoteOpen && count > 0 ? (
+        '<div class="mt-3 p-3.5 rounded-2xl border border-rose-200 bg-rose-50/80 text-left">' +
+          '<label class="block text-xs font-extrabold text-rose-800 mb-1.5" for="admin-batch-reject-note">Reason for rejecting selected ' + count + ' item(s):</label>' +
+          '<textarea id="admin-batch-reject-note" rows="2" class="form-input text-xs" placeholder="Write a reason for batch rejection (required for committee nominations)"></textarea>' +
+          '<div class="mt-2.5 flex items-center gap-2">' +
+            '<button type="button" onclick="adminBatchConfirmReject()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-black hover:bg-rose-700 cursor-pointer"><i data-lucide="circle-x" class="w-3.5 h-3.5"></i> Confirm Reject ' + count + ' Items</button>' +
+            '<button type="button" onclick="adminBatchToggleReject(false)" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer">Cancel</button>' +
+          '</div>' +
+        '</div>'
+      ) : '';
+
+      return '<div class="admin-glass-toolbar rounded-2xl border border-slate-200/80 p-3.5 shadow-xs mb-4">' +
+        '<div class="flex flex-wrap items-center justify-between gap-3">' +
+          '<label class="inline-flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer select-none">' +
+            '<input type="checkbox" id="admin-select-all" class="w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-slate-800 cursor-pointer" ' +
+            (allChecked ? 'checked ' : '') + 'onchange="adminToggleSelectAll(this.checked)"/>' +
+            '<span>Select all pending</span>' +
+            '<span id="admin-batch-count" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-600">' +
+              count + ' of ' + total + ' selected' +
+            '</span>' +
+          '</label>' +
+          actions +
+        '</div>' +
+        rejectBox +
+      '</div>';
+    }
+
+    function adminBatchToggleReject(forceState) {
+      if (typeof forceState === 'boolean') {
+        RD_ADMIN.batchRejectOpen = forceState;
+      } else {
+        RD_ADMIN.batchRejectOpen = !RD_ADMIN.batchRejectOpen;
+      }
+      renderAdmin();
+    }
+
+    async function adminBatchConfirmReject() {
+      const noteEl = document.getElementById('admin-batch-reject-note');
+      const note = noteEl ? String(noteEl.value || '').trim() : '';
+      const pending = adminGetPendingRows();
+      const ids = pending.map(r => r.id).filter(id => RD_ADMIN.selected[id]);
+      if (RD_ADMIN.tab === 'committee' && !note) {
+        showToast('Please write a short reason before rejecting committee entries.', 'error', 'A reason is needed', { backTo: 'admin' });
+        if (noteEl) noteEl.focus();
+        return;
+      }
+      await adminBatchReject(note || 'Declined during admin batch review.');
+    }
+
+    async function adminBatchApprove() {
+      const pending = adminGetPendingRows();
+      const ids = pending.map(r => r.id).filter(id => RD_ADMIN.selected[id]);
+      if (!ids.length || RD_ADMIN.busy) return;
+      RD_ADMIN.busy = 'batch';
+      renderAdmin();
+      let successCount = 0;
+      let failCount = 0;
+      for (const id of ids) {
+        try {
+          const row = adminFind(id);
+          if (row) {
+            await adminActionCall(row.kind, 'approve', id, '');
+            row.status = 'APPROVED';
+            delete RD_ADMIN.selected[id];
+            successCount++;
+          }
+        } catch (err) {
+          failCount++;
+        }
+      }
+      RD_ADMIN.busy = '';
+      rdFeedForget('alumni');
+      rdFeedForget('events');
+      rdFeedForget('committee');
+      if (successCount) {
+        showToast(successCount + ' item' + (successCount === 1 ? '' : 's') + ' approved successfully.' + (failCount ? ' (' + failCount + ' failed)' : ''), 'success', 'Batch Approved', { backTo: 'admin' });
+      } else if (failCount) {
+        showToast('Could not approve selected items.', 'error', 'Batch Failed', { backTo: 'admin' });
+      }
+      await loadAdminDashboard(true);
+    }
+
+    async function adminBatchReject(note) {
+      const pending = adminGetPendingRows();
+      const ids = pending.map(r => r.id).filter(id => RD_ADMIN.selected[id]);
+      if (!ids.length || RD_ADMIN.busy) return;
+      const defaultNote = note || 'Declined during admin batch review.';
+      RD_ADMIN.busy = 'batch';
+      renderAdmin();
+      let successCount = 0;
+      let failCount = 0;
+      for (const id of ids) {
+        try {
+          const row = adminFind(id);
+          if (row) {
+            await adminActionCall(row.kind, 'reject', id, defaultNote);
+            row.status = 'REJECTED';
+            delete RD_ADMIN.selected[id];
+            successCount++;
+          }
+        } catch (err) {
+          failCount++;
+        }
+      }
+      RD_ADMIN.busy = '';
+      RD_ADMIN.batchRejectOpen = false;
+      rdFeedForget('alumni');
+      rdFeedForget('events');
+      rdFeedForget('committee');
+      if (successCount) {
+        showToast(successCount + ' item' + (successCount === 1 ? '' : 's') + ' rejected.' + (failCount ? ' (' + failCount + ' failed)' : ''), 'info', 'Batch Rejected', { backTo: 'admin' });
+      } else if (failCount) {
+        showToast('Could not reject selected items.', 'error', 'Batch Failed', { backTo: 'admin' });
+      }
+      await loadAdminDashboard(true);
+    }
+
+    async function adminBatchMergeUnclaimed() {
+      const pending = adminGetPendingRows();
+      const ids = pending.map(r => r.matchId).filter(id => RD_ADMIN.selected[id]);
+      if (!ids.length || RD_ADMIN.busy) return;
+      RD_ADMIN.busy = 'batch';
+      renderAdmin();
+      let successCount = 0;
+      for (const id of ids) {
+        try {
+          await apiPost('mergeunclaimed', { matchId: id });
+          delete RD_ADMIN.selected[id];
+          successCount++;
+        } catch (err) {}
+      }
+      RD_ADMIN.busy = '';
+      showToast(successCount + ' matches merged successfully.', 'success', 'Batch Merged', { backTo: 'admin' });
+      await loadAdminDashboard(true);
+    }
+
+    async function adminBatchSeparateUnclaimed() {
+      const pending = adminGetPendingRows();
+      const ids = pending.map(r => r.matchId).filter(id => RD_ADMIN.selected[id]);
+      if (!ids.length || RD_ADMIN.busy) return;
+      RD_ADMIN.busy = 'batch';
+      renderAdmin();
+      let successCount = 0;
+      for (const id of ids) {
+        try {
+          await apiPost('keepunclaimedseparate', { matchId: id });
+          delete RD_ADMIN.selected[id];
+          successCount++;
+        } catch (err) {}
+      }
+      RD_ADMIN.busy = '';
+      showToast(successCount + ' matches kept separate.', 'info', 'Kept Separate', { backTo: 'admin' });
+      await loadAdminDashboard(true);
+    }
+
     function adminCard(r) {
-      const busy = RD_ADMIN.busy === r.id;
+      const busy = RD_ADMIN.busy === r.id || RD_ADMIN.busy === 'batch';
       const noteOn = RD_ADMIN.noteOpen === r.id;
+      const isPending = r.status === 'PENDING' || r.status === 'DUPLICATE';
+      const isSelected = !!RD_ADMIN.selected[r.id];
       const rows = r.meta.filter(m => String(m[1] || '').trim() !== '')
         .map(m => '<div class="flex gap-2 min-w-0"><span class="w-28 shrink-0 text-[11px] font-extrabold uppercase tracking-wide text-slate-400">' +
           escapeHtml(m[0]) + '</span><span class="text-xs font-semibold text-slate-700 break-words min-w-0">' +
@@ -8419,9 +8795,19 @@ f.reset();
           '</div>'
         : '';
 
+      const selectBox = isPending
+        ? '<label class="inline-flex items-center cursor-pointer p-1 -m-1 mr-1.5" title="Select for batch action">' +
+            '<input type="checkbox" class="admin-select-row w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-slate-800 cursor-pointer" ' +
+            (isSelected ? 'checked ' : '') +
+            'onchange="adminToggleSelect(\'' + escapeHtml(r.id) + '\', this.checked)"/>' +
+          '</label>'
+        : '';
+
       return '' +
-      '<article class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-6">' +
-        '<div class="flex items-start gap-4">' +
+      '<article class="admin-glass-card rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 transition hover:shadow-md ' +
+        (isSelected ? 'ring-2 ring-slate-800/30 bg-slate-50/50' : 'bg-white') + '">' +
+        '<div class="flex items-start gap-3.5">' +
+          selectBox +
           thumb +
           '<div class="min-w-0 flex-1">' +
             '<div class="flex flex-wrap items-center gap-2">' +
@@ -8457,7 +8843,7 @@ f.reset();
         if (list && !t.custom) {
           counts[t.key] = list.filter(r => r.status === 'PENDING' || r.status === 'DUPLICATE').length;
         } else if (t.key === 'unclaimed') {
-          counts[t.key] = list ? list.length : null;
+          counts[t.key] = null;
         } else if (t.key === 'unclaimed-matches') {
           counts[t.key] = list ? list.filter(r => String(r.status || 'PENDING').toUpperCase() === 'PENDING').length : null;
         } else if (t.key === 'unclaimed-audits') {
@@ -8468,12 +8854,13 @@ f.reset();
       });
       box.innerHTML = tabs.map(t => {
         const on = RD_ADMIN.tab === t.key;
-        const badge = counts[t.key] ? '<span class="ml-auto inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 rounded-lg text-[11px] font-extrabold ' +
-          (on ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700') + '">' + counts[t.key] + '</span>' : '';
+        const count = counts[t.key];
+        const badge = (count !== null && count > 0) ? '<span class="ml-auto inline-flex items-center justify-center min-w-[1.5rem] h-5 px-1.5 rounded-full text-[10px] font-black ' +
+          (on ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-800') + '">' + count + '</span>' : '';
         return '<button type="button" onclick="adminSwitchTab(\'' + t.key + '\')" ' +
-          'class="flex items-center gap-2 px-4 py-3 rounded-2xl border text-xs font-extrabold transition cursor-pointer text-left ' +
-          (on ? 'bg-blue-600 border-blue-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-700') + '">' +
-          '<i data-lucide="' + t.icon + '" class="w-4 h-4 shrink-0"></i><span class="min-w-0 truncate">' + t.label + '</span>' + badge +
+          'class="admin-glass-btn flex items-center gap-2 px-3.5 py-2.5 rounded-2xl border text-xs font-bold transition cursor-pointer text-left ' +
+          (on ? 'bg-slate-900 border-slate-900 text-white shadow-sm' : 'bg-white/80 backdrop-blur-sm border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900 hover:bg-white') + '">' +
+          '<i data-lucide="' + t.icon + '" class="w-4 h-4 shrink-0 ' + (on ? 'text-white' : 'text-slate-500') + '"></i><span class="min-w-0 truncate">' + t.label + '</span>' + badge +
         '</button>';
       }).join('');
     }
@@ -8484,7 +8871,7 @@ f.reset();
       /* PENDING / APPROVED / REJECTED mean nothing on a notice or a summary,
          so those tabs keep the Refresh button and drop the rest. */
       if (adminTabMeta(RD_ADMIN.tab).custom) {
-        box.innerHTML = '<button type="button" onclick="loadAdminDashboard(true)" class="ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-[11px] font-extrabold text-slate-600 hover:border-blue-300 hover:text-blue-700 transition cursor-pointer"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh</button>';
+        box.innerHTML = '<button type="button" onclick="loadAdminDashboard(true)" class="admin-glass-btn ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white/90 text-[11px] font-extrabold text-slate-600 hover:border-slate-400 hover:text-slate-900 transition cursor-pointer shadow-2xs"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh</button>';
         return;
       }
       const c = adminCounts();
@@ -8492,11 +8879,11 @@ f.reset();
       box.innerHTML = adminStatusList().map(s => {
         const on = RD_ADMIN.status === s;
         return '<button type="button" onclick="adminSetStatus(\'' + s + '\')" ' +
-          'class="px-3.5 py-2 rounded-xl border text-[11px] font-extrabold tracking-wide transition cursor-pointer ' +
-          (on ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400') + '">' +
+          'class="admin-glass-btn px-3.5 py-2 rounded-xl border text-[11px] font-extrabold tracking-wide transition cursor-pointer shadow-2xs ' +
+          (on ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white/90 border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-900') + '">' +
           s + (loaded ? ' (' + (c[s] || 0) + ')' : '') + '</button>';
       }).join('') +
-      '<button type="button" onclick="loadAdminDashboard(true)" class="ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-[11px] font-extrabold text-slate-600 hover:border-blue-300 hover:text-blue-700 transition cursor-pointer"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh</button>';
+      '<button type="button" onclick="loadAdminDashboard(true)" class="admin-glass-btn ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white/90 text-[11px] font-extrabold text-slate-600 hover:border-slate-400 hover:text-slate-900 transition cursor-pointer shadow-2xs"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh</button>';
     }
 
     function adminInfoBox(icon, title, body, tone) {
@@ -8519,28 +8906,29 @@ f.reset();
       const summary = document.getElementById('admin-action-summary');
       if (summary) {
         const registrations = (RD_ADMIN.rows.registrations || []).filter(r => r.status === 'PENDING' || r.status === 'DUPLICATE').length;
+        const committee = (RD_ADMIN.rows.committee || []).filter(r => r.status === 'PENDING').length;
+        const events = (RD_ADMIN.rows.events || []).filter(r => r.status === 'PENDING').length;
         const unclaimed = RD_ADMIN.rows.unclaimed ? RD_ADMIN.rows.unclaimed.length : null;
         const matches = RD_ADMIN.rows['unclaimed-matches']
           ? RD_ADMIN.rows['unclaimed-matches'].filter(r => String(r.status || 'PENDING').toUpperCase() === 'PENDING').length : null;
         const undo = RD_ADMIN.rows['unclaimed-audits']
           ? RD_ADMIN.rows['unclaimed-audits'].filter(r => String(r.Status || r.status || '').toUpperCase() === 'MERGED').length : null;
         const items = [
-          { key: 'registrations', label: 'Membership review', count: registrations, icon: 'user-check', tone: 'amber' },
-          { key: 'unclaimed', label: 'Unclaimed profiles', count: unclaimed, icon: 'user-round-search', tone: 'blue' },
+          { key: 'registrations', label: 'Membership review', count: registrations, icon: 'user-check', tone: 'indigo' },
+          { key: 'committee', label: 'Committee nominations', count: committee, icon: 'shield-check', tone: 'indigo' },
+          { key: 'events', label: 'Event submissions', count: events, icon: 'calendar-days', tone: 'indigo' },
           { key: 'unclaimed-matches', label: 'Possible matches', count: matches, icon: 'git-compare-arrows', tone: 'indigo' },
           { key: 'unclaimed-audits', label: 'Undo available', count: undo, icon: 'rotate-ccw', tone: 'slate' }
         ];
-        const available = items.filter(item => item.count !== null);
-        const total = [registrations, unclaimed, matches].filter(count => count !== null)
+        const total = [registrations, committee, events, matches].filter(count => count !== null)
           .reduce((sum, count) => sum + count, 0);
-        const tone = { amber: 'border-amber-200 bg-amber-50 text-amber-800', blue: 'border-blue-200 bg-blue-50 text-blue-800', indigo: 'border-indigo-200 bg-indigo-50 text-indigo-800', slate: 'border-slate-200 bg-slate-50 text-slate-700' };
-        summary.innerHTML = '<div class="rounded-2xl border ' + (total ? 'border-amber-200 bg-amber-50/70' : 'border-emerald-200 bg-emerald-50/70') + ' p-4">' +
-          '<div class="flex flex-wrap items-center gap-2"><span class="text-sm font-black text-slate-900">' + (total ? total + ' review item' + (total === 1 ? '' : 's') + ' need attention' : 'No pending admin reviews') + '</span>' +
+        summary.innerHTML = '<div class="admin-glass-card rounded-2xl border ' + (total ? 'border-amber-300/80 bg-gradient-to-r from-amber-50/80 via-orange-50/40 to-amber-50/80' : 'border-slate-200/80 bg-slate-50/60') + ' p-4 backdrop-blur-md shadow-xs">' +
+          '<div class="flex flex-wrap items-center gap-2.5"><span class="text-xs font-black uppercase tracking-wider text-slate-500">' + (total ? '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-extrabold text-xs"><i data-lucide="bell" class="w-3.5 h-3.5"></i> ' + total + ' Pending Review' + (total === 1 ? '' : 's') + '</span>' : '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold text-xs"><i data-lucide="check" class="w-3.5 h-3.5"></i> All Queues Clear</span>') + '</span>' +
           (RD_ADMIN.queueErrors.unclaimed || RD_ADMIN.queueErrors['unclaimed-matches'] ? '<span class="text-[11px] font-bold text-rose-700">Some review queues could not be loaded.</span>' : '') + '</div>' +
           '<div class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">' +
           items.filter(item => item.count !== null && item.count > 0).map(item =>
-            '<button type="button" onclick="adminSwitchTab(\'' + item.key + '\')" class="flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs font-extrabold ' + tone[item.tone] + ' hover:brightness-95 cursor-pointer">' +
-              '<i data-lucide="' + item.icon + '" class="h-4 w-4 shrink-0"></i><span class="min-w-0 flex-1">' + item.label + '</span><strong class="text-sm">' + item.count + '</strong></button>'
+            '<button type="button" onclick="adminSwitchTab(\'' + item.key + '\')" class="admin-glass-btn flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-left text-xs font-extrabold text-slate-800 shadow-xs hover:border-slate-400 hover:bg-white cursor-pointer transition">' +
+              '<i data-lucide="' + item.icon + '" class="h-4 w-4 shrink-0 text-slate-500"></i><span class="min-w-0 flex-1 truncate">' + item.label + '</span><span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-slate-900 text-white text-[10px] font-black">' + item.count + '</span></button>'
           ).join('') + '</div></div>';
       }
       rdAdminNavPaint();
@@ -8568,8 +8956,11 @@ f.reset();
           box.innerHTML = adminCustomHtml(RD_ADMIN.tab);
         } else {
           const rows = adminRows();
+          const batchToolbar = (RD_ADMIN.status === 'PENDING' || RD_ADMIN.status === 'DUPLICATE' || RD_ADMIN.status === 'ALL')
+            ? adminBatchToolbarHtml()
+            : '';
           box.innerHTML = rows.length
-            ? rows.map(adminCard).join('')
+            ? batchToolbar + rows.map(adminCard).join('')
             : adminInfoBox('inbox', 'Nothing here right now',
                 RD_ADMIN.status === 'DUPLICATE'
                   ? 'No repeat applications are waiting. Anything the system flags as a possible duplicate shows up here.'
@@ -8577,6 +8968,7 @@ f.reset();
         }
       }
       lucide.createIcons();
+      adminUpdateBatchToolbar();
     }
 
     /* ================= ADMIN: NOTICES, SOCIAL CORNER, SUMMARY ==========
@@ -8651,20 +9043,33 @@ f.reset();
         return adminInfoBox('git-compare-arrows', 'No possible matches yet',
           'A match appears when three of four normalized fields agree.', 'empty');
       }
+      const batchToolbar = adminBatchToolbarHtml();
       return '<div class="space-y-3">' +
+        batchToolbar +
         rows.map(r => {
           const old = r.unclaimed || {};
           const fresh = r.registration || {};
           const conflicts = Array.isArray(r.conflicts) ? r.conflicts : [];
+          const isSelected = !!RD_ADMIN.selected[r.matchId];
+          const selectBox = (r.status === 'PENDING' || !r.status)
+            ? '<label class="inline-flex items-center cursor-pointer p-1 -m-1 mr-1.5" title="Select for batch action">' +
+                '<input type="checkbox" class="admin-select-row w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-slate-800 cursor-pointer" ' +
+                (isSelected ? 'checked ' : '') +
+                'onchange="adminToggleSelect(\'' + escapeHtml(r.matchId) + '\', this.checked)"/>' +
+              '</label>'
+            : '';
           const field = (label, oldValue, newValue) =>
             '<div class="rounded-2xl border border-slate-200 bg-white p-3"><div class="text-[10px] font-black uppercase tracking-wide text-slate-500">' +
             escapeHtml(label) + '</div><div class="mt-1 grid gap-2 sm:grid-cols-2"><div><span class="text-[10px] font-bold text-amber-700">Old committee record</span><div class="font-bold text-slate-800">' +
             adminReviewValue(oldValue) + '</div></div><div><span class="text-[10px] font-bold text-emerald-700">New membership record</span><div class="font-bold text-slate-800">' +
             adminReviewValue(newValue) + '</div></div></div></div>';
-          return '<article class="rounded-3xl border border-indigo-200 bg-indigo-50/60 p-5">' +
-            '<div class="flex flex-wrap items-center gap-3"><h3 class="font-extrabold text-slate-900">' + escapeHtml(r.matchId || '(match)') + '</h3>' +
-            '<span class="rounded-lg border border-indigo-300 bg-white px-2.5 py-1 text-[11px] font-extrabold text-indigo-800">' + escapeHtml(r.status || 'PENDING') + '</span>' +
-            '<span class="ml-auto text-xs font-extrabold text-indigo-700">' + escapeHtml(r.matchCount || '') + '/4 fields</span></div>' +
+          return '<article class="admin-glass-card rounded-3xl border border-indigo-200/80 bg-indigo-50/40 p-5 shadow-xs transition hover:shadow-md ' +
+            (isSelected ? 'ring-2 ring-indigo-500/40 bg-indigo-50/70' : '') + '">' +
+            '<div class="flex flex-wrap items-center gap-3">' +
+              selectBox +
+              '<h3 class="font-extrabold text-slate-900">' + escapeHtml(r.matchId || '(match)') + '</h3>' +
+              '<span class="rounded-lg border border-indigo-300 bg-white px-2.5 py-1 text-[11px] font-extrabold text-indigo-800">' + escapeHtml(r.status || 'PENDING') + '</span>' +
+              '<span class="ml-auto text-xs font-extrabold text-indigo-700">' + escapeHtml(r.matchCount || '') + '/4 fields</span></div>' +
             '<div class="mt-3 text-xs font-semibold text-slate-600">Unclaimed ' + escapeHtml(r.unclaimedId || '') + ' • Registration ' + escapeHtml(r.registrationId || '') + '</div>' +
             '<div class="mt-4 grid gap-2">' +
               field('Name', old.fullName, fresh['Full Name (English)']) +
