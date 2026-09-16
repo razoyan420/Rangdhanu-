@@ -1563,8 +1563,19 @@
     }
 
     function rdMpBodyOf(key) {
-      const want = String(key || '').trim().toUpperCase();
+      const s = String(key || '').trim().toLowerCase();
       const all = rdMpBodies();
+      if (!s) return all[0];
+      if (s === 'pdacc' || s.indexOf('pdacc') !== -1 || s.indexOf('coaching') !== -1 || s.indexOf('admission') !== -1 || s.indexOf('prokoushali') !== -1) {
+        return all.find(b => b.key === 'PDACC') || all[2];
+      }
+      if (s === 'alumni' || s.indexOf('alumni') !== -1) {
+        return all.find(b => b.key === 'ALUMNI') || all[1];
+      }
+      if (s === 'rangdhanu' || s.indexOf('rangdhanu') !== -1) {
+        return all.find(b => b.key === 'RANGDHANU') || all[0];
+      }
+      const want = s.toUpperCase();
       return all.find(b => b.key === want) || all[0];
     }
 
@@ -1582,28 +1593,37 @@
     /* ---------- reading the four list columns ---------------------------- */
     function rdMpParsePosts(raw) {
       if (!raw) return [];
-      if (Array.isArray(raw)) {
-        return raw.map(p => ({
-          body: rdMpBodyOf(p && (p.body || p.committee)).key,
+      const normalizePostItem = function(p) {
+        const postTitle = rdMpReal(p && (p.post || p.position));
+        let rawBody = p && (p.body || p.committee);
+        if (postTitle && /director/i.test(postTitle) && (!rawBody || String(rawBody).toUpperCase() === 'RANGDHANU')) {
+          rawBody = 'PDACC';
+        }
+        return {
+          body: rdMpBodyOf(rawBody).key,
           session: (p && p.session) || '',
-          post: rdMpReal(p && (p.post || p.position))
-        })).filter(r => r.post);
+          post: postTitle
+        };
+      };
+      if (Array.isArray(raw)) {
+        return raw.map(normalizePostItem).filter(r => r.post);
       }
       if (typeof raw === 'string' && raw.trim().startsWith('[')) {
         try {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed)) {
-            return parsed.map(p => ({
-              body: rdMpBodyOf(p && (p.body || p.committee)).key,
-              session: (p && p.session) || '',
-              post: rdMpReal(p && (p.post || p.position))
-            })).filter(r => r.post);
+            return parsed.map(normalizePostItem).filter(r => r.post);
           }
         } catch (e) {}
       }
       return rdMpRows(raw, true).map(line => {
         const p = rdMpCut(line);
-        return { body: rdMpBodyOf(p[0]).key, session: p[1] || '', post: rdMpReal(p[2]) };
+        const postTitle = rdMpReal(p[2]);
+        let rawBody = p[0];
+        if (postTitle && /director/i.test(postTitle) && (!rawBody || String(rawBody).toUpperCase() === 'RANGDHANU')) {
+          rawBody = 'PDACC';
+        }
+        return { body: rdMpBodyOf(rawBody).key, session: p[1] || '', post: postTitle };
       }).filter(r => r.post);
     }
 
@@ -2205,6 +2225,7 @@
     function rdMpFromAlumni(a, c) {
       const m = c || {};
       const g = k => rdMpReal(m[k]);
+      const canView = !!c || rdCanViewContacts();
       return {
         name: a.name, photo: normalizeAlumniImage(a.image),
         cover: normalizeAlumniImage(a.cover), pos: rdMpParsePos(a.coverPos),
@@ -2214,10 +2235,12 @@
         empType: rdMpReal(a.emp_type),
         /* Contact cells only exist once a member has signed in; until then the
            whole object is null and every row here is empty by construction. */
-        mobile: g('Mobile Number'), whatsapp: g('WhatsApp Number'), email: g('Email'),
+        mobile: g('Mobile Number') || (canView ? (a.phone || a.mobile || '') : ''),
+        whatsapp: g('WhatsApp Number') || (canView ? (a.whatsapp || a.wa || a.phone || a.mobile || '') : ''),
+        email: g('Email') || (canView ? (a.email || '') : ''),
         permanent: g('Permanent Address') || rdMpReal(a.address),
         present: g('Present Address'),
-        social: m['Social Links'] || '',
+        social: m['Social Links'] || (canView ? (a.social || '') : ''),
         status: a.status,
         posts: rdMpParsePosts(a.posts), work: rdMpParseWork(a.work),
         edu: rdMpParseEdu(a.edu), papers: rdMpParsePapers(a.papers),
@@ -2410,7 +2433,7 @@
        why. The grid does not reflow when a member signs in, which is what makes
        signing in feel like a door rather than a redesign. */
     function rdDcSeg(a) {
-      const c = memberContact(a.memberId);
+      const c = memberContact(a.memberId) || (rdCanViewContacts() && (a.phone || a.mobile || a.email) ? { 'Mobile Number': a.phone || a.mobile, 'WhatsApp Number': a.wa || a.whatsapp || a.phone || a.mobile, 'Email': a.email } : null);
       /* Written as a template literal on purpose: test_gallery_reg.js pins the
          source text of this call, so the same call spelled with string
          concatenation would pass review and fail the harness.
@@ -2641,7 +2664,7 @@
     }
     function rdMemberSignedIn() { return !!(RD_MEMBER.token && RD_MEMBER.me); }
     function rdCanViewContacts() {
-      return rdMemberSignedIn() || (typeof RD_ADMIN !== 'undefined' && RD_ADMIN.gate === 'open' && !!RD_ADMIN_TOKEN);
+      return rdMemberSignedIn() || (typeof RD_ADMIN !== 'undefined' && RD_ADMIN.gate === 'open');
     }
 
     async function rdMemberEnsureSession() {
@@ -4209,7 +4232,14 @@
 
     function openAlumniModal(id) {
         const a = alumniData.find(x => String(x.id) === String(id)); 
-        if(a) openAlumniProfileModal(a); 
+        if(!a) return;
+        if (rdCanViewContacts() && !RD_MEMBER.contacts) {
+          memberLoadContacts().then(function () {
+            openAlumniProfileModal(a);
+          });
+          return;
+        }
+        openAlumniProfileModal(a); 
     }
 
     /* ================= THE PAGE ANOTHER MEMBER OPENS =====================
@@ -4242,7 +4272,8 @@
        the same function, so the two pages cannot drift apart. */
     function rdMemberPrivateRows(a) {
       const c = memberContact(a.memberId);
-      return rdMpContactInner(rdMpFromAlumni(a, c), rdMpState({ signed: !!c }));
+      const canView = !!c || rdCanViewContacts();
+      return rdMpContactInner(rdMpFromAlumni(a, c), rdMpState({ signed: canView }));
     }
 
     function openAlumniProfileModal(a) {
@@ -4256,13 +4287,14 @@
       mp.cover = cover;
       /* Save contact and Share read whichever record was painted last. */
       RD_MP_SHOWN = mp;
-      const st = rdMpState({ own: false, signed: !!c, x: mp.pos.x, y: mp.pos.y });
+      const canView = !!c || rdCanViewContacts();
+      const st = rdMpState({ own: false, signed: canView, x: mp.pos.x, y: mp.pos.y });
 
       const head = rdMpCredential(mp, st);
       const idCard = rdProfileSection('Rangdhanu Identity', rdMpService(mp));
       const work = rdProfileSection('Work', rdMpWork(mp) + rdMpEdu(mp) + rdMpResearch(mp));
       const contact = rdProfileSection('Contact', rdMemberPrivateRows(a));
-      const social = rdProfileSection('Social Media', c ? rdSocialChips(c['Social Links']) : '');
+      const social = rdProfileSection('Social Media', (c && c['Social Links']) ? rdSocialChips(c['Social Links']) : (canView && a.social ? rdSocialChips(a.social) : ''));
 
       mc.innerHTML = head + idCard + work + contact + social;
       openSubPage('profile', 'alumni');
