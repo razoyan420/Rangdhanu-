@@ -7,14 +7,15 @@ backend.
 ## Repository and deployment
 
 - Frontend: static GitHub Pages site (`index.html`, `script.js`, `custom.css`).
-- Backend: Google Apps Script files under `backend/`.
+- Backend: Google Apps Script files under `backend/` and `apps-script-live/`.
 - Repository: `razoyan420/Rangdhanu-`.
-- Main branch includes the latest committee authentication fix at commit
-  `b4eb8eb` (`Fix member token on committee submissions`).
-- The live page cache version is `script.js?v=20260915-1300` after the
-  per-record migration UI update.
-- Backend deployment is separate from GitHub Pages; backend changes must be
-  deployed to the Apps Script web app before live backend behavior changes.
+- Main branch includes instant login profile cache and committee-directory integration.
+- The live page cache version is `script.js?v=20260916-1630`.
+- Backend deployment: `@83` on deployment ID `AKfycbwqgtu08WwoL4Yfz7o1AOXOx7M2OaezESIUqxpmkaFSB-iRniPiuAd8MsaVkGfqr_U5`.
+- Login latency solved via stale-while-revalidate caching (`rd_member_profile` in `localStorage`), enabling 0-second instant profile rendering on page refresh while silent verification runs in the background.
+- Profile edit mode includes a committee upgrade checkbox ("আপনি কি এই তথ্যটি কমিটি সেকশনেও যুক্ত/আপডেট করতে চান?"), which submits the designation to admin review.
+- Approved committee submissions automatically link to existing Directory (Alumni) member profiles (`Positions` array & former positions) or create `UP-####` Unclaimed Profiles if not yet in the Directory.
+- Membership applications matching 3-of-4 fields (Name, Series, Department, Mobile) against open unclaimed profiles are detected, flagged in Admin Notes, and shown in the Admin Dashboard ("Possible Matches" queue), enabling one-click merging into the verified Alumni profile with an immutable audit trail.
 - Phase 1 of the unclaimed-record model was deployed to Apps Script on
   2026-09-14. It creates the `Unclaimed_Profiles` sheet on first use and
   exposes an admin-only `adminunclaimedprofiles` endpoint.
@@ -43,6 +44,20 @@ backend.
   were deployed as `@76`. The preview now shows candidate profile details and
   the apply request sends an explicit decision map; no record is changed
   unless its decision is selected.
+- The earlier unclaimed queue reconciliation experiment was superseded by
+  `@81`. Loading the admin queue is now read-only again; it never silently
+  marks a row `MERGED`. A row becomes `MERGED` only through an explicit
+  reviewed merge/link action.
+- The legacy review fix was deployed as `@78`. Existing `OPEN` unclaimed rows
+  are now included in the review preview instead of being incorrectly
+  reported as already handled. The same Link/Create/Skip decision flow can
+  now resolve those five previously created rows.
+- The public unclaimed-directory behavior was deployed as `@80`, and the
+  series classification correction was deployed as `@81`. Admin-created
+  `OPEN` and `KEPT_SEPARATE` unclaimed records now appear in the public Alumni
+  feed as short profiles using `UP-####` IDs. Mobile, email, submitter, and
+  other private/admin fields are not exposed. `MERGED` records are excluded
+  because their committee history belongs to the verified Alumni profile.
 
 ## Completed and live-tested
 
@@ -152,7 +167,7 @@ confirmation before creating unclaimed rows or linking exact Alumni matches.
 - Live sign-in, profile display, committee form opening, another-member
   autofill, authenticated submission, admin approval, and Drive photo
   visibility were verified in a browser.
-- Apps Script push and deployment to the existing web app completed at `@67`.
+- Apps Script push and deployment to the existing web app completed at `@78`.
 - A live unauthenticated request to `adminunclaimedaudits` returned
   `Authenticated user could not be identified`, confirming the route is
   deployed and protected.
@@ -160,6 +175,19 @@ confirmation before creating unclaimed rows or linking exact Alumni matches.
   end-to-end merge, conflict, and undo behavior remains owner-tested work.
 - Legacy backfill has not been applied by the agent; the owner must review the
   dry-run counts before confirming the migration.
+- The reconciliation code was syntax-checked and deployed, but the owner still
+  needs to reload the live Admin Dashboard and confirm linked rows leave the
+  open Unclaimed queue while genuinely unmatched rows remain.
+- The live public `alumni` endpoint was checked after `@80`: it returned
+  unclaimed IDs `UP-0001`, `UP-0002`, and `UP-0003` as public short profiles.
+- The live public `alumni` endpoint was checked after `@81`: `UP-0001` and
+  `UP-0002` are `Alumni` under the current cutoff, while `UP-0003` is
+  correctly `Running Member` because its Series is 23.
+- Deployment `@82` restores legacy review for previously created rows that
+  were incorrectly marked `MERGED` by the superseded reconciliation
+  experiment. Such rows can again show their Directory candidate and be
+  explicitly linked; only an intentional `KEPT_SEPARATE` decision is excluded
+  from that review.
 
 ## Important implementation notes
 

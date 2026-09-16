@@ -2595,6 +2595,7 @@
        anything; only a revoked account falls through to the sign in page. */
     const RD_MEMBER_KEY = 'rd_member_token';
     const RD_MEMBER_KEEP = 'rd_member_keep';
+    const RD_MEMBER_PROFILE_KEY = 'rd_member_profile';
     let rdMemberRenewTimer = 0;
     let RD_MEMBER = { token: '', email: '', me: null, contacts: null, busy: false,
                       /* A Member ID typed before Google had answered. The code
@@ -2634,6 +2635,7 @@
         } else {
           localStorage.removeItem(RD_MEMBER_KEY);
           localStorage.removeItem(RD_MEMBER_KEEP);
+          localStorage.removeItem(RD_MEMBER_PROFILE_KEY);
         }
         /* Whatever an older build of the site left behind goes with it. */
         sessionStorage.removeItem(RD_MEMBER_KEY);
@@ -2768,6 +2770,9 @@
     async function memberSignedIn(r, quiet) {
       RD_MEMBER.me = (r && r.member) || null;
       RD_MEMBER.email = (r && r.email) || '';
+      try {
+        if (RD_MEMBER.me) localStorage.setItem(RD_MEMBER_PROFILE_KEY, JSON.stringify(RD_MEMBER.me));
+      } catch (err) {}
       rdMemberScheduleRenew(RD_MEMBER.token);
       document.body.classList.remove('rd-member-restoring');
       rdMemberPaintSignInLinks();
@@ -2816,6 +2821,7 @@
       RD_MEMBER.me = null;
       RD_MEMBER.email = '';
       RD_MEMBER.contacts = null;
+      try { localStorage.removeItem(RD_MEMBER_PROFILE_KEY); } catch (err) {}
       try { if (rdGsiReady()) google.accounts.id.disableAutoSelect(); } catch (err) { /* nothing to undo */ }
       RD_MEMBER.pendingLinkId = '';
       rdMemberPaintSignInLinks();
@@ -3173,7 +3179,12 @@
       rdMypPaint(RD_MEMBER.me);
       try {
         const r = await apiGet('memberprofile', rdMemberParams());
-        if (r && r.member) { RD_MYP.me = r.member; rdMypPaint(r.member); }
+        if (r && r.member) {
+          RD_MYP.me = r.member;
+          RD_MEMBER.me = r.member;
+          try { localStorage.setItem(RD_MEMBER_PROFILE_KEY, JSON.stringify(r.member)); } catch (err) {}
+          rdMypPaint(r.member);
+        }
       } catch (err) {
         rdMemberMsg('myp-msg', friendlyError(err).msg);
       }
@@ -3225,19 +3236,58 @@
         visibility: visibility
       }, more);
 
+      const upgradeCommittee = !!(form.querySelector('[name="upgradeCommittee"]') && form.querySelector('[name="upgradeCommittee"]').checked);
+
       RD_MYP.busy = true;
       if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
       rdMemberMsg('myp-msg', 'Saving...', 'wait');
       try {
         const r = await apiPost('membersaveprofile', Object.assign({}, payload, rdMemberParams()));
-        if (r && r.member) { RD_MYP.me = r.member; RD_MEMBER.me = r.member; rdMypPaint(r.member); }
+        if (r && r.member) {
+          RD_MYP.me = r.member;
+          RD_MEMBER.me = r.member;
+          try { localStorage.setItem(RD_MEMBER_PROFILE_KEY, JSON.stringify(r.member)); } catch (err) {}
+          rdMypPaint(r.member);
+        }
+        if (upgradeCommittee && more.positions && more.positions.length) {
+          try {
+            for (let pIdx = 0; pIdx < more.positions.length; pIdx++) {
+              const p = more.positions[pIdx];
+              if (!p.session || !p.post) continue;
+              const committeeName = p.body === 'pdacc'
+                ? 'Prokoushali DUET Admission Coaching Centre (PDACC)'
+                : (p.body === 'alumni' ? 'Rangdhanu Alumni Association' : 'Rangdhanu');
+              await apiPost('submitexecutivecommittee', { data: {
+                committee: committeeName,
+                session: p.session,
+                position: p.post,
+                fullName: (r && r.member && r.member['Full Name (English)']) || (RD_MEMBER.me && RD_MEMBER.me['Full Name (English)']) || '',
+                department: (r && r.member && r.member.Department) || (RD_MEMBER.me && RD_MEMBER.me.Department) || '',
+                series: (r && r.member && r.member.Series) || (RD_MEMBER.me && RD_MEMBER.me.Series) || '',
+                mobile: mobile,
+                email: String(fd.get('email') || (r && r.member && r.member.Email) || (RD_MEMBER.me && RD_MEMBER.me.Email) || '').trim(),
+                designation: String(fd.get('designation') || '').trim(),
+                organization: String(fd.get('organization') || '').trim(),
+                message: 'Submitted via My Profile update',
+                targetMemberId: String((r && r.member && (r.member['Member ID'] || r.member.memberId)) || (RD_MEMBER.me && (RD_MEMBER.me['Member ID'] || RD_MEMBER.me.memberId)) || '').trim(),
+                submissionMode: 'own'
+              }});
+            }
+          } catch (commErr) {
+            console.warn('Committee upgrade submission warning:', commErr);
+          }
+        }
         /* The directory answer is cached for ten minutes, so it is dropped here
            -- otherwise the member would keep seeing the old line on the alumni
            page and think the save had failed. */
         rdFeedForget('alumni');
         RD_MEMBER.contacts = null;
         rdMemberMsg('myp-msg', 'Saved.', 'ok');
-        showToast('Your profile is up to date.', 'success', 'Saved');
+        if (upgradeCommittee && more.positions && more.positions.length) {
+          showToast('Profile updated & committee request sent for admin review.', 'success', 'Saved & Submitted');
+        } else {
+          showToast('Your profile is up to date.', 'success', 'Saved');
+        }
       } catch (err) {
         rdMemberMsg('myp-msg', friendlyError(err).msg);
       } finally {
@@ -4030,6 +4080,18 @@
           if (old) { rdMemberRemember(old); token = old; }
         }
       } catch (err) { token = ''; }
+
+      if (token && rdMemberWantsIn()) {
+        try {
+          const cached = localStorage.getItem(RD_MEMBER_PROFILE_KEY);
+          if (cached) {
+            RD_MEMBER.me = JSON.parse(cached);
+            RD_MEMBER.email = (RD_MEMBER.me && (RD_MEMBER.me.Email || RD_MEMBER.me.email)) || '';
+            RD_MEMBER.token = token;
+            rdMemberLandedSignedIn();
+          }
+        } catch (err) { /* parse error: will be refreshed on verify */ }
+      }
 
       rdMemberPaintSignInLinks(!!(token || rdMemberWantsIn()));
 
@@ -8677,8 +8739,8 @@ f.reset();
         return '<div class="space-y-3">' +
           '<button type="button" onclick="adminBackfillUnclaimed()" class="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 hover:bg-amber-100 cursor-pointer"><i data-lucide="scan-search" class="h-4 w-4"></i> Review older committee records</button>' +
           previewHtml +
-          adminInfoBox('user-round-search', 'No unclaimed profiles yet',
-            'Approved committee submissions for another member will appear here.', 'empty') + '</div>';
+          adminInfoBox('user-round-search', 'No open unclaimed profiles',
+            'Linked records are kept in the audit trail and no longer appear in this queue.', 'empty') + '</div>';
       }
       return '<div class="space-y-3">' +
         '<button type="button" onclick="adminBackfillUnclaimed()" class="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 hover:bg-amber-100 cursor-pointer"><i data-lucide="scan-search" class="h-4 w-4"></i> Review older committee records</button>' +
@@ -8727,11 +8789,11 @@ f.reset();
           '<article class="rounded-2xl border border-white bg-white p-4">' +
             '<div class="flex flex-wrap items-start gap-2"><span class="rounded-lg px-2 py-1 text-[10px] font-black ' +
               (item.action === 'REVIEW_ALUMNI' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800') + '">' +
-              (item.action === 'REVIEW_ALUMNI' ? 'POSSIBLE DIRECTORY MATCH' : 'CREATE UNCLAIMED') + '</span>' +
+              (item.action === 'REVIEW_ALUMNI' ? 'POSSIBLE DIRECTORY MATCH' : (item.existingUnclaimedId ? 'OPEN UNCLAIMED PROFILE' : 'CREATE UNCLAIMED')) + '</span>' +
               '<span class="ml-auto text-[11px] font-black text-slate-500">' + adminBackfillValue(item.entryId) + '</span></div>' +
             '<h4 class="mt-3 font-extrabold text-slate-900">' + adminBackfillValue(item.fullName) + '</h4>' +
             '<p class="mt-1 text-xs font-semibold text-slate-600">' + adminBackfillValue(item.committee) + ' <span class="text-slate-400">•</span> ' + adminBackfillValue(item.session) + ' <span class="text-slate-400">•</span> ' + adminBackfillValue(item.position) + '</p>' +
-            (item.action === 'REVIEW_ALUMNI' ? '<div class="mt-3 rounded-xl bg-blue-50 p-3 text-xs font-semibold text-blue-900"><span class="font-black">Directory profile candidate:</span> <strong>' + adminBackfillValue(item.memberId) + '</strong> — ' + adminBackfillValue(item.alumniName) + ', ' + adminBackfillValue(item.alumniDepartment) + ', Series ' + adminBackfillValue(item.alumniSeries) + ', ' + adminBackfillValue(item.alumniMobile) + ' <span class="text-blue-700">(' + adminBackfillValue(item.matchScore) + '/4 fields matched)</span></div>' : '') +
+            (item.action === 'REVIEW_ALUMNI' ? '<div class="mt-3 rounded-xl bg-blue-50 p-3 text-xs font-semibold text-blue-900"><span class="font-black">Directory profile candidate:</span> <strong>' + adminBackfillValue(item.memberId) + '</strong> — ' + adminBackfillValue(item.alumniName) + ', ' + adminBackfillValue(item.alumniDepartment) + ', Series ' + adminBackfillValue(item.alumniSeries) + ', ' + adminBackfillValue(item.alumniMobile) + ' <span class="text-blue-700">(' + adminBackfillValue(item.matchScore) + '/4 fields matched)</span></div>' : '<div class="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-semibold text-amber-900">' + (item.existingUnclaimedId ? 'No Directory profile matched. The existing unclaimed profile will remain separate.' : 'No Directory profile matched. Applying this will create an unclaimed profile, not a Directory profile.') + '</div>') +
             '<fieldset class="mt-4 flex flex-wrap gap-2" aria-label="Decision for ' + adminBackfillValue(item.entryId) + '">' +
               '<label class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-extrabold text-emerald-800"><input type="radio" name="backfill-' + adminBackfillValue(item.entryId) + '" value="' + (item.action === 'REVIEW_ALUMNI' ? 'LINK_ALUMNI' : 'CREATE_UNCLAIMED') + '" ' + ((RD_ADMIN.backfillChoices[item.entryId] || (item.action === 'REVIEW_ALUMNI' ? 'LINK_ALUMNI' : 'CREATE_UNCLAIMED')) === (item.action === 'REVIEW_ALUMNI' ? 'LINK_ALUMNI' : 'CREATE_UNCLAIMED') ? 'checked' : '') + ' onchange="adminSetBackfillChoice(\'' + adminBackfillValue(item.entryId) + '\', this.value)"> ' + (item.action === 'REVIEW_ALUMNI' ? 'Link to this Alumni profile' : 'Create unclaimed profile') + '</label>' +
               (item.action === 'REVIEW_ALUMNI' ? '<label class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-800"><input type="radio" name="backfill-' + adminBackfillValue(item.entryId) + '" value="CREATE_UNCLAIMED" ' + (RD_ADMIN.backfillChoices[item.entryId] === 'CREATE_UNCLAIMED' ? 'checked' : '') + ' onchange="adminSetBackfillChoice(\'' + adminBackfillValue(item.entryId) + '\', this.value)"> Create unclaimed instead</label>' : '') +
@@ -8772,10 +8834,13 @@ f.reset();
           decisions[item.entryId] = RD_ADMIN.backfillChoices[item.entryId] ||
             (item.action === 'REVIEW_ALUMNI' ? 'LINK_ALUMNI' : 'CREATE_UNCLAIMED');
         });
-        await apiPost('backfillunclaimedprofiles', { apply: 'true', decisions: decisions });
+        const result = await apiPost('backfillunclaimedprofiles', { apply: 'true', decisions: decisions });
         RD_ADMIN.backfillPreview = null;
         RD_ADMIN.backfillChoices = {};
-        showToast('Unclaimed profiles created safely.', 'success');
+        const linked = Array.isArray(result.linked) ? result.linked.length : 0;
+        const created = Array.isArray(result.created) ? result.created.length : 0;
+        const retained = Array.isArray(result.retained) ? result.retained.length : 0;
+        showToast(linked + ' linked to Directory, ' + created + ' unclaimed created, ' + retained + ' existing unclaimed kept separate.', 'success');
         await loadAdminDashboard(true);
       } catch (err) { reportError(err); }
     }
