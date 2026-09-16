@@ -2766,3 +2766,29 @@ body.rd-member-restoring #page-my-profile > * {
   -webkit-backdrop-filter: blur(16px);
 }
 
+/* Top gradient progress bar for subtle, non-blocking loading graphics */
+.rd-top-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb, #06b6d4, #10b981, #2563eb);
+  background-size: 200% 100%;
+  z-index: 99999;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-3px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.rd-top-progress-bar.is-active {
+  opacity: 1;
+  transform: translateY(0);
+  animation: rdProgressSlide 1.2s infinite linear;
+}
+@keyframes rdProgressSlide {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+

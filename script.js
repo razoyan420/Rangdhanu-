@@ -1320,8 +1320,16 @@
       renderCgpa();
       /* loadPublicAlumni() and loadPublicEvents() used to run here.  The home
          page renders neither feed, so those were two Apps Script round trips
-         -- each with a 302 hop -- taken before the first screen was done.
-         switchPage() now fetches each one as its page is opened. */
+         -- each with a 302 hop -- taken before the first screen was done. */
+    });
+
+    window.addEventListener('load', function () {
+      /* Eagerly preload public alumni directory in background after first paint */
+      setTimeout(function () {
+        if (typeof loadPublicAlumni === 'function') {
+          loadPublicAlumni();
+        }
+      }, 300);
     });
 
     /* The album model: Drive sub-folders win, the built-in list is the
@@ -2356,6 +2364,8 @@
       }));
     }
 
+    let rdAlumniLoadingPromise = null;
+
     async function loadPublicAlumni() {
       /* A reload used to show an empty directory while the sheet was read.  The
          last answer of this tab is drawn first instead, then quietly replaced
@@ -2366,19 +2376,25 @@
         populateAlumniSeriesFilter();
         renderAlumni(alumniData);
       }
-      try {
-        const res = await fetch(ALUMNI_API_URL + '&_=' + Date.now(), { cache: 'no-store' });
-        const data = await res.json();
-        const rows = Array.isArray(data.data) ? data.data : [];
-        alumniData = rdAlumniShape(rows);
-        rdFeedRemember('alumni', rows);
-        populateAlumniSeriesFilter();
-        renderAlumni(alumniData);
-      } catch (e) {
-        /* A failed refresh must not wipe a directory that is already on screen. */
-        console.warn('[rd] alumni list unavailable:', e && e.message ? e.message : e);
-        if (!alumniData.length) console.error(e);
-      }
+      if (rdAlumniLoadingPromise) return rdAlumniLoadingPromise;
+      rdAlumniLoadingPromise = (async function () {
+        try {
+          const res = await fetch(ALUMNI_API_URL + '&_=' + Date.now(), { cache: 'no-store' });
+          const data = await res.json();
+          const rows = Array.isArray(data.data) ? data.data : [];
+          alumniData = rdAlumniShape(rows);
+          rdFeedRemember('alumni', rows);
+          populateAlumniSeriesFilter();
+          renderAlumni(alumniData);
+        } catch (e) {
+          /* A failed refresh must not wipe a directory that is already on screen. */
+          console.warn('[rd] alumni list unavailable:', e && e.message ? e.message : e);
+          if (!alumniData.length) console.error(e);
+        }
+      })().finally(function () {
+        rdAlumniLoadingPromise = null;
+      });
+      return rdAlumniLoadingPromise;
     }
     
     function populateAlumniSeriesFilter(){
@@ -2729,6 +2745,21 @@
         }, delay);
       } catch (err) {
         /* rdTokenLive/memberVerify will report malformed tokens normally. */
+      }
+    }
+
+    function rdShowTopProgress(show) {
+      let bar = document.getElementById('rd-top-progress');
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'rd-top-progress';
+        bar.className = 'rd-top-progress-bar';
+        document.body.appendChild(bar);
+      }
+      if (show) {
+        bar.classList.add('is-active');
+      } else {
+        bar.classList.remove('is-active');
       }
     }
 
@@ -5121,22 +5152,49 @@
 
     function ecProfileButton(m) {
       return '<div class="px-6 sm:px-8 pb-4"><button type="button" onclick="ecOpenProfile(\'' +
-        escapeHtml(m.entryId) + '\')" class="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-200 text-slate-600 hover:text-teal-700 text-xs font-extrabold cursor-pointer"><i data-lucide="user-round" class="w-3.5 h-3.5"></i> View profile</button></div>';
+        escapeHtml(m.entryId) + '\', this)" class="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-200 text-slate-600 hover:text-teal-700 text-xs font-extrabold cursor-pointer transition-all"><i data-lucide="user-round" class="w-3.5 h-3.5"></i> View profile</button></div>';
     }
 
-    async function ecOpenProfile(entryId) {
+    async function ecOpenProfile(entryId, btn) {
       if (!Array.isArray(alumniData) || !alumniData.length) {
-        showToast('Loading directory data...', 'info');
-        try {
-          if (typeof loadPublicAlumni === 'function') {
-            await loadPublicAlumni();
-          }
-        } catch (e) {
-          console.error('Error loading alumniData:', e);
+        var warm = rdFeedRecall('alumni');
+        if (Array.isArray(warm) && warm.length) {
+          alumniData = rdAlumniShape(warm);
         }
       }
       var found = ecLookupMember(entryId);
       var id = found ? ecDirectoryId(found.member) : '';
+      if (id) {
+        openAlumniModal(id);
+        return;
+      }
+
+      var oldHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-80');
+        btn.innerHTML = '<svg class="animate-spin -ml-1 mr-1.5 h-3.5 w-3.5 text-teal-600 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Loading profile...</span>';
+      }
+      if (typeof rdShowTopProgress === 'function') rdShowTopProgress(true);
+
+      try {
+        if (typeof loadPublicAlumni === 'function') {
+          await loadPublicAlumni();
+        }
+      } catch (e) {
+        console.error('Error loading alumniData:', e);
+      } finally {
+        if (typeof rdShowTopProgress === 'function') rdShowTopProgress(false);
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-80');
+          btn.innerHTML = oldHtml;
+          if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+        }
+      }
+
+      found = ecLookupMember(entryId);
+      id = found ? ecDirectoryId(found.member) : '';
       if (id) {
         openAlumniModal(id);
         return;
