@@ -570,13 +570,10 @@
 
         <!-- Facebook Cultural Night Trailer (Resting & Playing in same card) -->
         <div class="max-w-5xl mx-auto mb-10 bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
-          <div class="grid md:grid-cols-[minmax(0,42%)_1fr]">
+          <div class="grid md:grid-cols-2">
             
             <!-- Video/Thumb Column -->
-            <div class="relative bg-slate-950 aspect-video md:aspect-auto">
-              <!-- Invisible structural spacer for mobile to keep aspect-video, on desktop the grid handles height -->
-              <div class="w-full aspect-video md:hidden pointer-events-none"></div>
-              
+            <div class="relative bg-slate-950 aspect-[16/10] sm:aspect-video w-full">
               <!-- Thumbnail -->
               <button type="button" id="fb-trailer-thumb" onclick="document.getElementById('fb-trailer-thumb').classList.add('hidden'); document.getElementById('fb-trailer-video').classList.remove('hidden'); document.getElementById('fb-trailer-stage').innerHTML = '<iframe src=\'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1111877626849428&show_text=false\' class=\'w-full h-full\' style=\'border:none;overflow:hidden\' scrolling=\'no\' frameborder=\'0\' allowfullscreen=\'true\' allow=\'autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share\'></iframe>';" class="absolute inset-0 w-full h-full group overflow-hidden cursor-pointer z-10 block">
                 <img src="reunion-cover.jpg" alt="Cultural Night" class="absolute inset-0 w-full h-full object-cover opacity-75 transition-transform duration-700 group-hover:scale-105">
@@ -598,25 +595,25 @@
             </div>
 
             <!-- Description Column -->
-            <div class="p-5 sm:p-6 flex flex-col gap-3 min-w-0">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <div class="p-2 rounded-xl bg-gradient-to-tr from-indigo-500 to-fuchsia-500 text-white shadow-md shrink-0"><i class="w-4 h-4" data-lucide="music"></i></div>
+            <div class="p-6 sm:p-8 flex flex-col gap-4 min-w-0 justify-center">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="p-2.5 rounded-2xl bg-gradient-to-tr from-indigo-500 to-fuchsia-500 text-white shadow-md shrink-0"><i class="w-5 h-5" data-lucide="music"></i></div>
                 <div class="min-w-0">
-                  <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate">ধামাকা কালচারাল নাইট</h3>
-                  <span class="text-xs text-slate-500 font-medium">রংধনু পুনর্মিলনী ২০২৪ - হাইলাইট</span>
+                  <h3 class="text-lg sm:text-xl font-bold text-slate-900 truncate">ধামাকা কালচারাল নাইট</h3>
+                  <span class="text-sm text-slate-500 font-medium">রংধনু পুনর্মিলনী ২০২৪ - হাইলাইট</span>
                 </div>
               </div>
-              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+              <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
                 গান, নাচ ও আড্ডার চমৎকার কিছু মুহূর্ত! পুনর্মিলনীর এই মনোজ্ঞ কালচারাল নাইটের ভিডিওটি উপভোগ করুন।
               </p>
-              <div class="mt-auto flex flex-wrap items-center gap-2 pt-1">
+              <div class="mt-2 flex flex-wrap items-center gap-2.5">
                 <button type="button" onclick="document.getElementById('fb-trailer-thumb').classList.add('hidden'); document.getElementById('fb-trailer-video').classList.remove('hidden'); document.getElementById('fb-trailer-stage').innerHTML = '<iframe src=\'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1111877626849428&show_text=false\' class=\'w-full h-full\' style=\'border:none;overflow:hidden\' scrolling=\'no\' frameborder=\'0\' allowfullscreen=\'true\' allow=\'autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share\'></iframe>';"
-                  class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold transition-colors min-h-[44px]">
-                  <i class="w-4 h-4" data-lucide="play"></i> ভিডিওটি প্লে করুন
+                  class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors shadow-sm">
+                  <i class="w-4 h-4" data-lucide="play"></i> প্লে করুন
                 </button>
                 <a href="https://www.facebook.com/reel/1111877626849428" target="_blank" rel="noopener noreferrer"
-                  class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold transition-colors min-h-[44px]">
-                  <i class="w-3.5 h-3.5" data-lucide="facebook"></i> Facebook-এ দেখুন
+                  class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-sm font-bold transition-colors">
+                  <i class="w-4 h-4" data-lucide="facebook"></i> Facebook-এ দেখুন
                 </a>
               </div>
             </div>
@@ -625,7 +622,7 @@
         </div>
 
         <!-- Proud Sponsors -->
-        <div class="max-w-5xl mx-auto mb-12">
+        <div class="max-w-3xl mx-auto mb-12">
           <div class="text-center mb-6">
             <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 text-amber-900 text-xs font-black uppercase tracking-widest shadow-sm">
               <i data-lucide="star" class="w-4 h-4 text-amber-600"></i> Proud Sponsors
@@ -2755,6 +2752,6 @@ Do not modify social links or structure without permission.
 </footer>
 
 <!-- JAVASCRIPT LOGIC -->
-<script src="script.js?v=20260916-1805" defer></script>
+<script src="script.js?v=20260918-1750" defer></script>
 </body>
 </html>

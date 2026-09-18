@@ -594,6 +594,19 @@
       box.innerHTML = RD_TRAILER_OPEN
         ? rdTrailerBig(t, title, sub)
         : rdTrailerCard(t, title, sub, desc);
+      box.innerHTML = rdTrailerCard(t, title, sub, desc);
+      if (RD_TRAILER_OPEN) {
+        const thumb = document.getElementById('drive-trailer-thumb');
+        const videoBox = document.getElementById('drive-trailer-video');
+        const stage = document.getElementById('trailer-stage');
+        if (thumb && videoBox && stage) {
+          thumb.classList.add('hidden');
+          videoBox.classList.remove('hidden');
+          stage.innerHTML = `<iframe src="${escapeHtml(t.embedUrl)}" title="${escapeHtml(t.title || 'Reunion trailer')}"
+            class="absolute inset-0 w-full h-full" frameborder="0" allow="autoplay; encrypted-media; fullscreen"
+            allowfullscreen loading="lazy"></iframe>`;
+        }
+      }
       if (window.lucide) lucide.createIcons();
     }
 
@@ -602,39 +615,44 @@
     function rdTrailerCard(t, title, sub, desc) {
       return `
         <div class="bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
-          <div class="grid md:grid-cols-[minmax(0,42%)_1fr]">
-            <button type="button" onclick="rdPlayTrailer()" aria-label="ট্রেলার চালু করুন"
-              class="group relative block w-full overflow-hidden bg-slate-950 aspect-video">
-              <img src="${escapeHtml(t.poster || '')}" alt="${escapeHtml(title)}" loading="lazy" decoding="async"
-                onerror="rdPhotoFallback(this)"
-                class="absolute inset-0 w-full h-full object-cover opacity-75 transition-transform duration-700 group-hover:scale-105">
-              <span class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-slate-950/10"></span>
-              <span class="absolute inset-0 flex items-center justify-center">
-                <span class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-xl transition-transform duration-300 group-hover:scale-110">
-                  <i class="w-7 h-7" data-lucide="play"></i>
+          <div class="grid md:grid-cols-2">
+            <div class="relative bg-slate-950 aspect-[16/10] sm:aspect-video w-full">
+              <button type="button" id="drive-trailer-thumb" onclick="rdPlayTrailer()" aria-label="Play Trailer"
+                class="absolute inset-0 w-full h-full group overflow-hidden block z-10">
+                <img src="${escapeHtml(t.poster || '')}" alt="${escapeHtml(title)}" loading="lazy" decoding="async"
+                  onerror="rdPhotoFallback(this)"
+                  class="absolute inset-0 w-full h-full object-cover opacity-75 transition-transform duration-700 group-hover:scale-105">
+                <span class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-slate-950/10"></span>
+                <span class="absolute inset-0 flex items-center justify-center">
+                  <span class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-xl transition-transform duration-300 group-hover:scale-110">
+                    <i class="w-7 h-7" data-lucide="play"></i>
+                  </span>
                 </span>
-              </span>
-              <span class="absolute left-3 bottom-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/70 border border-white/15 text-white text-[11px] font-bold tracking-wide">
-                <i class="w-3 h-3" data-lucide="clapperboard"></i> ভিডিও
-              </span>
-            </button>
-            <div class="p-5 sm:p-6 flex flex-col gap-3 min-w-0">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <div class="p-2 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white shadow-md shrink-0"><i class="w-4 h-4" data-lucide="clapperboard"></i></div>
+                <span class="absolute left-3 bottom-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/70 border border-white/15 text-white text-[11px] font-bold tracking-wide">
+                  <i class="w-3 h-3" data-lucide="clapperboard"></i> ট্রেইলার
+                </span>
+              </button>
+              <div id="drive-trailer-video" class="hidden absolute inset-0 w-full h-full bg-black z-20">
+                <div id="trailer-stage" class="w-full h-full"></div>
+              </div>
+            </div>
+            <div class="p-6 sm:p-8 flex flex-col gap-4 min-w-0 justify-center">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="p-2.5 rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white shadow-md shrink-0"><i class="w-5 h-5" data-lucide="clapperboard"></i></div>
                 <div class="min-w-0">
-                  <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate">${escapeHtml(title)}</h3>
-                  <span class="text-xs text-slate-500 font-medium">${escapeHtml(sub)}</span>
+                  <h3 class="text-lg sm:text-xl font-bold text-slate-900 truncate">${escapeHtml(title)}</h3>
+                  <span class="text-sm text-slate-500 font-medium">${escapeHtml(sub)}</span>
                 </div>
               </div>
-              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">${escapeHtml(desc)}</p>
-              <div class="mt-auto flex flex-wrap items-center gap-2 pt-1">
+              <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">${escapeHtml(desc)}</p>
+              <div class="mt-2 flex flex-wrap items-center gap-2.5">
                 <button type="button" onclick="rdPlayTrailer()"
-                  class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold transition-colors min-h-[44px]">
-                  <i class="w-4 h-4" data-lucide="play"></i> এখানেই দেখুন
+                  class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors shadow-sm">
+                  <i class="w-4 h-4" data-lucide="play"></i> ট্রেইলারটি প্লে করুন
                 </button>
                 <a href="${escapeHtml(t.openUrl || '#')}" target="_blank" rel="noopener"
-                  class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-bold transition-colors min-h-[44px]">
-                  <i class="w-3.5 h-3.5" data-lucide="external-link"></i> Drive-এ দেখুন
+                  class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-sm font-bold transition-colors">
+                  <i class="w-4 h-4" data-lucide="external-link"></i> Drive-এ দেখুন
                 </a>
               </div>
             </div>
@@ -642,41 +660,23 @@
         </div>`;
     }
 
-    /* Watching state: the full-width 16:9 stage this block used to be all the
-       time.  #trailer-stage is filled in by rdPlayTrailer(). */
+    /* Watching state: no longer switches to rdTrailerBig, everything plays in the card above */
     function rdTrailerBig(t, title, sub) {
-      return `
-        <div class="bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
-          <div class="flex flex-wrap items-center gap-3 px-5 sm:px-7 py-4 border-b border-slate-100">
-            <div class="p-2.5 rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white shadow-md shrink-0"><i class="w-5 h-5" data-lucide="clapperboard"></i></div>
-            <div class="min-w-0">
-              <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate">${escapeHtml(title)}</h3>
-              <span class="text-xs text-slate-500 font-medium">${escapeHtml(sub)}</span>
-            </div>
-            <div class="ml-auto flex items-center gap-2">
-              <a href="${escapeHtml(t.openUrl || '#')}" target="_blank" rel="noopener"
-                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-bold transition-colors min-h-[44px]">
-                <i class="w-3.5 h-3.5" data-lucide="external-link"></i> Drive-এ দেখুন
-              </a>
-              <button type="button" onclick="rdCloseTrailer()"
-                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors min-h-[44px]">
-                <i class="w-3.5 h-3.5" data-lucide="minimize-2"></i> ছোট করুন
-              </button>
-            </div>
-          </div>
-          <div id="trailer-stage" class="relative w-full bg-slate-950" style="padding-bottom:56.25%;"></div>
-        </div>`;
+      return '';
     }
 
     function rdPlayTrailer() {
       const t = RD_DRIVE.trailer;
       if (!t || !t.ready) return;
-      renderReunionTrailer(true);
+      RD_TRAILER_OPEN = true;
+      const thumb = document.getElementById('drive-trailer-thumb');
+      const videoBox = document.getElementById('drive-trailer-video');
       const stage = document.getElementById('trailer-stage');
-      if (!stage) return;
-      stage.innerHTML = `<iframe src="${escapeHtml(t.embedUrl)}" title="${escapeHtml(t.title || 'Reunion trailer')}"
-        class="absolute inset-0 w-full h-full" frameborder="0" allow="autoplay; encrypted-media; fullscreen"
-        allowfullscreen loading="lazy"></iframe>`;
+      if (thumb && videoBox && stage) {
+        thumb.classList.add('hidden');
+        videoBox.classList.remove('hidden');
+        stage.innerHTML = `<iframe src="${escapeHtml(t.embedUrl)}" title="${escapeHtml(t.title || 'Reunion trailer')}" class="absolute inset-0 w-full h-full" frameborder="0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>`;
+      }
     }
 
     function rdCloseTrailer() { renderReunionTrailer(false); }
