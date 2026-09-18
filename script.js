@@ -2839,7 +2839,7 @@
           rdMemberPaintLinkBox();
           if (!quiet) {
             rdMemberMsg('member-signin-msg',
-              (r.email || 'This email') + ' আমাদের ডাটাবেজে নেই। দয়া করে আপনার রেজিস্টার করা ইমেইল দিয়ে সাইন-ইন করুন।');
+              (r.email || 'This email') + ' is not registered. Please sign in with your registered email account.');
           }
           /* He pressed Send code before there was a token. That press is
              finished here rather than asking him to press it again. */
@@ -4598,18 +4598,18 @@
       const hintObj = document.getElementById('forgot-email-hint');
       if (!midInput || !hintObj) return;
       const mid = midInput.value.trim().toUpperCase();
-      if (!mid) { showToast("আপনার Member ID লিখুন।", "error"); return; }
+      if (!mid) { showToast("Please enter your Member ID.", "error"); return; }
       
       hintObj.classList.remove('hidden');
       hintObj.className = "text-sm font-bold mt-3 text-slate-500";
-      hintObj.textContent = "খুঁজছি...";
+      hintObj.textContent = "Searching...";
       
       try {
         if (!alumniData.length) await loadPublicAlumni();
         const member = alumniData.find(a => String(a.id) === mid || String(a.memberId) === mid);
         
         if (!member) {
-          hintObj.textContent = "এই Member ID খুঁজে পাওয়া যায়নি। সঠিক ID দিন।";
+          hintObj.textContent = "Member ID not found. Please enter a valid ID.";
           hintObj.className = "text-sm font-bold mt-3 text-rose-600";
           return;
         }
@@ -4622,18 +4622,18 @@
             const domain = parts[1];
             // Show first 2 and last 1 character of user
             const hint = user.substring(0, 2) + '****' + user.substring(user.length - 1) + '@' + domain;
-            hintObj.textContent = "আপনার ইমেইলটি হলো: " + hint;
+            hintObj.textContent = "Your email hint: " + hint;
             hintObj.className = "text-sm font-bold mt-3 text-emerald-700";
           } else {
-            hintObj.textContent = "আপনার ইমেইলের তথ্য প্রাইভেসি কারণে লুকানো আছে।";
+            hintObj.textContent = "Email information is hidden for privacy reasons.";
             hintObj.className = "text-sm font-bold mt-3 text-rose-600";
           }
         } else {
-          hintObj.textContent = "আপনার ইমেইলের তথ্য প্রাইভেসি কারণে লুকানো আছে। এডমিনের সাথে যোগাযোগ করুন।";
+          hintObj.textContent = "Email is hidden for privacy. Please contact an admin.";
           hintObj.className = "text-sm font-bold mt-3 text-rose-600";
         }
       } catch (err) {
-        hintObj.textContent = "নেটওয়ার্ক সমস্যা। আবার চেষ্টা করুন।";
+        hintObj.textContent = "Network error. Please try again.";
         hintObj.className = "text-sm font-bold mt-3 text-rose-600";
       }
     }
@@ -4641,7 +4641,7 @@
     /* EVENT API & UPLOAD */
     function openEventSubmitModal() { 
       if (!rdMemberSignedIn()) {
-        showToast("নতুন ইভেন্ট যোগ করতে হলে আপনাকে সাইন ইন করতে হবে।", "error");
+        showToast("You must sign in to add a new event.", "error");
         switchPage('signin');
         return;
       }
