@@ -973,44 +973,39 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   line-height: 1.4;
   margin: 0;
 }
-.rd-flip-hint {
-  font-size: .7rem;
-  color: rgba(255,255,255,.55);
-  margin-top: .65rem;
-  font-weight: 600;
-  letter-spacing: .04em;
+/* ── Premium glossy gradients ── */
+.rd-flip-front {
+  position: relative;
+  overflow: hidden;
 }
-/* ── Premium gradient fronts ── */
+.rd-flip-front::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at top right, rgba(255,255,255,0.25) 0%, transparent 60%);
+  pointer-events: none;
+  border-radius: 20px;
+}
 .rd-flip-blue {
-  background: linear-gradient(135deg, #1d4ed8 0%, #4f46e5 100%);
-  box-shadow: 0 12px 40px -8px rgba(79,70,229,.45);
+  background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 50%, #1e3a8a 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 12px 40px -8px rgba(37,99,235,.45);
 }
 .rd-flip-emerald {
-  background: linear-gradient(135deg, #059669 0%, #0891b2 100%);
-  box-shadow: 0 12px 40px -8px rgba(8,145,178,.40);
+  background: linear-gradient(135deg, #10b981 0%, #059669 50%, #064e3b 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 12px 40px -8px rgba(5,150,105,.40);
 }
 .rd-flip-amber {
-  background: linear-gradient(135deg, #d97706 0%, #dc2626 100%);
-  box-shadow: 0 12px 40px -8px rgba(217,119,6,.40);
+  background: linear-gradient(135deg, #fb923c 0%, #ea580c 50%, #9a3412 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 12px 40px -8px rgba(234,88,12,.40);
 }
 .rd-flip-rose {
-  background: linear-gradient(135deg, #e11d48 0%, #9333ea 100%);
-  box-shadow: 0 12px 40px -8px rgba(225,29,72,.40);
+  background: linear-gradient(135deg, #f43f5e 0%, #be123c 50%, #4c0519 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 12px 40px -8px rgba(225,29,72,.40);
 }
 .rd-flip-indigo {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 52%, #2563eb 100%);
-  box-shadow: 0 12px 40px -8px rgba(79,70,229,.45);
+  background: linear-gradient(135deg, #a855f7 0%, #6366f1 50%, #312e81 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 12px 40px -8px rgba(99,102,241,.45);
 }
-/* Wide card: front layout horizontal on wider screens */
-.rd-flip-wide .rd-flip-front {
-  flex-direction: row;
-  gap: 1.25rem;
-  text-align: left;
-  justify-content: flex-start;
-  padding: 1.5rem 2rem;
-}
-.rd-flip-wide .rd-flip-title { font-size: 1.05rem; }
-.rd-flip-wide .rd-flip-hint { margin-top: .35rem; }
+
 /* ── Reduce motion ── */
 @media (prefers-reduced-motion: reduce) {
   .rd-flip-inner { transition: none !important; }

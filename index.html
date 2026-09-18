@@ -197,8 +197,8 @@
 <!-- Prebuilt Tailwind stylesheet.  npx tailwindcss -i src.css -o style.css --minify
      নতুন class যোগ করলে এই কমান্ড আবার চালাতে হবে — CDN আগে নিজে করত। -->
 <link rel="stylesheet" href="style.css"/>
-<link rel="stylesheet" href="custom.css?v=20260918-1710"/>
-<link rel="stylesheet" href="redesign-overrides.css?v=20260918-1710"/>
+<link rel="stylesheet" href="custom.css?v=20260918-1720"/>
+<link rel="stylesheet" href="redesign-overrides.css?v=20260918-1720"/>
 <script>
   /* style.css fallback: prebuilt sheet না এলে বা পুরনো হলে CDN ফিরিয়ে আনে।
      document.write এখানেই সঠিক — এই path শুধু তখনই চলে যখন পেজ ইতিমধ্যে
@@ -426,15 +426,14 @@
         <div class="max-w-2xl mb-12"><span class="text-blue-700 text-xs font-extrabold section-kicker uppercase">What We Do</span><h2 class="text-3xl sm:text-5xl font-extrabold text-slate-950 mt-3">আমাদের কার্যক্রম</h2><p class="text-slate-600 mt-4 leading-7">পড়াশোনা, দক্ষতা, খেলাধুলা, সামাজিকতা ও আনন্দ নিয়ে রংধনুর কার্যক্রমের পরিসর অনেকটাই বিস্তৃত।</p></div>
 
         <!-- Flip card grid -->
-        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="flex flex-wrap justify-center gap-5">
 
           <!-- Card 1 -->
-          <div class="rd-flip-card" tabindex="0" role="button" aria-label="শিক্ষা ও ভর্তি সহায়তা">
+          <div class="rd-flip-card w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)] xl:w-[calc(20%-16px)]" tabindex="0" role="button" aria-label="শিক্ষা ও ভর্তি সহায়তা">
             <div class="rd-flip-inner">
               <div class="rd-flip-front rd-flip-blue">
                 <div class="rd-flip-icon"><i class="w-8 h-8" data-lucide="graduation-cap"></i></div>
                 <h3 class="rd-flip-title">শিক্ষা ও ভর্তি সহায়তা</h3>
-                <span class="rd-flip-hint"><i data-lucide="rotate-cw" class="w-3 h-3 inline mr-1 opacity-60"></i>ঘুরিয়ে দেখুন</span>
               </div>
               <div class="rd-flip-back">
                 <p class="rd-flip-desc">ডুয়েট ভর্তি পরীক্ষা, পড়াশোনা ও উচ্চশিক্ষার প্রস্তুতিতে প্রয়োজনভিত্তিক সহযোগিতা, পরামর্শ ও দিকনির্দেশনা।</p>
@@ -443,12 +442,11 @@
           </div>
 
           <!-- Card 2 -->
-          <div class="rd-flip-card" tabindex="0" role="button" aria-label="ক্রীড়া ও বিনোদন">
+          <div class="rd-flip-card w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)] xl:w-[calc(20%-16px)]" tabindex="0" role="button" aria-label="ক্রীড়া ও বিনোদন">
             <div class="rd-flip-inner">
               <div class="rd-flip-front rd-flip-emerald">
                 <div class="rd-flip-icon"><i class="w-8 h-8" data-lucide="trophy"></i></div>
                 <h3 class="rd-flip-title">ক্রীড়া ও বিনোদন</h3>
-                <span class="rd-flip-hint"><i data-lucide="rotate-cw" class="w-3 h-3 inline mr-1 opacity-60"></i>ঘুরিয়ে দেখুন</span>
               </div>
               <div class="rd-flip-back">
                 <p class="rd-flip-desc">Sports tournament, tour, picnic এবং বিভিন্ন মিলনমেলার মাধ্যমে ব্যস্ত শিক্ষাজীবনের বাইরে আনন্দ, বন্ধুত্ব ও পারস্পরিক সম্পর্কের জায়গা তৈরি করা।</p>
@@ -457,12 +455,11 @@
           </div>
 
           <!-- Card 3 -->
-          <div class="rd-flip-card" tabindex="0" role="button" aria-label="সামাজিক ও সাংস্কৃতিক আয়োজন">
+          <div class="rd-flip-card w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)] xl:w-[calc(20%-16px)]" tabindex="0" role="button" aria-label="সামাজিক ও সাংস্কৃতিক আয়োজন">
             <div class="rd-flip-inner">
               <div class="rd-flip-front rd-flip-amber">
                 <div class="rd-flip-icon"><i class="w-8 h-8" data-lucide="party-popper"></i></div>
                 <h3 class="rd-flip-title">সামাজিক ও সাংস্কৃতিক আয়োজন</h3>
-                <span class="rd-flip-hint"><i data-lucide="rotate-cw" class="w-3 h-3 inline mr-1 opacity-60"></i>ঘুরিয়ে দেখুন</span>
               </div>
               <div class="rd-flip-back">
                 <p class="rd-flip-desc">Fresher Reception, Farewell, Iftar Mahfil এবং বিভিন্ন সামাজিক ও সাংস্কৃতিক আয়োজনের মাধ্যমে সদস্যদের একসঙ্গে নিয়ে আসা এবং সংগঠনের বন্ধন আরও শক্ত করা।</p>
@@ -471,12 +468,11 @@
           </div>
 
           <!-- Card 4 -->
-          <div class="rd-flip-card" tabindex="0" role="button" aria-label="কল্যাণ, নেতৃত্ব ও নেটওয়ার্কিং">
+          <div class="rd-flip-card w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)] xl:w-[calc(20%-16px)]" tabindex="0" role="button" aria-label="কল্যাণ, নেতৃত্ব ও নেটওয়ার্কিং">
             <div class="rd-flip-inner">
               <div class="rd-flip-front rd-flip-rose">
                 <div class="rd-flip-icon"><i class="w-8 h-8" data-lucide="heart-handshake"></i></div>
                 <h3 class="rd-flip-title">কল্যাণ, নেতৃত্ব ও নেটওয়ার্কিং</h3>
-                <span class="rd-flip-hint"><i data-lucide="rotate-cw" class="w-3 h-3 inline mr-1 opacity-60"></i>ঘুরিয়ে দেখুন</span>
               </div>
               <div class="rd-flip-back">
                 <p class="rd-flip-desc">পারস্পরিক সহায়তা, Blood Support এবং বর্তমান ও সাবেক সদস্যদের মধ্যে যোগাযোগ তৈরি ও বজায় রাখা। হাতে-কলমে নেতৃত্ব, teamwork ও দায়িত্ববোধ শেখার সুযোগ।</p>
@@ -484,20 +480,19 @@
             </div>
           </div>
 
-        </div>
-
-        <!-- Wide card: নেতৃত্ব ও ব্যক্তিগত বিকাশ -->
-        <div class="rd-flip-card rd-flip-wide mt-5" tabindex="0" role="button" aria-label="নেতৃত্ব ও ব্যক্তিগত বিকাশ">
-          <div class="rd-flip-inner">
-            <div class="rd-flip-front rd-flip-indigo">
-              <div class="rd-flip-icon"><i class="w-8 h-8" data-lucide="sparkles"></i></div>
-              <h3 class="rd-flip-title">নেতৃত্ব ও ব্যক্তিগত বিকাশ</h3>
-              <span class="rd-flip-hint"><i data-lucide="rotate-cw" class="w-3 h-3 inline mr-1 opacity-60"></i>ঘুরিয়ে দেখুন</span>
-            </div>
-            <div class="rd-flip-back">
-              <p class="rd-flip-desc">রংধনুর বিভিন্ন অনুষ্ঠান ও কার্যক্রমে দায়িত্ব নেওয়া শুধু একটি আয়োজন পরিচালনা নয়। এটি সদস্যদের নেতৃত্ব, যোগাযোগ, সিদ্ধান্ত নেওয়া, teamwork এবং দায়িত্বশীলভাবে কাজ করার বাস্তব অভিজ্ঞতা দেয়।</p>
+          <!-- Card 5 (Now same size as the others) -->
+          <div class="rd-flip-card w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)] xl:w-[calc(20%-16px)]" tabindex="0" role="button" aria-label="নেতৃত্ব ও ব্যক্তিগত বিকাশ">
+            <div class="rd-flip-inner">
+              <div class="rd-flip-front rd-flip-indigo">
+                <div class="rd-flip-icon"><i class="w-8 h-8" data-lucide="sparkles"></i></div>
+                <h3 class="rd-flip-title">নেতৃত্ব ও ব্যক্তিগত বিকাশ</h3>
+              </div>
+              <div class="rd-flip-back">
+                <p class="rd-flip-desc">রংধনুর বিভিন্ন অনুষ্ঠান ও কার্যক্রমে দায়িত্ব নেওয়া শুধু একটি আয়োজন পরিচালনা নয়। এটি সদস্যদের নেতৃত্ব, যোগাযোগ, সিদ্ধান্ত নেওয়া, teamwork এবং দায়িত্বশীলভাবে কাজ করার বাস্তব অভিজ্ঞতা দেয়।</p>
+              </div>
             </div>
           </div>
+
         </div>
 
       </div>
