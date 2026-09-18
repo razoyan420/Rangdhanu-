@@ -895,3 +895,123 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   font-family: 'Noto Serif Bengali','Noto Sans Bengali',serif !important;
   font-weight: 800 !important;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   18. FLIP CARDS — Activities section
+   ══════════════════════════════════════════════════════════════ */
+.rd-flip-card {
+  perspective: 1000px;
+  height: 200px;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+.rd-flip-wide {
+  height: 140px;
+}
+.rd-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .55s cubic-bezier(.22,1,.36,1);
+  border-radius: 20px;
+}
+/* hover + focus + JS-toggled class flip */
+.rd-flip-card:hover .rd-flip-inner,
+.rd-flip-card:focus-visible .rd-flip-inner,
+.rd-flip-card.rd-flipped .rd-flip-inner {
+  transform: rotateY(180deg);
+}
+/* ── Front & back shared ── */
+.rd-flip-front, .rd-flip-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+/* ── Back (white description card) ── */
+.rd-flip-back {
+  background: #ffffff;
+  border: 1px solid rgba(203,213,225,.6);
+  box-shadow: 0 8px 32px -8px rgba(15,23,42,.10);
+  transform: rotateY(180deg);
+}
+.rd-flip-desc {
+  font-family: 'Noto Sans Bengali', 'Plus Jakarta Sans', sans-serif;
+  font-size: .86rem;
+  line-height: 1.85;
+  color: #475569;
+  margin: 0;
+}
+/* ── Front icon wrapper ── */
+.rd-flip-icon {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.30);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+  color: #fff;
+}
+.rd-flip-title {
+  font-family: 'Noto Serif Bengali', 'Plus Jakarta Sans', serif;
+  font-size: .95rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.4;
+  margin: 0;
+}
+.rd-flip-hint {
+  font-size: .7rem;
+  color: rgba(255,255,255,.55);
+  margin-top: .65rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+/* ── Premium gradient fronts ── */
+.rd-flip-blue {
+  background: linear-gradient(135deg, #1d4ed8 0%, #4f46e5 100%);
+  box-shadow: 0 12px 40px -8px rgba(79,70,229,.45);
+}
+.rd-flip-emerald {
+  background: linear-gradient(135deg, #059669 0%, #0891b2 100%);
+  box-shadow: 0 12px 40px -8px rgba(8,145,178,.40);
+}
+.rd-flip-amber {
+  background: linear-gradient(135deg, #d97706 0%, #dc2626 100%);
+  box-shadow: 0 12px 40px -8px rgba(217,119,6,.40);
+}
+.rd-flip-rose {
+  background: linear-gradient(135deg, #e11d48 0%, #9333ea 100%);
+  box-shadow: 0 12px 40px -8px rgba(225,29,72,.40);
+}
+.rd-flip-indigo {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 52%, #2563eb 100%);
+  box-shadow: 0 12px 40px -8px rgba(79,70,229,.45);
+}
+/* Wide card: front layout horizontal on wider screens */
+.rd-flip-wide .rd-flip-front {
+  flex-direction: row;
+  gap: 1.25rem;
+  text-align: left;
+  justify-content: flex-start;
+  padding: 1.5rem 2rem;
+}
+.rd-flip-wide .rd-flip-title { font-size: 1.05rem; }
+.rd-flip-wide .rd-flip-hint { margin-top: .35rem; }
+/* ── Reduce motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .rd-flip-inner { transition: none !important; }
+}

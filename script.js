@@ -11329,3 +11329,12 @@ f.reset();
       else if (e.key === 'ArrowLeft') { e.preventDefault(); prevLightboxPhoto(); }
       else if (e.key === 'Escape') { closeLightbox(); }
     });
+
+    /* ── Flip card click toggle (touch & click) ─────────────────── */
+    (function rdFlipCards() {
+      document.addEventListener('click', function(e) {
+        const card = e.target.closest('.rd-flip-card');
+        if (!card) return;
+        card.classList.toggle('rd-flipped');
+      });
+    })();
