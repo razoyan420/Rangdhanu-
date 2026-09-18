@@ -4614,7 +4614,7 @@
           hintObj.className = "text-sm font-bold mt-3 text-rose-600";
         }
       } catch (err) {
-        hintObj.textContent = "Network error. Please try again.";
+        hintObj.textContent = err.message || "Network error. Please try again.";
         hintObj.className = "text-sm font-bold mt-3 text-rose-600";
       }
     }
