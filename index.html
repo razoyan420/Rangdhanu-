@@ -197,8 +197,8 @@
 <!-- Prebuilt Tailwind stylesheet.  npx tailwindcss -i src.css -o style.css --minify
      নতুন class যোগ করলে এই কমান্ড আবার চালাতে হবে — CDN আগে নিজে করত। -->
 <link rel="stylesheet" href="style.css"/>
-<link rel="stylesheet" href="custom.css?v=20260916-1755"/>
-<link rel="stylesheet" href="redesign-overrides.css?v=20260911-27"/>
+<link rel="stylesheet" href="custom.css?v=20260918-1600"/>
+<link rel="stylesheet" href="redesign-overrides.css?v=20260918-1600"/>
 <script>
   /* style.css fallback: prebuilt sheet না এলে বা পুরনো হলে CDN ফিরিয়ে আনে।
      document.write এখানেই সঠিক — এই path শুধু তখনই চলে যখন পেজ ইতিমধ্যে
@@ -266,8 +266,13 @@
       <button class="nav-btn premium-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')"><span>PDACC</span></button>
       <button class="nav-btn premium-nav-item" data-page="events" onclick="switchPage('events')"><span>Events</span></button>
       <button class="nav-btn premium-nav-item" data-page="committee" onclick="switchPage('committee')"><span>Committee</span></button>
-      <button class="nav-btn premium-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')"><span>Notice</span></button>
-      <button class="nav-btn premium-nav-item" data-page="cgpa" onclick="switchPage('cgpa')"><span>CGPA Calculator</span></button>
+      <div class="rd-more-wrap" id="rd-more-wrap-desktop">
+        <button type="button" class="rd-more-btn nav-btn" id="rd-more-btn-desktop" onclick="rdMoreToggle('desktop')" aria-haspopup="true" aria-expanded="false"><span>More</span><i data-lucide="chevron-down"></i></button>
+        <div class="rd-more-panel" id="rd-more-panel-desktop" role="menu">
+          <button onclick="switchPage('noticeboard'); rdMoreClose('desktop')"><i data-lucide="bell" class="w-4 h-4 text-slate-400"></i>Notice</button>
+          <button onclick="switchPage('cgpa'); rdMoreClose('desktop')"><i data-lucide="calculator" class="w-4 h-4 text-slate-400"></i>CGPA Calculator</button>
+        </div>
+      </div>
       <div id="nav-member-menu" class="rd-nav-profile-menu">
         <button id="nav-member-btn" type="button" class="nav-btn premium-nav-item rd-nav-profile-trigger" data-page="my-profile" aria-haspopup="true" aria-expanded="false" onclick="rdNavProfileMenuToggle(this)"><span id="nav-member-text">Restoring...</span><i data-lucide="chevron-down" class="rd-nav-profile-chevron"></i></button>
         <div class="rd-nav-profile-dropdown hidden">
@@ -290,7 +295,7 @@
     <button class="mobile-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')">PDACC</button>
     <button class="mobile-nav-item" data-page="events" onclick="switchPage('events')">Events</button>
     <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')">Committee</button>
-    <button class="mobile-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')">Notice</button>
+    <button class="mobile-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')">Notice Board</button>
     <button class="mobile-nav-item" data-page="cgpa" onclick="switchPage('cgpa')">CGPA Calculator</button>
     <div id="mobile-member-menu" class="rd-mobile-profile-menu">
       <button id="mobile-member-item" type="button" class="mobile-nav-item rd-mobile-profile-trigger" data-page="my-profile" aria-haspopup="true" aria-expanded="false" onclick="rdNavProfileMenuToggle(this)">Restoring... <i data-lucide="chevron-down" class="w-4 h-4"></i></button>
@@ -357,7 +362,32 @@
       </div>
     </section>
 
-    <!-- Leadership: sits right under the cover, filled from the newest
+    <!-- Stats bar — 4 trust signals beneath the hero -->
+    <section id="rd-stats-bar" aria-label="Key statistics">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 sm:grid-cols-4">
+          <div class="rd-stat-card">
+            <span class="rd-stat-num" id="rd-stat-alumni">—</span>
+            <span class="rd-stat-label">Alumni Members</span>
+          </div>
+          <div class="rd-stat-card">
+            <span class="rd-stat-num">২৭<span class="rd-stat-suffix">+</span></span>
+            <span class="rd-stat-label">PDACC সাফল্য</span>
+          </div>
+          <div class="rd-stat-card">
+            <span class="rd-stat-num">২৯</span>
+            <span class="rd-stat-label">Batch Series</span>
+          </div>
+          <div class="rd-stat-card">
+            <span class="rd-stat-num">৮<span class="rd-stat-suffix">+</span></span>
+            <span class="rd-stat-label">Districts</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Leadership: sits right under the stats bar, filled from the newest
+
          approved committee session. One message at a time -- the deck turns
          itself over every 4 s (RD_LEADER_MS) and can be dragged sideways. -->
     <section class="hidden pt-10 pb-12 md:pt-12 md:pb-16 bg-white" id="home-leadership">

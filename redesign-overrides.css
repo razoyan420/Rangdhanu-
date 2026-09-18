@@ -458,3 +458,404 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   .glass-nav #mobile-menu{display:block!important;max-height:0;opacity:0;overflow:hidden;pointer-events:none;transform:translateY(-.75rem);visibility:hidden;padding-top:0;padding-bottom:0;transition:max-height .38s cubic-bezier(.22,1,.36,1),opacity .22s ease,transform .38s cubic-bezier(.22,1,.36,1),padding .38s cubic-bezier(.22,1,.36,1),visibility 0s linear .38s}
   .glass-nav #mobile-menu:not(.hidden){max-height:calc(100dvh - 4.5rem);opacity:1;overflow-y:auto;pointer-events:auto;transform:translateY(0);visibility:visible;padding-top:.75rem;padding-bottom:1rem;transition:max-height .42s cubic-bezier(.22,1,.36,1),opacity .24s ease,transform .42s cubic-bezier(.22,1,.36,1),padding .42s cubic-bezier(.22,1,.36,1),visibility 0s linear 0s}
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   PREMIUM REDESIGN v2 — Navbar · Hero · Home
+   2026-09-18. Scoped to avoid breaking other pages.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Design tokens ───────────────────────────────────────────── */
+:root {
+  --pr-navy:      #050e1f;
+  --pr-ink:       #0d1a30;
+  --pr-blue:      #2563eb;
+  --pr-indigo:    #4f46e5;
+  --pr-violet:    #7c3aed;
+  --pr-grad:      linear-gradient(135deg,#2563eb 0%,#4f46e5 52%,#7c3aed 100%);
+  --pr-grad-h:    linear-gradient(135deg,#1d4ed8 0%,#4338ca 52%,#6d28d9 100%);
+  --pr-ease:      cubic-bezier(.22,1,.36,1);
+  --pr-dur:       .30s;
+}
+
+/* ── 2. Navbar: glass depth upgrade ────────────────────────────── */
+.glass-nav {
+  background: rgba(255,255,255,.88) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(37,99,235,.10) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset,
+              0 18px 44px -28px rgba(5,14,31,.20) !important;
+  transition: background .3s ease, box-shadow .3s ease !important;
+}
+.glass-nav.rd-nav-scrolled {
+  background: rgba(255,255,255,.97) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset,
+              0 22px 52px -24px rgba(5,14,31,.26) !important;
+}
+.nav-strip {
+  background: transparent !important;
+  border-top: 1px solid rgba(37,99,235,.07) !important;
+}
+
+/* ── 3. Nav items: pill active state ───────────────────────────── */
+.premium-nav-item {
+  font-family: 'Plus Jakarta Sans',sans-serif !important;
+  font-weight: 600 !important;
+  color: #4b5563 !important;
+  border-radius: .55rem !important;
+  transition: color var(--pr-dur) var(--pr-ease),
+              background var(--pr-dur) var(--pr-ease) !important;
+}
+.premium-nav-item::after { display: none !important; }
+.premium-nav-item:hover {
+  color: var(--pr-blue) !important;
+  background: rgba(37,99,235,.07) !important;
+  transform: none !important;
+}
+.premium-nav-item.active,
+.premium-nav-item.is-active {
+  color: var(--pr-blue) !important;
+  background: rgba(37,99,235,.10) !important;
+  box-shadow: 0 0 0 1px rgba(37,99,235,.18) inset !important;
+}
+
+/* ── 4. CTA button: gradient + shimmer ─────────────────────────── */
+.nav-cta, #nav-membership-cta, #mobile-membership-cta {
+  background: var(--pr-grad) !important;
+  color: #fff !important;
+  font-family: 'Plus Jakarta Sans',sans-serif !important;
+  font-weight: 700 !important;
+  border: none !important;
+  border-radius: .65rem !important;
+  box-shadow: 0 8px 24px -10px rgba(79,70,229,.55),
+              0 2px 4px rgba(79,70,229,.18) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  transition: box-shadow .28s ease, transform .22s var(--pr-ease) !important;
+}
+.nav-cta::before, #nav-membership-cta::before, #mobile-membership-cta::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(105deg,transparent 30%,rgba(255,255,255,.22) 50%,transparent 68%);
+  transform: translateX(-120%);
+  animation: navCtaShimmer 3.5s var(--pr-ease) infinite;
+}
+@keyframes navCtaShimmer {
+  0%,55%   { transform: translateX(-120%); }
+  80%,100% { transform: translateX(140%);  }
+}
+.nav-cta:hover, #nav-membership-cta:hover, #mobile-membership-cta:hover {
+  background: var(--pr-grad-h) !important;
+  box-shadow: 0 14px 32px -10px rgba(79,70,229,.65),
+              0 4px 8px rgba(79,70,229,.22) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ── 5. More dropdown ───────────────────────────────────────────── */
+.rd-more-wrap { position: relative; }
+.rd-more-btn {
+  display: inline-flex; align-items: center; gap: .35rem;
+  font-family: 'Plus Jakarta Sans',sans-serif;
+  font-weight: 600; font-size: .8rem; color: #4b5563;
+  border-radius: .55rem; padding: .5rem .75rem;
+  background: transparent; border: none; cursor: pointer;
+  transition: color .22s ease, background .22s ease;
+}
+.rd-more-btn:hover { color: var(--pr-blue); background: rgba(37,99,235,.07); transform: none !important; box-shadow: none !important; }
+.rd-more-btn i, .rd-more-btn svg { width: .85rem; height: .85rem; transition: transform .22s var(--pr-ease); }
+.rd-more-btn.open i, .rd-more-btn.open svg { transform: rotate(180deg); }
+.rd-more-panel {
+  position: absolute; top: calc(100% + .45rem); left: 50%;
+  background: #fff;
+  border: 1px solid rgba(37,99,235,.12);
+  border-radius: .9rem;
+  box-shadow: 0 20px 48px -16px rgba(5,14,31,.22), 0 4px 8px rgba(5,14,31,.06);
+  padding: .35rem; min-width: 11.5rem;
+  opacity: 0; pointer-events: none;
+  transform: translateX(-50%) translateY(-6px) scale(.97);
+  transition: opacity .2s ease, transform .22s var(--pr-ease);
+  z-index: 100;
+}
+.rd-more-panel.open {
+  opacity: 1; pointer-events: auto;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+.rd-more-panel button {
+  display: flex; align-items: center; gap: .5rem;
+  width: 100%; padding: .55rem .8rem; border-radius: .55rem;
+  border: none; background: transparent;
+  font-family: 'Plus Jakarta Sans',sans-serif;
+  font-size: .78rem; font-weight: 600; color: #374151;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease;
+}
+.rd-more-panel button:hover {
+  background: rgba(37,99,235,.07); color: var(--pr-blue);
+  transform: none !important; box-shadow: none !important;
+}
+
+/* ── 6. Brand: tighter, more confident ─────────────────────────── */
+.brand-name {
+  font-family: 'Plus Jakarta Sans',sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: .05em !important;
+}
+.brand-tag {
+  font-family: 'Plus Jakarta Sans',sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: .03em !important;
+  color: #64748b !important;
+}
+
+/* ── 7. Hero: taller + cinematic ───────────────────────────────── */
+#page-home > section:first-of-type > div > div:first-child {
+  min-height: min(82dvh,680px) !important;
+  max-height: 800px !important;
+  aspect-ratio: unset !important;
+  border-radius: 2rem !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.1) inset,
+              0 32px 80px -32px rgba(5,14,31,.52) !important;
+}
+.rd-hero-veil {
+  background: linear-gradient(
+    to bottom,
+    rgba(5,14,31,.62) 0%,
+    rgba(5,14,31,.08) 42%,
+    rgba(5,14,31,.04) 56%,
+    rgba(5,14,31,.70) 100%
+  ) !important;
+}
+#rd-hero-copy h2 {
+  font-family: 'Plus Jakarta Sans',sans-serif !important;
+  font-size: clamp(1.8rem,5.2vw,4.4rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: -.03em !important;
+  line-height: 1.05 !important;
+  text-shadow: 0 4px 32px rgba(5,14,31,.7) !important;
+}
+#rd-hero-copy p.text-white\/90 {
+  font-size: clamp(.72rem,1.6vw,1rem) !important;
+  font-weight: 500 !important;
+  text-shadow: 0 2px 12px rgba(5,14,31,.55) !important;
+}
+/* Arrows: hidden until hover */
+#page-home > section:first-of-type button[aria-label^="Previous"],
+#page-home > section:first-of-type button[aria-label^="Next"] {
+  opacity: 0 !important;
+  transition: opacity .22s ease, background .2s ease,
+              transform .2s var(--pr-ease) !important;
+}
+#page-home > section:first-of-type > div > div:first-child:hover
+  button[aria-label^="Previous"],
+#page-home > section:first-of-type > div > div:first-child:hover
+  button[aria-label^="Next"] {
+  opacity: 1 !important;
+}
+
+/* ── 8. Stats bar ───────────────────────────────────────────────── */
+#rd-stats-bar {
+  background: linear-gradient(135deg,#0d1a30 0%,#111827 100%);
+  position: relative; overflow: hidden;
+}
+#rd-stats-bar::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 120% at 50% -30%,
+    rgba(79,70,229,.28),transparent 70%);
+  pointer-events: none;
+}
+.rd-stat-card {
+  text-align: center;
+  padding: 1.75rem 1rem;
+  position: relative;
+}
+.rd-stat-card + .rd-stat-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 20%; bottom: 20%;
+  width: 1px;
+  background: linear-gradient(180deg,transparent,rgba(255,255,255,.12),transparent);
+}
+.rd-stat-num {
+  display: block;
+  font-family: 'Plus Jakarta Sans',sans-serif;
+  font-size: clamp(2rem,4.5vw,3.25rem);
+  font-weight: 900; letter-spacing: -.04em; line-height: 1;
+  background: linear-gradient(135deg,#fff 0%,rgba(199,210,254,.88) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.rd-stat-suffix {
+  font-size: .65em; font-weight: 700;
+  vertical-align: super; opacity: .8;
+}
+.rd-stat-label {
+  display: block; margin-top: .45rem;
+  font-family: 'Plus Jakarta Sans',sans-serif;
+  font-size: clamp(.62rem,.88vw,.76rem);
+  font-weight: 600;
+  color: rgba(199,210,254,.6);
+  letter-spacing: .09em; text-transform: uppercase;
+}
+
+/* ── 9. Home Bengali hero: dark premium ────────────────────────── */
+#page-home > section.relative.overflow-hidden.bg-white.border-y {
+  background: linear-gradient(135deg,#0d1a30 0%,#111827 55%,#0d1a30 100%) !important;
+  border-color: transparent !important;
+}
+#page-home > section.relative.overflow-hidden.bg-white.border-y .rd-hero-kicker {
+  background: rgba(79,70,229,.18) !important;
+  border: 1px solid rgba(99,102,241,.28) !important;
+  color: rgba(199,210,254,.88) !important;
+  font-family: 'Plus Jakarta Sans',sans-serif !important;
+  font-weight: 700 !important; letter-spacing: .06em !important;
+  backdrop-filter: blur(8px) !important;
+}
+#page-home > section.relative.overflow-hidden.bg-white.border-y h1 {
+  color: #fff !important;
+}
+#page-home > section.relative.overflow-hidden.bg-white.border-y h1 > span {
+  background: linear-gradient(135deg,#a5b4fc,#c4b5fd,#93c5fd) !important;
+  background-size: 200% 100% !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  animation: heroGradShift 5s ease-in-out infinite !important;
+  filter: none !important;
+}
+@keyframes heroGradShift {
+  0%,100% { background-position: 0%   50%; }
+  50%     { background-position: 100% 50%; }
+}
+#page-home > section.relative.overflow-hidden.bg-white.border-y p {
+  color: rgba(226,232,240,.70) !important;
+}
+.rd-hero-primary {
+  background: var(--pr-grad) !important;
+  color: #fff !important;
+  font-family: 'Plus Jakarta Sans',sans-serif !important;
+  font-weight: 700 !important;
+  border-radius: .75rem !important;
+  border: none !important;
+  box-shadow: 0 10px 28px -8px rgba(79,70,229,.55) !important;
+  position: relative; overflow: hidden;
+  transition: box-shadow .25s ease, transform .22s var(--pr-ease) !important;
+}
+.rd-hero-primary::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(105deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 68%);
+  transform: translateX(-120%);
+  animation: heroCtaShimmer 4s var(--pr-ease) infinite;
+}
+@keyframes heroCtaShimmer {
+  0%,60%   { transform: translateX(-120%); }
+  85%,100% { transform: translateX(140%);  }
+}
+.rd-hero-primary:hover {
+  box-shadow: 0 16px 36px -8px rgba(79,70,229,.65) !important;
+  transform: translateY(-3px) !important;
+}
+.rd-hero-secondary {
+  background: rgba(255,255,255,.08) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  color: rgba(255,255,255,.88) !important;
+  font-family: 'Plus Jakarta Sans',sans-serif !important;
+  font-weight: 600 !important;
+  border-radius: .75rem !important;
+  backdrop-filter: blur(8px) !important;
+  transition: background .22s ease, border-color .22s ease,
+              transform .22s var(--pr-ease) !important;
+}
+.rd-hero-secondary:hover {
+  background: rgba(255,255,255,.14) !important;
+  border-color: rgba(255,255,255,.3) !important;
+  transform: translateY(-3px) !important;
+}
+
+/* ── 10. Section kicker pill ────────────────────────────────────── */
+.section-kicker {
+  display: inline-flex !important; align-items: center !important;
+  gap: .4rem !important;
+  font-family: 'Plus Jakarta Sans',sans-serif !important;
+  font-size: .62rem !important; font-weight: 800 !important;
+  letter-spacing: .18em !important; text-transform: uppercase !important;
+  padding: .28rem .82rem !important; border-radius: 9999px !important;
+  background: rgba(37,99,235,.07) !important;
+  border: 1px solid rgba(37,99,235,.14) !important;
+  color: var(--pr-blue) !important;
+}
+
+/* ── 11. About section heading ──────────────────────────────────── */
+#about-rangdhanu h2 {
+  font-family: 'Plus Jakarta Sans',sans-serif !important;
+  font-weight: 900 !important;
+  letter-spacing: -.03em !important;
+  color: var(--pr-navy) !important;
+}
+
+/* ── 12. Activity cards: glass glow hover ───────────────────────── */
+#page-home .card-pro {
+  background: rgba(255,255,255,.96) !important;
+  border: 1px solid rgba(37,99,235,.09) !important;
+  border-radius: 1.25rem !important;
+  backdrop-filter: blur(6px) !important;
+}
+#page-home .card-pro::before { display: none !important; }
+#page-home .card-pro:hover {
+  border-color: rgba(79,70,229,.24) !important;
+  box-shadow: 0 2px 4px rgba(5,14,31,.05),
+              0 28px 56px -22px rgba(79,70,229,.32) !important;
+  transform: translateY(-6px) !important;
+}
+#page-home .card-pro:hover > div:first-child {
+  transform: translateY(-2px) scale(1.1) !important;
+  box-shadow: 0 10px 22px -10px rgba(79,70,229,.45) !important;
+}
+
+/* ── 13. CTA closing section: deep gradient ─────────────────────── */
+#page-home section.bg-white.border-t .rounded-3xl,
+#page-home section.py-16.md\\:py-20.bg-white .rounded-3xl {
+  background: linear-gradient(135deg,#1e1b4b 0%,#312e81 45%,#1d4ed8 100%) !important;
+  box-shadow: 0 0 0 1px rgba(99,102,241,.3),
+              0 32px 80px -32px rgba(79,70,229,.65) !important;
+  border-radius: 1.75rem !important;
+  position: relative; overflow: hidden;
+}
+#page-home section.bg-white.border-t .rounded-3xl h2,
+#page-home section.py-16.md\\:py-20.bg-white .rounded-3xl h2 {
+  font-family: 'Plus Jakarta Sans',sans-serif !important;
+  font-weight: 900 !important; letter-spacing: -.03em !important;
+}
+
+/* ── 14. Mobile nav: premium ────────────────────────────────────── */
+#mobile-menu {
+  background: rgba(255,255,255,.98) !important;
+  backdrop-filter: blur(20px) !important;
+  border-top: 1px solid rgba(37,99,235,.07) !important;
+}
+.mobile-nav-item {
+  font-family: 'Plus Jakarta Sans',sans-serif !important;
+  font-size: .88rem !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  border-bottom: 1px solid rgba(37,99,235,.06) !important;
+}
+.mobile-nav-item:hover, .mobile-nav-item.active {
+  color: var(--pr-blue) !important;
+  background: rgba(37,99,235,.05) !important;
+}
+
+/* ── 15. Scrollbar: indigo on hover ─────────────────────────────── */
+::-webkit-scrollbar-thumb:hover { background: var(--pr-indigo) !important; }
+
+/* ── 16. Reduce-motion safety ──────────────────────────────────── */
+@media (prefers-reduced-motion:reduce) {
+  .nav-cta::before, #nav-membership-cta::before,
+  #mobile-membership-cta::before,
+  .rd-hero-primary::after { animation: none !important; }
+  #page-home > section:first-of-type button[aria-label^="Previous"],
+  #page-home > section:first-of-type button[aria-label^="Next"] {
+    opacity: 1 !important;
+  }
+}

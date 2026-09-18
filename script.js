@@ -11201,7 +11201,72 @@ f.reset();
       lucide.createIcons();
     }
 
-    /* ---------- Confirmation page (replaces every success/error popup) ---------- */
+    /* ── Premium: More dropdown ──────────────────────────────────── */
+    function rdMoreToggle(key) {
+      const btn   = document.getElementById('rd-more-btn-'   + key);
+      const panel = document.getElementById('rd-more-panel-' + key);
+      if (!btn || !panel) return;
+      const isOpen = panel.classList.contains('open');
+      if (isOpen) { rdMoreClose(key); } else {
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded','true');
+        panel.classList.add('open');
+      }
+    }
+    function rdMoreClose(key) {
+      const btn   = document.getElementById('rd-more-btn-'   + key);
+      const panel = document.getElementById('rd-more-panel-' + key);
+      if (btn)   { btn.classList.remove('open');   btn.setAttribute('aria-expanded','false'); }
+      if (panel) { panel.classList.remove('open'); }
+    }
+    /* Close more dropdown when clicking outside */
+    document.addEventListener('click', function(e) {
+      ['desktop'].forEach(function(k) {
+        const wrap = document.getElementById('rd-more-wrap-' + k);
+        if (wrap && !wrap.contains(e.target)) rdMoreClose(k);
+      });
+    });
+
+    /* ── Premium: navbar scroll class ───────────────────────────── */
+    (function rdNavScrollInit() {
+      const nav = document.querySelector('.glass-nav');
+      if (!nav) return;
+      const onScroll = function() {
+        if (window.scrollY > 40) {
+          nav.classList.add('rd-nav-scrolled');
+        } else {
+          nav.classList.remove('rd-nav-scrolled');
+        }
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+
+    /* ── Premium: alumni count stats fill ───────────────────────── */
+    (function rdFillStatAlumni() {
+      function doFill() {
+        const el = document.getElementById('rd-stat-alumni');
+        if (!el) return;
+        const list = window.rdAlumni || [];
+        if (list.length > 0) {
+          el.textContent = list.length.toString();
+        }
+      }
+      /* Try immediately, then again after alumni load completes */
+      doFill();
+      const orig = window.loadPublicAlumni;
+      if (typeof orig === 'function') {
+        const t = setInterval(function() {
+          if (window.rdAlumni && window.rdAlumni.length) {
+            doFill();
+            clearInterval(t);
+          }
+        }, 600);
+        setTimeout(function() { clearInterval(t); }, 12000);
+      }
+    })();
+
+
     const RD_NOTICE_STYLES = {
       success: { icon:'check-circle-2', wrap:'bg-emerald-50', color:'text-emerald-600', btn:'from-emerald-600 to-teal-600', btnText:'OK' },
       error:   { icon:'alert-triangle', wrap:'bg-rose-50',    color:'text-rose-600',    btn:'from-rose-600 to-red-600',    btnText:'Try again' },
