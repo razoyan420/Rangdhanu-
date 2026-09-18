@@ -2839,7 +2839,7 @@
           rdMemberPaintLinkBox();
           if (!quiet) {
             rdMemberMsg('member-signin-msg',
-              (r.email || 'This email') + ' is not on our list. Enter your Member ID below to match it once.');
+              (r.email || 'This email') + ' আমাদের ডাটাবেজে নেই। দয়া করে আপনার রেজিস্টার করা ইমেইল দিয়ে সাইন-ইন করুন।');
           }
           /* He pressed Send code before there was a token. That press is
              finished here rather than asking him to press it again. */
@@ -4592,7 +4592,61 @@
     function resetAlumniFilters() { document.getElementById("alumni-search-input").value=""; document.getElementById("alumni-filter-dept").value="ALL"; document.getElementById("alumni-filter-series").value="ALL"; document.getElementById("alumni-filter-blood").value="ALL"; setAlumniViewFilter('ALL'); }
 
     /* EVENT API & UPLOAD */
-    function openEventSubmitModal(){ openSubPage('event-new', 'events'); }
+    /* EMAIL HINT LOGIC */
+    async function rdShowEmailHint() {
+      const midInput = document.getElementById('forgot-email-id');
+      const hintObj = document.getElementById('forgot-email-hint');
+      if (!midInput || !hintObj) return;
+      const mid = midInput.value.trim().toUpperCase();
+      if (!mid) { showToast("আপনার Member ID লিখুন।", "error"); return; }
+      
+      hintObj.classList.remove('hidden');
+      hintObj.className = "text-sm font-bold mt-3 text-slate-500";
+      hintObj.textContent = "খুঁজছি...";
+      
+      try {
+        if (!alumniData.length) await loadPublicAlumni();
+        const member = alumniData.find(a => String(a.id) === mid || String(a.memberId) === mid);
+        
+        if (!member) {
+          hintObj.textContent = "এই Member ID খুঁজে পাওয়া যায়নি। সঠিক ID দিন।";
+          hintObj.className = "text-sm font-bold mt-3 text-rose-600";
+          return;
+        }
+        
+        const email = member.email || member.Email;
+        if (email) {
+          const parts = email.split('@');
+          if (parts.length === 2) {
+            const user = parts[0];
+            const domain = parts[1];
+            // Show first 2 and last 1 character of user
+            const hint = user.substring(0, 2) + '****' + user.substring(user.length - 1) + '@' + domain;
+            hintObj.textContent = "আপনার ইমেইলটি হলো: " + hint;
+            hintObj.className = "text-sm font-bold mt-3 text-emerald-700";
+          } else {
+            hintObj.textContent = "আপনার ইমেইলের তথ্য প্রাইভেসি কারণে লুকানো আছে।";
+            hintObj.className = "text-sm font-bold mt-3 text-rose-600";
+          }
+        } else {
+          hintObj.textContent = "আপনার ইমেইলের তথ্য প্রাইভেসি কারণে লুকানো আছে। এডমিনের সাথে যোগাযোগ করুন।";
+          hintObj.className = "text-sm font-bold mt-3 text-rose-600";
+        }
+      } catch (err) {
+        hintObj.textContent = "নেটওয়ার্ক সমস্যা। আবার চেষ্টা করুন।";
+        hintObj.className = "text-sm font-bold mt-3 text-rose-600";
+      }
+    }
+
+    /* EVENT API & UPLOAD */
+    function openEventSubmitModal() { 
+      if (!rdMemberSignedIn()) {
+        showToast("নতুন ইভেন্ট যোগ করতে হলে আপনাকে সাইন ইন করতে হবে।", "error");
+        switchPage('signin');
+        return;
+      }
+      openSubPage('event-new', 'events'); 
+    }
     function closeEventSubmitModal(){ goBackFromSubPage('event-new'); }
     function closeDynamicEventModal(){ goBackFromSubPage('event-detail'); }
     function fileToBase64(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]||''); r.onerror=rej; r.readAsDataURL(file);}); }
