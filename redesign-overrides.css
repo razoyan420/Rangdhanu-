@@ -870,3 +870,28 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
     opacity: 1 !important;
   }
 }
+
+/* ── 17. Premium Bengali Fonts ──────────────────────────────────── */
+/* Image 2: hero slideshow caption — "রংধনু পরিবার" big headline */
+.rd-cap-title {
+  font-family: 'Noto Serif Bengali','Noto Sans Bengali',serif !important;
+  font-weight: 900 !important;
+  letter-spacing: -.01em !important;
+  text-shadow: 0 2px 16px rgba(0,0,0,.5) !important;
+}
+/* Image 3: About + home section headings */
+#about-rangdhanu h2,
+#page-home h2 {
+  font-family: 'Noto Serif Bengali','Noto Sans Bengali',serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -.02em !important;
+}
+#page-home p {
+  font-family: 'Noto Sans Bengali',sans-serif !important;
+  line-height: 1.95 !important;
+}
+#page-reunion h2, #page-reunion h3,
+#page-events h2 {
+  font-family: 'Noto Serif Bengali','Noto Sans Bengali',serif !important;
+  font-weight: 800 !important;
+}

@@ -6596,8 +6596,8 @@
 
       c.innerHTML = `
         <div class="relative w-full h-[250px] sm:h-[400px] bg-slate-900 sm:rounded-t-3xl overflow-hidden">
-           ${img ? `<img src="${escapeHtml(img)}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover opacity-70">` : ''}
-           <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+           ${img ? `<img src="${escapeHtml(img)}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover opacity-90">` : ''}
+           <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-800/20 to-transparent"></div>
            <div class="absolute bottom-6 sm:bottom-10 left-6 sm:left-10 right-6 sm:right-10">
                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-md mb-3">${escapeHtml(e.category || 'Event')}</span>
                <h2 class="text-2xl sm:text-4xl font-extrabold text-white leading-tight">${escapeHtml(title)}</h2>

@@ -197,8 +197,8 @@
 <!-- Prebuilt Tailwind stylesheet.  npx tailwindcss -i src.css -o style.css --minify
      নতুন class যোগ করলে এই কমান্ড আবার চালাতে হবে — CDN আগে নিজে করত। -->
 <link rel="stylesheet" href="style.css"/>
-<link rel="stylesheet" href="custom.css?v=20260918-1630"/>
-<link rel="stylesheet" href="redesign-overrides.css?v=20260918-1630"/>
+<link rel="stylesheet" href="custom.css?v=20260918-1700"/>
+<link rel="stylesheet" href="redesign-overrides.css?v=20260918-1700"/>
 <script>
   /* style.css fallback: prebuilt sheet না এলে বা পুরনো হলে CDN ফিরিয়ে আনে।
      document.write এখানেই সঠিক — এই path শুধু তখনই চলে যখন পেজ ইতিমধ্যে
@@ -261,8 +261,7 @@
   <nav class="nav-strip hidden xl:block" aria-label="Main">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center gap-1">
       <button class="nav-btn premium-nav-item active" data-page="home" onclick="switchPage('home')"><span>Home</span></button>
-      <button class="nav-btn premium-nav-item" data-page="reunion" onclick="switchPage('reunion')"><span>Reunion</span></button>
-      <button class="nav-btn premium-nav-item" data-page="alumni" onclick="switchPage('alumni')"><span>Family</span></button>
+      <button class="nav-btn premium-nav-item" data-page="alumni" onclick="switchPage('alumni')"><span>Directory</span></button>
       <button class="nav-btn premium-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')"><span>PDACC</span></button>
       <button class="nav-btn premium-nav-item" data-page="events" onclick="switchPage('events')"><span>Events</span></button>
       <button class="nav-btn premium-nav-item" data-page="committee" onclick="switchPage('committee')"><span>Committee</span></button>
@@ -290,8 +289,7 @@
   <!-- Mobile menu -->
   <div class="hidden xl:hidden absolute left-0 right-0 top-full w-full bg-white border-t border-slate-200 px-4 sm:px-6 lg:px-8 pt-3 pb-4 space-y-1 font-semibold text-base shadow-2xl" id="mobile-menu">
     <button class="mobile-nav-item" data-page="home" onclick="switchPage('home')">Home</button>
-    <button class="mobile-nav-item" data-page="reunion" onclick="switchPage('reunion')">Reunion</button>
-    <button class="mobile-nav-item" data-page="alumni" onclick="switchPage('alumni')">Family</button>
+    <button class="mobile-nav-item" data-page="alumni" onclick="switchPage('alumni')">Directory</button>
     <button class="mobile-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')">PDACC</button>
     <button class="mobile-nav-item" data-page="events" onclick="switchPage('events')">Events</button>
     <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')">Committee</button>
@@ -362,29 +360,7 @@
       </div>
     </section>
 
-    <!-- Stats bar — 4 trust signals beneath the hero -->
-    <section id="rd-stats-bar" aria-label="Key statistics">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-2 sm:grid-cols-4">
-          <div class="rd-stat-card">
-            <span class="rd-stat-num" id="rd-stat-alumni">—</span>
-            <span class="rd-stat-label">Alumni Members</span>
-          </div>
-          <div class="rd-stat-card">
-            <span class="rd-stat-num">২৭<span class="rd-stat-suffix">+</span></span>
-            <span class="rd-stat-label">PDACC সাফল্য</span>
-          </div>
-          <div class="rd-stat-card">
-            <span class="rd-stat-num">২৯</span>
-            <span class="rd-stat-label">Batch Series</span>
-          </div>
-          <div class="rd-stat-card">
-            <span class="rd-stat-num">৮<span class="rd-stat-suffix">+</span></span>
-            <span class="rd-stat-label">Districts</span>
-          </div>
-        </div>
-      </div>
-    </section>
+
 
     <!-- Leadership: sits right under the stats bar, filled from the newest
 
@@ -412,10 +388,6 @@
           <span class="reveal rd-hero-kicker inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full">Students Welfare Association of Greater Rangpur</span>
           <h1 class="reveal reveal-delay-1 rd-home-hero-title mt-6">যেথায় থাকুক যে যেখানে,<br/><span>রংধনু আছে মনে প্রাণে</span></h1>
           <p class="reveal reveal-delay-2 rd-home-hero-copy mt-6 max-w-3xl mx-auto">বৃহত্তর রংপুরের শিক্ষার্থীদের নিজেদের সংগঠন। ডুয়েটে ভর্তি হওয়া থেকে শুরু করে শিক্ষাজীবন, আর Alumni হয়ে পরবর্তী পথচলা পর্যন্ত রংধনুতে সম্পর্কটা থেকে যায়।</p>
-          <div class="reveal reveal-delay-3 rd-home-hero-actions flex flex-wrap justify-center gap-3 mt-8">
-            <button class="rd-hero-primary" onclick="goHomeSection('about-rangdhanu')">রংধনু সম্পর্কে জানুন <i class="w-4 h-4 inline ml-1" data-lucide="arrow-down"></i></button>
-            <button class="rd-hero-secondary" onclick="switchPage('prokoushali')">PDACC সম্পর্কে জানুন <i class="w-4 h-4 inline ml-1" data-lucide="arrow-right"></i></button>
-          </div>
         </div>
       </div>
     </section>
@@ -1919,15 +1891,32 @@
           </button>
         </div>
 
-        <!-- ONE GRID, NEWEST FIRST.
-             There used to be two grids here: three hand-written cards for the
-             long-standing events, and below them, under a heading called
-             "other events", a grid that rdEventsPaint() filled from
-             [...staticEvents, ...dynamicEvs] -- which drew those same three
-             again. Each of them was therefore on the page twice.
-             Every card is script-drawn now, sorted by event date, so there is
-             nothing to say about which one was uploaded first. -->
+        <!-- ONE GRID, NEWEST FIRST. -->
         <div class="flex justify-end mb-6"><div id="public-events-status"></div></div>
+
+        <!-- ★ PINNED: Reunion 2024 — সবার উপরে highlighted -->
+        <div id="rd-reunion-pin" class="mb-8 rounded-3xl overflow-hidden border border-rose-200/60 shadow-xl bg-gradient-to-r from-rose-900/90 via-slate-900 to-indigo-900/90 relative">
+          <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(239,68,68,.18),transparent)]"></div>
+          <div class="relative flex flex-col sm:flex-row items-start sm:items-center gap-5 p-6 sm:p-8">
+            <div class="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-400 flex items-center justify-center shadow-lg">
+              <i data-lucide="sparkles" class="w-7 h-7 text-white"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/30 border border-rose-400/40 text-rose-200 text-[10px] font-black uppercase tracking-widest">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span> পুনর্মিলনী
+                </span>
+                <span class="text-slate-400 text-xs">১ মার্চ ২০২৪ • DUET ক্যাম্পাস, গাজীপুর</span>
+              </div>
+              <h3 class="text-xl sm:text-2xl font-extrabold text-white leading-snug">রংধনু পুনর্মিলনী <span class="bg-gradient-to-r from-rose-400 via-amber-400 to-yellow-300 bg-clip-text text-transparent">২০২৪</span></h3>
+              <p class="text-slate-300 text-sm mt-1 leading-relaxed line-clamp-2">নবীন-প্রবীণের ঐতিহাসিক মিলনমেলা — আনন্দ র‍্যালি, পিঠা মেলা, কালচারাল নাইট এবং RANGDHANU-DUET Alumni Association এর আনুষ্ঠানিক যাত্রা শুরু।</p>
+            </div>
+            <button onclick="switchPage('reunion')" class="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-sm transition-all backdrop-blur-sm">
+              বিস্তারিত দেখুন <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
         <div id="public-events-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 
       </div>
@@ -2603,8 +2592,8 @@ Do not modify social links or structure without permission.
     <div>
       <h4 class="text-white font-bold mb-4">Quick Services</h4>
       <ul class="space-y-2.5">
-        <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('reunion')">Reunion</button></li>
-        <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('alumni')">Rangdhanu Family</button></li>
+        <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('events')">Reunion & Events</button></li>
+        <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('alumni')">Member Directory</button></li>
         <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('prokoushali')">Prokoushali</button></li>
         <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('committee')">Executive Committee</button></li>
         <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('cgpa')">CGPA Calculator</button></li>
