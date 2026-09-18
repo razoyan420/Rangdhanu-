@@ -607,14 +607,7 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   color: #64748b !important;
 }
 
-/* ── 7 (fixed). Hero slideshow wrapper ─────────────────────────── */
-/* The actual hero wrapper div has: aspect-[16/10], rounded-[28px], overflow-hidden */
-#page-home section:first-of-type > div[class*="relative"] {
-  min-height: min(82dvh,680px) !important;
-  max-height: 800px !important;
-  aspect-ratio: unset !important;
-  border-radius: 2rem !important;
-}
+/* ── Hero slideshow wrapper removed here, relocated to bottom of file */
 /* cinematic overlay */
 .rd-hero-veil {
   background: linear-gradient(
@@ -890,6 +883,42 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   font-family: 'Noto Sans Bengali',sans-serif !important;
   line-height: 1.95 !important;
 }
+
+/* Hero slideshow wrapper */
+#page-home section:first-of-type > div[class*="relative"] {
+  border-radius: 2rem !important;
+}
+@media (min-width: 768px) {
+  #page-home section:first-of-type > div[class*="relative"] {
+    min-height: min(82dvh, 680px) !important;
+    max-height: 800px !important;
+    aspect-ratio: unset !important;
+  }
+}
+
+/* cinematic overlay */
+.rd-home-hero-copy h2 {
+  color: #fff !important;
+  font-size: clamp(1.8rem,5.2vw,4.4rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: -.03em !important;
+  line-height: 1.05 !important;
+  text-shadow: 0 4px 32px rgba(5,14,31,.7) !important;
+}
+/* slideshow arrows: hidden until hover */
+#page-home section:first-of-type > div[class*="relative"] .flex.absolute.bottom-4 {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+#page-home section:first-of-type > div[class*="relative"]:hover .flex.absolute.bottom-4 {
+  opacity: 1;
+}
+.rd-home-hero-copy {
+  color: rgba(226,232,240,.72) !important;
+  font-family: 'Noto Sans Bengali',sans-serif !important;
+  line-height: 2 !important;
+}
+
 #page-reunion h2, #page-reunion h3,
 #page-events h2 {
   font-family: 'Noto Serif Bengali','Noto Sans Bengali',serif !important;
@@ -917,9 +946,7 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   transition: transform .55s cubic-bezier(.22,1,.36,1);
   border-radius: 20px;
 }
-/* hover + focus + JS-toggled class flip */
-.rd-flip-card:hover .rd-flip-inner,
-.rd-flip-card:focus-visible .rd-flip-inner,
+/* JS-toggled class flip ONLY - no hover flip as requested */
 .rd-flip-card.rd-flipped .rd-flip-inner {
   transform: rotateY(180deg);
 }
