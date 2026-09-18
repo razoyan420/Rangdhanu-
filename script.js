@@ -4605,31 +4605,12 @@
       hintObj.textContent = "Searching...";
       
       try {
-        if (!alumniData.length) await loadPublicAlumni();
-        const member = alumniData.find(a => String(a.id) === mid || String(a.memberId) === mid);
-        
-        if (!member) {
-          hintObj.textContent = "Member ID not found. Please enter a valid ID.";
-          hintObj.className = "text-sm font-bold mt-3 text-rose-600";
-          return;
-        }
-        
-        const email = member.email || member.Email;
-        if (email) {
-          const parts = email.split('@');
-          if (parts.length === 2) {
-            const user = parts[0];
-            const domain = parts[1];
-            // Show first 2 and last 1 character of user
-            const hint = user.substring(0, 2) + '****' + user.substring(user.length - 1) + '@' + domain;
-            hintObj.textContent = "Your email hint: " + hint;
-            hintObj.className = "text-sm font-bold mt-3 text-emerald-700";
-          } else {
-            hintObj.textContent = "Email information is hidden for privacy reasons.";
-            hintObj.className = "text-sm font-bold mt-3 text-rose-600";
-          }
+        const r = await apiPost('getemailhint', { memberId: mid });
+        if (r.success && r.hint) {
+          hintObj.textContent = "Your email hint: " + r.hint;
+          hintObj.className = "text-sm font-bold mt-3 text-emerald-700";
         } else {
-          hintObj.textContent = "Email is hidden for privacy. Please contact an admin.";
+          hintObj.textContent = r.message || "Email is hidden for privacy. Please contact an admin.";
           hintObj.className = "text-sm font-bold mt-3 text-rose-600";
         }
       } catch (err) {
