@@ -6525,6 +6525,37 @@
        twice. There is one grid now, so the two things that used to be implicit
        are decided here: a name that turns up twice is drawn once, and the order
        is the event date, newest first. */
+    /* Category colour map. New categories fall back to blue. */
+    const RD_EV_CAT_COLOURS = {
+      'Tour':                { bg: 'bg-emerald-500', text: 'text-emerald-700', light: 'bg-emerald-50 border-emerald-200', pill: 'bg-emerald-100 text-emerald-800' },
+      'পরিবেশ ও সমাজকল্যাণ':{ bg: 'bg-green-500',   text: 'text-green-700',   light: 'bg-green-50 border-green-200',   pill: 'bg-green-100 text-green-800' },
+      'পুনর্মিলনী':         { bg: 'bg-rose-500',    text: 'text-rose-700',    light: 'bg-rose-50 border-rose-200',     pill: 'bg-rose-100 text-rose-800' },
+      'Reunion':             { bg: 'bg-rose-500',    text: 'text-rose-700',    light: 'bg-rose-50 border-rose-200',     pill: 'bg-rose-100 text-rose-800' },
+      'Cultural':            { bg: 'bg-purple-500',  text: 'text-purple-700',  light: 'bg-purple-50 border-purple-200', pill: 'bg-purple-100 text-purple-800' },
+      'Sports':              { bg: 'bg-orange-500',  text: 'text-orange-700',  light: 'bg-orange-50 border-orange-200', pill: 'bg-orange-100 text-orange-800' },
+    };
+    function rdEvCatColour(cat) {
+      return RD_EV_CAT_COLOURS[cat] || { bg: 'bg-blue-500', text: 'text-blue-700', light: 'bg-blue-50 border-blue-200', pill: 'bg-blue-100 text-blue-800' };
+    }
+
+    /* Returns a short countdown string for future events, or '' for past ones */
+    function rdEvCountdown(dateStr) {
+      if (!dateStr) return '';
+      const ev = new Date(dateStr);
+      if (isNaN(ev.valueOf())) return '';
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      ev.setHours(0, 0, 0, 0);
+      const diff = Math.round((ev - now) / 86400000);
+      if (diff <= 0) return '';
+      if (diff === 1) return 'Tomorrow';
+      if (diff <= 30) return `${diff} days left`;
+      if (diff <= 365) return `${Math.round(diff / 30)} months left`;
+      return '';
+    }
+
+    let RD_EV_ACTIVE_FILTER = 'All';
+
     function rdEventsPaint(dynamicEvs) {
       const g = document.getElementById('public-events-grid'), st = document.getElementById('public-events-status');
       if (!g || !st) return;
@@ -6543,9 +6574,24 @@
         rdAll.sort((a, b) => rdEventsWhen(b) - rdEventsWhen(a));
         window.publicEvents = rdAll;
 
+        /* Build unique category list */
+        const cats = ['All', ...new Set(rdAll.map(e => e.category || e['Category'] || 'Event').filter(Boolean))];
+
+        /* Render filter tabs */
+        const filterBox = document.getElementById('events-filter-tabs');
+        if (filterBox) {
+          filterBox.innerHTML = cats.map(c => {
+            const col = rdEvCatColour(c);
+            const active = RD_EV_ACTIVE_FILTER === c;
+            return `<button type="button" onclick="rdEvFilter('${escapeHtml(c)}')" id="ev-tab-${escapeHtml(c)}" class="ev-filter-tab ${active ? col.bg + ' text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50'} inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold transition-all duration-200">${escapeHtml(c)}</button>`;
+          }).join('');
+        }
+
         st.innerHTML = `<span class="text-xs font-bold text-slate-500 bg-slate-100 inline-block px-3 py-1 rounded-lg">${rdAll.length} events</span>`;
         
-        g.innerHTML = window.publicEvents.map((raw, index) => {
+        const filtered = RD_EV_ACTIVE_FILTER === 'All' ? rdAll : rdAll.filter(e => (e.category || e['Category'] || 'Event') === RD_EV_ACTIVE_FILTER);
+
+        g.innerHTML = filtered.map((raw, index) => {
           /* The curated events keep their pictures in Drive. The hand-written
              cards had their covers swapped in after the manifest arrived; a
              script-drawn card asks for the Drive copy right here. */
@@ -6558,28 +6604,40 @@
           const cat = e.category || e['Category'] || 'Event';
           const date = e.eventDate || e['Event Date'] || '';
           const short = e.shortDescription || e['Short Description'] || '';
+          const col = rdEvCatColour(cat);
+          const countdown = rdEvCountdown(date);
+          const galleryCount = Array.isArray(e.gallery) ? e.gallery.length : 0;
+          const globalIdx = window.publicEvents.indexOf(raw);
           
           return `
             <article class="group bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden">
-               <div class="relative aspect-video bg-slate-100 overflow-hidden cursor-pointer" onclick="openDynamicEvent(${index})">
+               <div class="relative aspect-video bg-slate-100 overflow-hidden cursor-pointer" onclick="openDynamicEvent(${globalIdx})">
                  ${img ? `<img src="${escapeHtml(img)}"${local ? ` data-rd-img="${escapeHtml(local)}" onerror="rdImgFallback(this, '${escapeHtml(local)}')"` : ''} alt="${escapeHtml(title)}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">` : '<div class="w-full h-full flex items-center justify-center"><i data-lucide="image" class="w-8 h-8 text-slate-300"></i></div>'}
-                 <div class="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur text-blue-700 text-[10px] font-black uppercase tracking-widest shadow-sm">${escapeHtml(cat)}</div>
+                 <div class="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur ${col.text} text-[10px] font-black uppercase tracking-widest shadow-sm">${escapeHtml(cat)}</div>
+                 ${countdown ? `<div class="absolute top-4 right-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500 text-white text-[9px] font-black uppercase tracking-wider shadow animate-pulse"><i data-lucide="timer" class="w-2.5 h-2.5"></i> ${escapeHtml(countdown)}</div>` : ''}
+                 ${galleryCount > 0 ? `<div class="absolute bottom-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-black/60 text-white text-[10px] font-bold backdrop-blur"><i data-lucide="images" class="w-3 h-3"></i> ${galleryCount} photos</div>` : ''}
                </div>
                <div class="p-6 flex-1 flex flex-col">
                  <div class="flex items-center gap-2 text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider">
                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${escapeHtml(date ? new Date(date).toLocaleDateString('bn-BD', {day:'numeric', month:'long', year:'numeric'}) : '')}
                  </div>
-                 <h3 class="text-lg font-extrabold text-slate-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 cursor-pointer" onclick="openDynamicEvent(${index})">${escapeHtml(title)}</h3>
+                 <h3 class="text-lg font-extrabold text-slate-900 leading-tight mb-2 group-hover:${col.text} transition-colors line-clamp-2 cursor-pointer" onclick="openDynamicEvent(${globalIdx})">${escapeHtml(title)}</h3>
                  <p class="text-sm text-slate-600 line-clamp-2 mb-5">${escapeHtml(short)}</p>
                  <div class="mt-auto pt-4 border-t border-slate-100">
-                   <button onclick="openDynamicEvent(${index})" class="rd-detail-btn w-full py-2.5 rounded-xl bg-slate-50 group-hover:bg-blue-600 text-slate-700 group-hover:text-white text-sm font-bold transition-colors">View details</button>
+                   <button onclick="openDynamicEvent(${globalIdx})" class="rd-detail-btn w-full py-2.5 rounded-xl ${col.light} group-hover:${col.bg} ${col.text} group-hover:text-white text-sm font-bold transition-colors border">View details</button>
                  </div>
                </div>
             </article>
           `;
         }).join('');
-        lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
     }
+
+    function rdEvFilter(cat) {
+      RD_EV_ACTIVE_FILTER = cat;
+      rdEventsPaint(RD_EV_DYNAMIC);
+    }
+
 
     async function loadPublicEvents() {
       const g = document.getElementById('public-events-grid'), st = document.getElementById('public-events-status');
