@@ -4660,8 +4660,7 @@
         const imgInput = f.querySelector('[name="mainImage"]');
         let imgObj = null;
         if (imgInput.files && imgInput.files.length > 0) {
-          const file = imgInput.files[0];
-          imgObj = { fileName: file.name, mimeType: file.type, base64: await fileToBase64(file) };
+          imgObj = await prepareImagePayload(imgInput.files[0]);
         }
 
         const payload = {
