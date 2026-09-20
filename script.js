@@ -11239,7 +11239,9 @@ f.reset();
           const p = n => (n < 10 ? '0' : '') + n;
           return v.getFullYear() + '-' + p(v.getMonth() + 1) + '-' + p(v.getDate());
         }
-        return String(v == null ? '' : v).trim();
+        let str = String(v == null ? '' : v).trim();
+        if (header === 'Event Date' && str.length > 10) return str.slice(0, 10);
+        return str;
       };
       const eid = escapeHtml(r.id);
       const fields = RD_EV_FIELDS.map(f => {
@@ -11261,9 +11263,10 @@ f.reset();
           '<label class="form-label" for="' + dom + '">' + escapeHtml(label) + '</label>' + input + '</div>';
       }).join('');
       return ask + '<div class="mt-4 rounded-2xl border border-blue-200 bg-blue-50/50 p-4 sm:p-5" data-ev-form="' + eid + '">' +
-        '<p class="text-xs font-extrabold text-blue-900 mb-3"><i data-lucide="pencil" class="w-3.5 h-3.5 inline"></i> Correcting the details of ' + eid +
-          ' — the pictures and the submitter are left as they are.</p>' +
-        '<div class="grid sm:grid-cols-2 gap-4">' + fields + '</div>' +
+        '<p class="text-xs font-extrabold text-blue-900 mb-3"><i data-lucide="pencil" class="w-3.5 h-3.5 inline"></i> Correcting the details of ' + eid + '</p>' +
+        '<div class="grid sm:grid-cols-2 gap-4">' + fields + 
+        '<div class="sm:col-span-2 border-t border-blue-200/50 pt-4 mt-2"><label class="form-label" for="ev-' + eid + '-mainImage">Replace Banner Image (Optional)</label><input id="ev-' + eid + '-mainImage" type="file" accept="image/*" class="form-input py-2 text-sm" data-ev-image="mainImage"><p class="text-[10px] text-slate-500 mt-1">Leave empty to keep the current banner.</p></div>' +
+        '</div>' +
         '<div class="mt-4 flex flex-wrap gap-2">' +
           '<button type="button" onclick="adminEventEditSave(\'' + eid + '\')" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-extrabold hover:bg-blue-700 cursor-pointer"><i data-lucide="save" class="w-3.5 h-3.5"></i> Save the changes</button>' +
           '<button type="button" onclick="adminEventEdit(\'' + eid + '\')" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-extrabold hover:bg-slate-50 cursor-pointer"><i data-lucide="x" class="w-3.5 h-3.5"></i> Close</button>' +
@@ -11284,9 +11287,18 @@ f.reset();
         if (old instanceof Date) {
           const p = n => (n < 10 ? '0' : '') + n;
           old = old.getFullYear() + '-' + p(old.getMonth() + 1) + '-' + p(old.getDate());
+        } else if (was[1] === 'Event Date' && typeof old === 'string' && old.length > 10) {
+          old = old.slice(0, 10);
         }
         if (cur !== String(old == null ? '' : old).trim()) { data[key] = cur; changed++; }
       });
+      
+      const imgInput = form.querySelector('[data-ev-image="mainImage"]');
+      if (imgInput && imgInput.files && imgInput.files.length > 0) {
+        data.mainImage = await filePayload(imgInput.files[0], 4000);
+        changed++;
+      }
+      
       if (!changed) {
         showToast('Nothing was changed on this event.', 'info', 'No change', { backTo: 'admin' });
         return;
