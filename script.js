@@ -11262,15 +11262,92 @@ f.reset();
         return '<div class="' + (type === 'area' ? 'sm:col-span-2' : '') + '">' +
           '<label class="form-label" for="' + dom + '">' + escapeHtml(label) + '</label>' + input + '</div>';
       }).join('');
+      let spHtml = '<div class="sm:col-span-2 border-t border-blue-200/50 pt-4 mt-2" id="ev-' + eid + '-sponsors">' +
+        '<div class="flex items-center justify-between mb-2"><label class="form-label mb-0">Sponsors</label>' +
+        '<button type="button" onclick="adminAddEditSponsor(\'' + eid + '\')" class="text-[11px] px-2 py-1 bg-white border border-blue-200 text-blue-600 rounded font-bold hover:bg-blue-50 transition cursor-pointer">+ Add Sponsor</button></div>' +
+        '<div class="space-y-2" id="ev-' + eid + '-sponsor-list">';
+        
+      let existingSponsors = [];
+      try { existingSponsors = JSON.parse(r.raw['Sponsors'] || '[]'); } catch(e){}
+      if (existingSponsors.length === 0) spHtml += '<p class="text-[10px] text-slate-400 sp-empty-note">No sponsors yet.</p>';
+      existingSponsors.forEach((sp, i) => {
+        spHtml += '<div class="flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-200 sponsor-row">' +
+            '<input type="text" class="form-input text-xs w-1/2 sp-name" value="' + escapeHtml(sp.name || sp.sponsorName || '') + '" placeholder="Sponsor Name">' +
+            '<div class="w-1/2 flex gap-2 items-center">' +
+            (sp.logo || sp.sponsorLogo ? '<img src="' + escapeHtml(sp.logo || sp.sponsorLogo) + '" class="w-8 h-8 object-cover rounded border">' : '') +
+            '<input type="file" accept="image/*" class="form-input text-xs flex-grow py-1.5 sp-logo">' +
+            '</div>' +
+            '<input type="hidden" class="sp-old-logo" value="' + escapeHtml(sp.logo || sp.sponsorLogo || '') + '">' +
+            '<button type="button" onclick="this.parentElement.remove(); if(document.getElementById(\'ev-' + eid + '-sponsor-list\').children.length===0) document.querySelector(\'#ev-' + eid + '-sponsors .sp-empty-note\').style.display=\'block\';" class="text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 p-1.5 rounded-lg transition cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i></button>' +
+          '</div>';
+      });
+      spHtml += '</div></div>';
+
+      let galHtml = '<div class="sm:col-span-2 border-t border-blue-200/50 pt-4 mt-2">' +
+        '<label class="form-label">Gallery Images</label>';
+        
+      if (!r.fetchedGallery) {
+         galHtml += '<div class="text-xs text-slate-500 flex items-center gap-2 mb-2"><i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Fetching gallery...</div>';
+         if (RD_ADMIN.busy !== 'fetch-gal-' + eid) {
+           setTimeout(() => adminFetchGalleryForEdit(eid), 50);
+         }
+      } else {
+         if (r.fetchedGallery.length > 0) {
+           galHtml += '<p class="text-[10px] text-slate-500 mb-2">Click on an image to mark it for deletion.</p><div class="flex flex-wrap gap-2 mb-3">';
+           r.fetchedGallery.forEach(g => {
+             galHtml += '<div class="relative group w-16 h-16 rounded-xl border border-slate-200 overflow-hidden gal-item cursor-pointer" data-id="' + escapeHtml(g.galleryId) + '" onclick="this.classList.toggle(\'opacity-30\'); this.classList.toggle(\'marked-delete\');">' +
+               '<img src="' + escapeHtml(g.image) + '" class="w-full h-full object-cover">' +
+               '<div class="absolute inset-0 bg-rose-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><i data-lucide="trash-2" class="w-5 h-5"></i></div>' +
+               '</div>';
+           });
+           galHtml += '</div>';
+         } else {
+           galHtml += '<p class="text-[10px] text-slate-400 mb-3">No gallery images yet.</p>';
+         }
+      }
+      galHtml += '<div><label class="text-[11px] font-bold text-slate-600 mb-1 block">Add more images (Optional)</label><input type="file" multiple accept="image/*" class="form-input py-2 text-sm" data-ev-image="gallery"></div>';
+      galHtml += '</div>';
+
       return ask + '<div class="mt-4 rounded-2xl border border-blue-200 bg-blue-50/50 p-4 sm:p-5" data-ev-form="' + eid + '">' +
         '<p class="text-xs font-extrabold text-blue-900 mb-3"><i data-lucide="pencil" class="w-3.5 h-3.5 inline"></i> Correcting the details of ' + eid + '</p>' +
         '<div class="grid sm:grid-cols-2 gap-4">' + fields + 
         '<div class="sm:col-span-2 border-t border-blue-200/50 pt-4 mt-2"><label class="form-label" for="ev-' + eid + '-mainImage">Replace Banner Image (Optional)</label><input id="ev-' + eid + '-mainImage" type="file" accept="image/*" class="form-input py-2 text-sm" data-ev-image="mainImage"><p class="text-[10px] text-slate-500 mt-1">Leave empty to keep the current banner.</p></div>' +
+        spHtml + galHtml + 
         '</div>' +
         '<div class="mt-4 flex flex-wrap gap-2">' +
           '<button type="button" onclick="adminEventEditSave(\'' + eid + '\')" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-extrabold hover:bg-blue-700 cursor-pointer"><i data-lucide="save" class="w-3.5 h-3.5"></i> Save the changes</button>' +
           '<button type="button" onclick="adminEventEdit(\'' + eid + '\')" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-extrabold hover:bg-slate-50 cursor-pointer"><i data-lucide="x" class="w-3.5 h-3.5"></i> Close</button>' +
         '</div></div>';
+    }
+
+    function adminAddEditSponsor(eid) {
+      const list = document.getElementById('ev-' + eid + '-sponsor-list');
+      if (!list) return;
+      const note = document.querySelector('#ev-' + eid + '-sponsors .sp-empty-note');
+      if (note) note.style.display = 'none';
+      const div = document.createElement('div');
+      div.className = 'flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-200 sponsor-row';
+      div.innerHTML = '<input type="text" class="form-input text-xs w-1/2 sp-name" placeholder="Sponsor Name">' +
+            '<div class="w-1/2"><input type="file" accept="image/*" class="form-input text-xs w-full py-1.5 sp-logo"></div>' +
+            '<input type="hidden" class="sp-old-logo" value="">' +
+            '<button type="button" onclick="this.parentElement.remove();" class="text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 p-1.5 rounded-lg transition cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i></button>';
+      list.appendChild(div);
+      lucide.createIcons({root: div});
+    }
+
+    async function adminFetchGalleryForEdit(id) {
+      if (RD_ADMIN.busy) return;
+      RD_ADMIN.busy = 'fetch-gal-' + id;
+      renderAdmin();
+      const row = adminFind(id);
+      try {
+        const res = await apiGet('eventgallery', { eventId: id });
+        if (row) row.fetchedGallery = Array.isArray(res.gallery) ? res.gallery : [];
+      } catch(e) {
+        if (row) row.fetchedGallery = [];
+      }
+      RD_ADMIN.busy = '';
+      if (RD_ADMIN.evEdit === id) renderAdmin();
     }
 
     async function adminEventEditSave(id) {
@@ -11296,6 +11373,38 @@ f.reset();
       const imgInput = form.querySelector('[data-ev-image="mainImage"]');
       if (imgInput && imgInput.files && imgInput.files.length > 0) {
         data.mainImage = await filePayload(imgInput.files[0], 4000);
+        changed++;
+      }
+
+      const spRows = form.querySelectorAll('.sponsor-row');
+      if (spRows.length > 0 || (row.raw && row.raw['Sponsors'])) {
+        const newSponsors = [];
+        for (const sp of spRows) {
+          const name = sp.querySelector('.sp-name').value.trim();
+          const logoFile = sp.querySelector('.sp-logo').files[0];
+          const oldLogo = sp.querySelector('.sp-old-logo').value;
+          if (name || logoFile || oldLogo) {
+            let logoObj = oldLogo;
+            if (logoFile) logoObj = await filePayload(logoFile, 4000);
+            newSponsors.push({ name: name, logo: logoObj });
+          }
+        }
+        data.sponsors = newSponsors;
+        changed++;
+      }
+
+      const galInput = form.querySelector('[data-ev-image="gallery"]');
+      if (galInput && galInput.files && galInput.files.length > 0) {
+        data.gallery = [];
+        for (const file of galInput.files) {
+          data.gallery.push(await filePayload(file, 4000));
+        }
+        changed++;
+      }
+
+      const delGal = form.querySelectorAll('.gal-item.marked-delete');
+      if (delGal.length > 0) {
+        data.deleteGallery = Array.from(delGal).map(el => el.getAttribute('data-id'));
         changed++;
       }
       
