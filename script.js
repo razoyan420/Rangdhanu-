@@ -671,7 +671,7 @@
       if (thumb && videoBox && stage) {
         thumb.classList.add('hidden');
         videoBox.classList.remove('hidden');
-        stage.innerHTML = `<iframe src="${escapeHtml(t.embedUrl)}" title="${escapeHtml(t.title || 'Reunion trailer')}" class="absolute inset-0 w-full h-full" frameborder="0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>`;
+        stage.innerHTML = `<iframe src="https://drive.google.com/file/d/1TBB6aN6FbqwksBowMCj1thsvqpXvb2Ic/preview" title="Reunion trailer" class="absolute inset-0 w-full h-full" frameborder="0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>`;
       }
     }
 
