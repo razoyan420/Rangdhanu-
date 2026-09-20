@@ -2680,9 +2680,9 @@
   </a>
 
   <!-- ADMIN UPCOMING EVENT MODAL -->
-  <div id="modal-admin-upcoming" class="fixed inset-0 z-[100] hidden items-start justify-center bg-slate-900/60 backdrop-blur-sm px-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl w-full max-w-2xl my-10 shadow-2xl relative" onclick="event.stopPropagation()">
-      <div class="sticky top-0 bg-white/95 backdrop-blur z-10 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+  <div id="modal-admin-upcoming" class="fixed inset-0 z-[100] hidden items-start justify-center bg-slate-900/60 backdrop-blur-sm px-4 pt-24 pb-12 overflow-y-auto">
+    <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl relative" onclick="event.stopPropagation()">
+      <div class="sticky top-0 bg-white/95 backdrop-blur z-10 px-6 py-4 border-b border-slate-100 flex items-center justify-between rounded-t-3xl">
         <h3 class="text-xl font-extrabold text-slate-900">Create Upcoming Event</h3>
         <button type="button" onclick="closeAdminCreateUpcomingEventModal()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 flex items-center justify-center transition cursor-pointer">
           <i data-lucide="x" class="w-5 h-5"></i>
@@ -2701,7 +2701,7 @@
                 <option>Seminar</option><option>Competition</option><option>Reunion</option><option>Tour</option><option>Social</option><option>Fresher Reception</option><option>Farewell</option>
               </select>
             </div>
-            <div><label class="form-label">Event Date *</label><input name="eventDate" required type="date" class="form-input"></div>
+            <div><label class="form-label">Event Date & Time *</label><input name="eventDate" required type="datetime-local" class="form-input"></div>
           </div>
           
           <div><label class="form-label">Venue *</label><input name="venue" required class="form-input" placeholder="e.g. DUET Auditorium"></div>

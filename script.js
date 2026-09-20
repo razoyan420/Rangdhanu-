@@ -6719,6 +6719,11 @@
                  <div class="flex items-center gap-2 text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider">
                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${escapeHtml(date ? new Date(date).toLocaleDateString('bn-BD', {day:'numeric', month:'long', year:'numeric'}) : '')}
                  </div>
+                 ${countdown ? `
+                 <div class="mb-3 px-3 py-2.5 rounded-xl border border-orange-100 flex flex-col gap-1 items-center justify-center bg-orange-50/50" data-countdown-large="${date}">
+                   <div class="text-[9px] font-bold text-orange-600/70 uppercase tracking-widest">Event Starts In</div>
+                   <div class="font-mono text-base sm:text-lg font-black text-orange-600 tracking-tight" data-cd-timer>-- : -- : -- : --</div>
+                 </div>` : ''}
                  <h3 class="text-lg font-extrabold text-slate-900 leading-tight mb-2 transition-colors line-clamp-2 cursor-pointer" onclick="openDynamicEvent(${globalIdx})" onmouseover="this.style.color='${col.textHex}'" onmouseout="this.style.color=''">${escapeHtml(title)}</h3>
                  <p class="text-sm text-slate-600 line-clamp-2 mb-5">${escapeHtml(short)}</p>
                  <div class="mt-auto pt-4 border-t border-slate-100">
@@ -11591,7 +11596,7 @@ f.reset();
       else if (e.key === 'Escape') { closeLightbox(); }
     });
 
-    /* ── Flip card click toggle (touch & click) ─────────────────── */
+    /* ──    /* 📱 Flip card click toggle (touch & click) 📱📱📱📱📱📱📱📱📱📱📱📱📱📱📱📱📱📱📱 */
     (function rdFlipCards() {
       document.addEventListener('click', function(e) {
         const card = e.target.closest('.rd-flip-card');
@@ -11599,3 +11604,38 @@ f.reset();
         card.classList.toggle('rd-flipped');
       });
     })();
+
+    /* ⏱️ Live Event Countdown Interval ⏱️ */
+    setInterval(function() {
+      document.querySelectorAll("[data-countdown-large]").forEach(function(el) {
+        const dateStr = el.getAttribute("data-countdown-large");
+        if (!dateStr) return;
+        const ev = new Date(dateStr);
+        if (isNaN(ev.valueOf())) return;
+        const now = new Date();
+        const diffMs = ev - now;
+        const timerEl = el.querySelector("[data-cd-timer]");
+        if (!timerEl) return;
+        
+        if (diffMs <= 0) {
+          timerEl.textContent = "Event Started / Past";
+          timerEl.classList.remove("text-orange-600");
+          timerEl.classList.add("text-slate-400");
+          el.classList.add("opacity-50");
+          return;
+        }
+        
+        const d = Math.floor(diffMs / 86400000);
+        const h = Math.floor((diffMs % 86400000) / 3600000);
+        const m = Math.floor((diffMs % 3600000) / 60000);
+        const s = Math.floor((diffMs % 60000) / 1000);
+        
+        let parts = [];
+        if (d > 0) parts.push(d + "d");
+        parts.push(String(h).padStart(2, "0") + "h");
+        parts.push(String(m).padStart(2, "0") + "m");
+        parts.push(String(s).padStart(2, "0") + "s");
+        
+        timerEl.textContent = parts.join(" : ");
+      });
+    }, 1000);
