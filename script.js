@@ -4656,7 +4656,7 @@
         const imgInput = f.querySelector('[name="mainImage"]');
         let imgObj = null;
         if (imgInput.files && imgInput.files.length > 0) {
-          imgObj = await filePayload(imgInput.files[0]);
+          imgObj = await filePayload(imgInput.files[0], 2400);
         }
 
         const payload = {
@@ -6809,17 +6809,16 @@
       }
 
       c.innerHTML = `
-        <div class="relative w-full h-[250px] sm:h-[400px] bg-slate-900 sm:rounded-t-3xl overflow-hidden">
-           ${img ? `<img src="${escapeHtml(img)}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover opacity-90">` : ''}
-           <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-800/20 to-transparent"></div>
-           <div class="absolute bottom-6 sm:bottom-10 left-6 sm:left-10 right-6 sm:right-10">
-               <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-md mb-3">${escapeHtml(e.category || 'Event')}</span>
-               <h2 class="text-2xl sm:text-4xl font-extrabold text-white leading-tight">${escapeHtml(title)}</h2>
-           </div>
+        <div class="w-full bg-slate-100 sm:rounded-t-3xl overflow-hidden flex items-center justify-center">
+           ${img ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" class="w-full max-h-[60vh] object-contain">` : ''}
         </div>
         <div class="p-6 sm:p-10 bg-white sm:rounded-b-3xl">
+           <div class="mb-8">
+               <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-widest rounded-md mb-4">${escapeHtml(e.category || 'Event')}</span>
+               <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-tight">${escapeHtml(title)}</h2>
+           </div>
            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              ${date ? `<div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i data-lucide="calendar" class="w-5 h-5"></i></div><div><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Date</p><p class="font-bold text-slate-900">${new Date(date).toLocaleDateString('bn-BD', {day:'numeric', month:'long', year:'numeric'})}</p></div></div>` : ''}
+              ${date ? `<div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i data-lucide="calendar" class="w-5 h-5"></i></div><div><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Date & Time</p><p class="font-bold text-slate-900">${new Date(date).toLocaleString('en-US', {day:'numeric', month:'long', year:'numeric', hour:'numeric', minute:'2-digit', hour12:true})}</p></div></div>` : ''}
               ${venue ? `<div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0"><i data-lucide="map-pin" class="w-5 h-5"></i></div><div><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Venue</p><p class="font-bold text-slate-900 line-clamp-1">${escapeHtml(venue)}</p></div></div>` : ''}
               <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0"><i data-lucide="users" class="w-5 h-5"></i></div><div><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Organized By</p><p class="font-bold text-slate-900 line-clamp-1">RANGDHANU</p></div></div>
            </div>
