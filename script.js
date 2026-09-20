@@ -619,7 +619,7 @@
             <div class="relative bg-slate-950 aspect-[16/10] sm:aspect-video w-full">
               <button type="button" id="drive-trailer-thumb" onclick="rdPlayTrailer()" aria-label="Play Trailer"
                 class="absolute inset-0 w-full h-full group overflow-hidden block z-10">
-                <img src="${escapeHtml(t.poster || '')}" alt="${escapeHtml(title)}" loading="lazy" decoding="async"
+                <img src="reunion-cover.jpg" alt="${escapeHtml(title)}" loading="lazy" decoding="async"
                   onerror="rdPhotoFallback(this)"
                   class="absolute inset-0 w-full h-full object-cover opacity-75 transition-transform duration-700 group-hover:scale-105">
                 <span class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-slate-950/10"></span>
@@ -629,7 +629,7 @@
                   </span>
                 </span>
                 <span class="absolute left-3 bottom-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/70 border border-white/15 text-white text-[11px] font-bold tracking-wide">
-                  <i class="w-3 h-3" data-lucide="clapperboard"></i> ট্রেইলার
+                  <i class="w-3 h-3" data-lucide="clapperboard"></i> Trailer
                 </span>
               </button>
               <div id="drive-trailer-video" class="hidden absolute inset-0 w-full h-full bg-black z-20">
@@ -648,12 +648,8 @@
               <div class="mt-2 flex flex-wrap items-center gap-2.5">
                 <button type="button" onclick="rdPlayTrailer()"
                   class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors shadow-sm">
-                  <i class="w-4 h-4" data-lucide="play"></i> ট্রেইলারটি প্লে করুন
+                  <i class="w-4 h-4" data-lucide="play"></i> Play Trailer
                 </button>
-                <a href="${escapeHtml(t.openUrl || '#')}" target="_blank" rel="noopener"
-                  class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-sm font-bold transition-colors">
-                  <i class="w-4 h-4" data-lucide="external-link"></i> Drive-এ দেখুন
-                </a>
               </div>
             </div>
           </div>
