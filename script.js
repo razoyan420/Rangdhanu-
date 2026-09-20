@@ -7677,10 +7677,33 @@ f.reset();
       if (!lines.length) { track.innerHTML = ''; return; }
       /* The list is printed twice so the line never leaves a visible gap
          between the last notice and the first one coming round again. */
-      const one = lines.map(t =>
-        '<span class="inline-flex items-center gap-2 text-[13px] font-bold text-amber-900">' +
-        '<i data-lucide="dot" class="w-4 h-4 text-amber-500"></i>' + escapeHtml(t.text) + '</span>').join('');
+      const one = lines.map(t => {
+        let dateBadge = '';
+        let newBadge = '';
+        if (t.postedDate) {
+          const d = new Date(t.postedDate.replace(' ', 'T'));
+          if (!isNaN(d.valueOf())) {
+            const m = d.toLocaleString('en-US', { month: 'short' });
+            const dy = d.getDate();
+            dateBadge = `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] uppercase font-extrabold shadow-sm border border-amber-200"><i data-lucide="calendar" class="w-2.5 h-2.5"></i> ${dy} ${m}</span>`;
+            
+            const diffDays = (new Date() - d) / (1000 * 60 * 60 * 24);
+            if (diffDays <= 7) {
+               newBadge = `<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-red-500 text-white text-[9px] font-black uppercase tracking-wider animate-pulse ml-1 shadow-sm">NEW</span>`;
+            }
+          }
+        }
+        return `<span class="inline-flex items-center gap-2 text-[13px] sm:text-sm font-bold text-amber-900 cursor-pointer hover:text-blue-600 transition-colors py-1" onclick="openTextNoticeModal('${escapeHtml(t.noticeId)}')">` +
+          `<i data-lucide="bell-ring" class="w-4 h-4 text-amber-600 animate-bounce"></i>` + dateBadge + newBadge + 
+          `<span class="truncate max-w-[600px] hover:underline underline-offset-2">` + escapeHtml(t.text) + `</span></span>`;
+      }).join('');
       track.innerHTML = one + (lines.length < 4 ? one : '');
+    }
+
+    function openTextNoticeModal(noticeId) {
+      const t = RD_NB.ticker.find(x => String(x.noticeId) === String(noticeId));
+      if (!t) return;
+      showToast(t.text, 'info', 'Notice Board', { btnText: 'Close' });
     }
 
     function noticeThumb(n) {
@@ -7911,10 +7934,33 @@ f.reset();
       if (!lines.length) { track.innerHTML = ''; return; }
       /* Printed twice, so the line never leaves a visible gap between the
          last notice and the first one coming round again. */
-      const one = lines.map(t =>
-        '<span class="inline-flex items-center gap-2 text-[13px] font-bold text-indigo-900">' +
-        '<i data-lucide="dot" class="w-4 h-4 text-indigo-500"></i>' + escapeHtml(t.text) + '</span>').join('');
+      const one = lines.map(t => {
+        let dateBadge = '';
+        let newBadge = '';
+        if (t.postedDate) {
+          const d = new Date(t.postedDate.replace(' ', 'T'));
+          if (!isNaN(d.valueOf())) {
+            const m = d.toLocaleString('en-US', { month: 'short' });
+            const dy = d.getDate();
+            dateBadge = `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[10px] uppercase font-extrabold shadow-sm border border-indigo-200"><i data-lucide="calendar" class="w-2.5 h-2.5"></i> ${dy} ${m}</span>`;
+            
+            const diffDays = (new Date() - d) / (1000 * 60 * 60 * 24);
+            if (diffDays <= 7) {
+               newBadge = `<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-red-500 text-white text-[9px] font-black uppercase tracking-wider animate-pulse ml-1 shadow-sm">NEW</span>`;
+            }
+          }
+        }
+        return `<span class="inline-flex items-center gap-2 text-[13px] sm:text-sm font-bold text-indigo-900 cursor-pointer hover:text-blue-600 transition-colors py-1" onclick="openPdaccTextNoticeModal('${escapeHtml(t.lineId)}')">` +
+          `<i data-lucide="bell-ring" class="w-4 h-4 text-indigo-600 animate-bounce"></i>` + dateBadge + newBadge + 
+          `<span class="truncate max-w-[600px] hover:underline underline-offset-2">` + escapeHtml(t.text) + `</span></span>`;
+      }).join('');
       track.innerHTML = one + (lines.length < 4 ? one : '');
+    }
+
+    function openPdaccTextNoticeModal(lineId) {
+      const t = RD_PD.ticker.find(x => String(x.lineId) === String(lineId));
+      if (!t) return;
+      showToast(t.text, 'info', 'Coaching Notice', { btnText: 'Close' });
     }
 
     /* An update with no picture of its own carries the crest. */
