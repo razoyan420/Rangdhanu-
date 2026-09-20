@@ -4669,6 +4669,10 @@
           eventDate: f.querySelector('[name="eventDate"]').value,
           venue: f.querySelector('[name="venue"]').value,
           shortDescription: f.querySelector('[name="shortDescription"]').value,
+          fullDescription: f.querySelector('[name="fullDescription"]') ? f.querySelector('[name="fullDescription"]').value : f.querySelector('[name="shortDescription"]').value,
+          organizedBy: 'Admin',
+          submittedBy: 'Admin',
+          submitterEmail: 'admin@rangdhanu.org',
           mainImage: imgObj
         };
 
