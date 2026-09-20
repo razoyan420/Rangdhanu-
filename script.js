@@ -4660,13 +4660,14 @@
         const imgInput = f.querySelector('[name="mainImage"]');
         let imgObj = null;
         if (imgInput.files && imgInput.files.length > 0) {
-          imgObj = await prepareImagePayload(imgInput.files[0]);
+          imgObj = await processImageForPayload(imgInput.files[0]);
         }
 
         const payload = {
           eventName: f.querySelector('[name="eventName"]').value,
           category: f.querySelector('[name="category"]').value,
           eventDate: f.querySelector('[name="eventDate"]').value,
+          venue: f.querySelector('[name="venue"]').value,
           shortDescription: f.querySelector('[name="shortDescription"]').value,
           mainImage: imgObj
         };
@@ -4685,7 +4686,9 @@
         
       } catch (err) {
         st.className = 'block rounded-xl p-4 text-sm font-bold text-center bg-rose-50 text-rose-700 border border-rose-200';
-        reportError(err, st);
+        st.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4 inline mr-1"></i> ' + (err.message || 'Error occurred');
+        lucide.createIcons();
+        reportError(err, f);
       } finally {
         btn.disabled = false;
       }
