@@ -6525,17 +6525,19 @@
        twice. There is one grid now, so the two things that used to be implicit
        are decided here: a name that turns up twice is drawn once, and the order
        is the event date, newest first. */
-    /* Category colour map. New categories fall back to blue. */
+    /* Category colour map using inline hex styles — safe regardless of
+       whether the Tailwind build contains those classes. */
     const RD_EV_CAT_COLOURS = {
-      'Tour':                { bg: 'bg-emerald-500', text: 'text-emerald-700', light: 'bg-emerald-50 border-emerald-200', pill: 'bg-emerald-100 text-emerald-800' },
-      'পরিবেশ ও সমাজকল্যাণ':{ bg: 'bg-green-500',   text: 'text-green-700',   light: 'bg-green-50 border-green-200',   pill: 'bg-green-100 text-green-800' },
-      'পুনর্মিলনী':         { bg: 'bg-rose-500',    text: 'text-rose-700',    light: 'bg-rose-50 border-rose-200',     pill: 'bg-rose-100 text-rose-800' },
-      'Reunion':             { bg: 'bg-rose-500',    text: 'text-rose-700',    light: 'bg-rose-50 border-rose-200',     pill: 'bg-rose-100 text-rose-800' },
-      'Cultural':            { bg: 'bg-purple-500',  text: 'text-purple-700',  light: 'bg-purple-50 border-purple-200', pill: 'bg-purple-100 text-purple-800' },
-      'Sports':              { bg: 'bg-orange-500',  text: 'text-orange-700',  light: 'bg-orange-50 border-orange-200', pill: 'bg-orange-100 text-orange-800' },
+      'Tour':                { bg: '#10b981', border: '#059669', textHex: '#065f46', lightBg: '#ecfdf5', lightBorder: '#a7f3d0' },
+      'পরিবেশ ও সমাজকল্যাণ':{ bg: '#22c55e', border: '#16a34a', textHex: '#14532d', lightBg: '#f0fdf4', lightBorder: '#bbf7d0' },
+      'পুনর্মিলনী':         { bg: '#f43f5e', border: '#e11d48', textHex: '#881337', lightBg: '#fff1f2', lightBorder: '#fecdd3' },
+      'Reunion':             { bg: '#f43f5e', border: '#e11d48', textHex: '#881337', lightBg: '#fff1f2', lightBorder: '#fecdd3' },
+      'Cultural':            { bg: '#a855f7', border: '#9333ea', textHex: '#581c87', lightBg: '#faf5ff', lightBorder: '#e9d5ff' },
+      'Sports':              { bg: '#f97316', border: '#ea580c', textHex: '#7c2d12', lightBg: '#fff7ed', lightBorder: '#fed7aa' },
+      'Academic':            { bg: '#3b82f6', border: '#2563eb', textHex: '#1e3a8a', lightBg: '#eff6ff', lightBorder: '#bfdbfe' },
     };
     function rdEvCatColour(cat) {
-      return RD_EV_CAT_COLOURS[cat] || { bg: 'bg-blue-500', text: 'text-blue-700', light: 'bg-blue-50 border-blue-200', pill: 'bg-blue-100 text-blue-800' };
+      return RD_EV_CAT_COLOURS[cat] || { bg: '#3b82f6', border: '#2563eb', textHex: '#1e3a8a', lightBg: '#eff6ff', lightBorder: '#bfdbfe' };
     }
 
     /* Returns a short countdown string for future events, or '' for past ones */
@@ -6583,7 +6585,10 @@
           filterBox.innerHTML = cats.map(c => {
             const col = rdEvCatColour(c);
             const active = RD_EV_ACTIVE_FILTER === c;
-            return `<button type="button" onclick="rdEvFilter('${escapeHtml(c)}')" id="ev-tab-${escapeHtml(c)}" class="ev-filter-tab ${active ? col.bg + ' text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50'} inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold transition-all duration-200">${escapeHtml(c)}</button>`;
+            const activeStyle = active
+              ? `background:${col.bg};color:#fff;border-color:${col.border};box-shadow:0 2px 8px ${col.bg}55`
+              : `background:#fff;color:#475569;border-color:#e2e8f0`;
+            return `<button type="button" onclick="rdEvFilter('${escapeHtml(c)}')" style="${activeStyle};border:1.5px solid;padding:6px 16px;border-radius:999px;font-size:11px;font-weight:800;transition:all .2s;cursor:pointer;display:inline-flex;align-items:center;gap:6px;" onmouseover="if(this.dataset.active!='1'){this.style.background='#f1f5f9'}" onmouseout="if(this.dataset.active!='1'){this.style.background='#fff'}" data-active="${active ? '1' : '0'}">${escapeHtml(c)}</button>`;
           }).join('');
         }
 
@@ -6613,18 +6618,18 @@
             <article class="group bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden">
                <div class="relative aspect-video bg-slate-100 overflow-hidden cursor-pointer" onclick="openDynamicEvent(${globalIdx})">
                  ${img ? `<img src="${escapeHtml(img)}"${local ? ` data-rd-img="${escapeHtml(local)}" onerror="rdImgFallback(this, '${escapeHtml(local)}')"` : ''} alt="${escapeHtml(title)}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">` : '<div class="w-full h-full flex items-center justify-center"><i data-lucide="image" class="w-8 h-8 text-slate-300"></i></div>'}
-                 <div class="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur ${col.text} text-[10px] font-black uppercase tracking-widest shadow-sm">${escapeHtml(cat)}</div>
-                 ${countdown ? `<div class="absolute top-4 right-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500 text-white text-[9px] font-black uppercase tracking-wider shadow animate-pulse"><i data-lucide="timer" class="w-2.5 h-2.5"></i> ${escapeHtml(countdown)}</div>` : ''}
-                 ${galleryCount > 0 ? `<div class="absolute bottom-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-black/60 text-white text-[10px] font-bold backdrop-blur"><i data-lucide="images" class="w-3 h-3"></i> ${galleryCount} photos</div>` : ''}
+                 <div class="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur text-[10px] font-black uppercase tracking-widest shadow-sm" style="color:${col.textHex}">${escapeHtml(cat)}</div>
+                 ${countdown ? `<div class="absolute top-4 right-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-white text-[9px] font-black uppercase tracking-wider shadow animate-pulse" style="background:#f59e0b"><i data-lucide="timer" class="w-2.5 h-2.5"></i> ${escapeHtml(countdown)}</div>` : ''}
+                 ${galleryCount > 0 ? `<div class="absolute bottom-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-lg text-white text-[10px] font-bold" style="background:rgba(0,0,0,.6)"><i data-lucide="images" class="w-3 h-3"></i> ${galleryCount} photos</div>` : ''}
                </div>
                <div class="p-6 flex-1 flex flex-col">
                  <div class="flex items-center gap-2 text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider">
                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${escapeHtml(date ? new Date(date).toLocaleDateString('bn-BD', {day:'numeric', month:'long', year:'numeric'}) : '')}
                  </div>
-                 <h3 class="text-lg font-extrabold text-slate-900 leading-tight mb-2 group-hover:${col.text} transition-colors line-clamp-2 cursor-pointer" onclick="openDynamicEvent(${globalIdx})">${escapeHtml(title)}</h3>
+                 <h3 class="text-lg font-extrabold text-slate-900 leading-tight mb-2 transition-colors line-clamp-2 cursor-pointer" onclick="openDynamicEvent(${globalIdx})" onmouseover="this.style.color='${col.textHex}'" onmouseout="this.style.color=''">${escapeHtml(title)}</h3>
                  <p class="text-sm text-slate-600 line-clamp-2 mb-5">${escapeHtml(short)}</p>
                  <div class="mt-auto pt-4 border-t border-slate-100">
-                   <button onclick="openDynamicEvent(${globalIdx})" class="rd-detail-btn w-full py-2.5 rounded-xl ${col.light} group-hover:${col.bg} ${col.text} group-hover:text-white text-sm font-bold transition-colors border">View details</button>
+                   <button onclick="openDynamicEvent(${globalIdx})" class="rd-detail-btn w-full py-2.5 rounded-xl text-sm font-bold transition-all border" style="background:${col.lightBg};color:${col.textHex};border-color:${col.lightBorder}" onmouseover="this.style.background='${col.bg}';this.style.color='#fff';this.style.borderColor='${col.border}'" onmouseout="this.style.background='${col.lightBg}';this.style.color='${col.textHex}';this.style.borderColor='${col.lightBorder}'">View details</button>
                  </div>
                </div>
             </article>
