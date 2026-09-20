@@ -4630,6 +4630,68 @@
     }
     function closeEventSubmitModal(){ goBackFromSubPage('event-new'); }
     function closeDynamicEventModal(){ goBackFromSubPage('event-detail'); }
+    
+    function openAdminCreateUpcomingEventModal() {
+      document.getElementById('modal-admin-upcoming').classList.remove('hidden');
+      document.getElementById('modal-admin-upcoming').classList.add('flex');
+      document.getElementById('form-admin-upcoming').reset();
+      const st = document.getElementById('admin-upcoming-status');
+      st.className = 'hidden rounded-xl p-4 text-sm font-bold text-center';
+      st.innerHTML = '';
+    }
+    
+    function closeAdminCreateUpcomingEventModal() {
+      document.getElementById('modal-admin-upcoming').classList.remove('flex');
+      document.getElementById('modal-admin-upcoming').classList.add('hidden');
+    }
+    
+    async function adminSubmitUpcomingEvent(e) {
+      e.preventDefault();
+      const f = e.target;
+      const st = document.getElementById('admin-upcoming-status');
+      const btn = f.querySelector('button[type="submit"]');
+      
+      try {
+        st.className = 'block rounded-xl p-4 text-sm font-bold text-center bg-blue-50 text-blue-700';
+        st.innerHTML = '<i data-lucide="loader" class="w-4 h-4 inline animate-spin mr-1"></i> Creating upcoming event...';
+        btn.disabled = true;
+        lucide.createIcons();
+
+        const imgInput = f.querySelector('[name="mainImage"]');
+        let imgObj = null;
+        if (imgInput.files && imgInput.files.length > 0) {
+          const file = imgInput.files[0];
+          imgObj = { fileName: file.name, mimeType: file.type, base64: await fileToBase64(file) };
+        }
+
+        const payload = {
+          eventName: f.querySelector('[name="eventName"]').value,
+          category: f.querySelector('[name="category"]').value,
+          eventDate: f.querySelector('[name="eventDate"]').value,
+          shortDescription: f.querySelector('[name="shortDescription"]').value,
+          mainImage: imgObj
+        };
+
+        const r = await apiPost('admincreateupcomingevent', payload);
+        
+        st.className = 'block rounded-xl p-4 text-sm font-bold text-center bg-emerald-50 text-emerald-700 border border-emerald-200';
+        st.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i> ' + (r.message || 'Upcoming event created successfully!');
+        lucide.createIcons();
+        f.reset();
+        
+        // Refresh admin event list
+        if (window.adminNav) window.adminNav('events');
+        
+        setTimeout(() => closeAdminCreateUpcomingEventModal(), 2000);
+        
+      } catch (err) {
+        st.className = 'block rounded-xl p-4 text-sm font-bold text-center bg-rose-50 text-rose-700 border border-rose-200';
+        reportError(err, st);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+    
     function fileToBase64(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]||''); r.onerror=rej; r.readAsDataURL(file);}); }
 
     /* ---------- Automatic image compression, done in the browser ----------
@@ -6535,6 +6597,8 @@
       'Cultural':            { bg: '#a855f7', border: '#9333ea', textHex: '#581c87', lightBg: '#faf5ff', lightBorder: '#e9d5ff' },
       'Sports':              { bg: '#f97316', border: '#ea580c', textHex: '#7c2d12', lightBg: '#fff7ed', lightBorder: '#fed7aa' },
       'Academic':            { bg: '#3b82f6', border: '#2563eb', textHex: '#1e3a8a', lightBg: '#eff6ff', lightBorder: '#bfdbfe' },
+      'Fresher Reception':   { bg: '#06b6d4', border: '#0891b2', textHex: '#164e63', lightBg: '#ecfeff', lightBorder: '#a5f3fc' },
+      'Farewell':            { bg: '#6366f1', border: '#4f46e5', textHex: '#312e81', lightBg: '#eef2ff', lightBorder: '#c7d2fe' },
     };
     function rdEvCatColour(cat) {
       return RD_EV_CAT_COLOURS[cat] || { bg: '#3b82f6', border: '#2563eb', textHex: '#1e3a8a', lightBg: '#eff6ff', lightBorder: '#bfdbfe' };
@@ -6596,7 +6660,34 @@
         
         const filtered = RD_EV_ACTIVE_FILTER === 'All' ? rdAll : rdAll.filter(e => (e.category || e['Category'] || 'Event') === RD_EV_ACTIVE_FILTER);
 
-        g.innerHTML = filtered.map((raw, index) => {
+        const now = new Date();
+        now.setHours(0,0,0,0);
+
+        const upcomingEvents = [];
+        const pastEvents = [];
+
+        filtered.forEach(raw => {
+          const dStr = String(raw.eventDate || raw['Event Date'] || '').trim();
+          let isUpcoming = false;
+          if (dStr) {
+            const d = new Date(dStr);
+            if (!isNaN(d.getTime())) {
+              const check = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+              if (check >= now) isUpcoming = true;
+            }
+          }
+          const isUpcomingStatus = String(raw.Status || raw.status || '').trim().toUpperCase() === 'UPCOMING';
+          
+          // An event goes to the upcoming grid if it's explicitly UPCOMING or date is in the future.
+          // BUT if it has a date and that date has passed, it MUST go to the past grid.
+          if ((isUpcomingStatus || isUpcoming) && !(dStr && !isUpcoming)) {
+            upcomingEvents.push(raw);
+          } else {
+            pastEvents.push(raw);
+          }
+        });
+
+        const renderEventCard = (raw) => {
           /* The curated events keep their pictures in Drive. The hand-written
              cards had their covers swapped in after the manifest arrived; a
              script-drawn card asks for the Drive copy right here. */
@@ -6634,7 +6725,25 @@
                </div>
             </article>
           `;
-        }).join('');
+        };
+
+        const upcomingGrid = document.getElementById('public-upcoming-grid');
+        const upcomingSection = document.getElementById('public-upcoming-section');
+        
+        if (upcomingEvents.length > 0) {
+          if (upcomingGrid) upcomingGrid.innerHTML = upcomingEvents.map(renderEventCard).join('');
+          if (upcomingSection) {
+            upcomingSection.classList.remove('hidden');
+            upcomingSection.classList.add('block');
+          }
+        } else {
+          if (upcomingSection) {
+            upcomingSection.classList.remove('block');
+            upcomingSection.classList.add('hidden');
+          }
+        }
+
+        g.innerHTML = pastEvents.map(renderEventCard).join('');
         if (window.lucide) lucide.createIcons();
     }
 
@@ -8206,7 +8315,7 @@ f.reset();
       { key: 'unclaimed-audits', label: 'Merge Audit',             icon: 'file-check-2', action: 'adminunclaimedaudits', custom: true },
       { key: 'summary',       label: 'Members Summary',         icon: 'bar-chart-3',  action: '',                    custom: true }
     ];
-    const RD_ADMIN_STATUSES = ['PENDING', 'DUPLICATE', 'APPROVED', 'REJECTED', 'ALL'];
+    const RD_ADMIN_STATUSES = ['PENDING', 'DUPLICATE', 'APPROVED', 'REJECTED', 'UPCOMING', 'ALL'];
 
     /* A repeat application is saved with Status = 'DUPLICATE' instead of being
        thrown away, and the applicant is told an admin will check it. Only the
@@ -8321,7 +8430,7 @@ f.reset();
     }
 
     function adminCounts() {
-      const c = { PENDING: 0, DUPLICATE: 0, APPROVED: 0, REJECTED: 0, ALL: 0 };
+      const c = { PENDING: 0, DUPLICATE: 0, APPROVED: 0, REJECTED: 0, UPCOMING: 0, ALL: 0 };
       (RD_ADMIN.rows[RD_ADMIN.tab] || []).forEach(r => {
         if (c.hasOwnProperty(r.status)) c[r.status]++;
         c.ALL++;
@@ -9201,12 +9310,18 @@ f.reset();
           const batchToolbar = (RD_ADMIN.status === 'PENDING' || RD_ADMIN.status === 'DUPLICATE' || RD_ADMIN.status === 'ALL')
             ? adminBatchToolbarHtml()
             : '';
-          box.innerHTML = rows.length
+            
+          let createBtn = '';
+          if (RD_ADMIN.tab === 'events') {
+            createBtn = '<div class="mb-4 flex justify-end"><button type="button" onclick="openAdminCreateUpcomingEventModal()" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold shadow hover:bg-blue-700 transition cursor-pointer"><i data-lucide="plus-circle" class="w-4 h-4"></i> Create Upcoming Event</button></div>';
+          }
+
+          box.innerHTML = createBtn + (rows.length
             ? batchToolbar + rows.map(adminCard).join('')
             : adminInfoBox('inbox', 'Nothing here right now',
                 RD_ADMIN.status === 'DUPLICATE'
                   ? 'No repeat applications are waiting. Anything the system flags as a possible duplicate shows up here.'
-                  : 'No ' + adminTabMeta(RD_ADMIN.tab).label.toLowerCase() + ' with status ' + RD_ADMIN.status + '.', 'empty');
+                  : 'No ' + adminTabMeta(RD_ADMIN.tab).label.toLowerCase() + ' with status ' + RD_ADMIN.status + '.', 'empty'));
         }
       }
       lucide.createIcons();
@@ -11099,7 +11214,7 @@ f.reset();
       ['adminNote', 'Admin Note', 'Admin note', 'area']
     ];
     var RD_EV_CATEGORIES = ['Academic', 'Cultural', 'Sports', 'Workshop', 'Seminar',
-                            'Competition', 'Reunion', 'Tour', 'Social'];
+                            'Competition', 'Reunion', 'Tour', 'Social', 'Fresher Reception', 'Farewell'];
 
     function adminEventEdit(id) {
       RD_ADMIN.evEdit = RD_ADMIN.evEdit === id ? '' : id;
