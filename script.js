@@ -103,6 +103,7 @@
        needsData = the page is filled in at runtime, so a direct link / refresh must
                    bounce to the parent instead of showing an empty page.            */
     const RD_SUBPAGES = {
+      'admin-event-new': { parent: 'admin', needsData: false },
       'notice':       { parent: 'home',   needsData: true  },
       'event-new':    { parent: 'events', needsData: false },
       'event-detail': { parent: 'events', needsData: true  },
@@ -4628,17 +4629,11 @@
     function closeDynamicEventModal(){ goBackFromSubPage('event-detail'); }
     
     function openAdminCreateUpcomingEventModal() {
-      document.getElementById('modal-admin-upcoming').classList.remove('hidden');
-      document.getElementById('modal-admin-upcoming').classList.add('flex');
+      openSubPage('admin-event-new', 'admin');
       document.getElementById('form-admin-upcoming').reset();
       const st = document.getElementById('admin-upcoming-status');
-      st.className = 'hidden rounded-xl p-4 text-sm font-bold text-center';
+      st.className = 'hidden rounded-xl p-4 text-sm font-bold text-center mt-4';
       st.innerHTML = '';
-    }
-    
-    function closeAdminCreateUpcomingEventModal() {
-      document.getElementById('modal-admin-upcoming').classList.remove('flex');
-      document.getElementById('modal-admin-upcoming').classList.add('hidden');
     }
     
     async function adminSubmitUpcomingEvent(e) {
@@ -4682,7 +4677,7 @@
         // Refresh admin event list
         if (window.adminNav) window.adminNav('events');
         
-        setTimeout(() => closeAdminCreateUpcomingEventModal(), 2000);
+        setTimeout(() => goBackFromSubPage('admin-event-new'), 2000);
         
       } catch (err) {
         st.className = 'block rounded-xl p-4 text-sm font-bold text-center bg-rose-50 text-rose-700 border border-rose-200';

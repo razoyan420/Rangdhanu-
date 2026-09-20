@@ -2679,6 +2679,57 @@
     <span><i>PDACC</i><b>Seat Booking</b></span>
   </a>
 
+  <!-- ================= SUB-PAGE: ADMIN CREATE UPCOMING EVENT ================= -->
+  <div class="page-view" id="page-admin-event-new">
+    <div class="subpage-bar">
+      <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+        <button type="button" onclick="goBackFromSubPage('admin-event-new')" class="subpage-back"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+        <span class="text-sm font-bold text-slate-500 truncate min-w-0">Admin Dashboard</span>
+      </div>
+    </div>
+    <section class="py-10 sm:py-14 bg-slate-50 min-h-[70vh]">
+      <div class="max-w-3xl mx-auto px-4">
+        <div class="mb-7">
+          <h2 class="text-3xl font-extrabold text-slate-900">Create Upcoming Event</h2>
+          <p class="mt-2 text-sm text-slate-500 leading-relaxed">Directly create a new upcoming event for the public grid. It will go live immediately.</p>
+        </div>
+        <form id="form-admin-upcoming" class="bg-white p-6 sm:p-9 rounded-[28px] border border-slate-200 shadow-xl space-y-5" onsubmit="adminSubmitUpcomingEvent(event)">
+          <div><label class="form-label">Event Name *</label><input name="eventName" required class="form-input"></div>
+          
+          <div class="grid sm:grid-cols-2 gap-5">
+            <div>
+              <label class="form-label">Category *</label>
+              <select name="category" required class="form-input">
+                <option value="">Select category</option>
+                <option>Academic</option><option>Cultural</option><option>Sports</option><option>Workshop</option>
+                <option>Seminar</option><option>Competition</option><option>Reunion</option><option>Tour</option><option>Social</option><option>Fresher Reception</option><option>Farewell</option>
+              </select>
+            </div>
+            <div><label class="form-label">Event Date & Time *</label><input name="eventDate" required type="datetime-local" class="form-input"></div>
+          </div>
+          
+          <div><label class="form-label">Venue *</label><input name="venue" required class="form-input" placeholder="e.g. DUET Auditorium"></div>
+          
+          <div><label class="form-label">Short Description *</label><input name="shortDescription" required maxlength="240" class="form-input" placeholder="Describe the event in one line"></div>
+          
+          <div><label class="form-label">Full Description *</label><textarea name="fullDescription" required rows="3" class="form-input" placeholder="Write the full details"></textarea></div>
+          
+          <div><label class="form-label">Banner Image *</label><input name="mainImage" required type="file" accept="image/*" class="form-input py-2 text-sm"></div>
+          
+          <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+            <button type="button" onclick="goBackFromSubPage('admin-event-new')" class="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition cursor-pointer">Cancel</button>
+            <button type="submit" class="px-6 py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition inline-flex items-center gap-2 cursor-pointer">
+              <i data-lucide="upload-cloud" class="w-4 h-4"></i> Create Event
+            </button>
+          </div>
+          
+          <!-- Status area -->
+          <div id="admin-upcoming-status" class="hidden rounded-xl p-4 text-sm font-bold text-center mt-4"></div>
+        </form>
+      </div>
+    </section>
+  </div>
+
 </main>
 
 
@@ -2736,53 +2787,6 @@ Do not modify social links or structure without permission.
     </div>
   </div>
 </footer>
-
-  <!-- ADMIN UPCOMING EVENT MODAL -->
-  <div id="modal-admin-upcoming" class="fixed inset-0 z-[100] hidden items-start justify-center bg-slate-900/80 backdrop-blur-sm px-4 py-12 overflow-y-auto">
-    <div class="bg-white rounded-3xl w-full max-w-2xl my-auto shadow-2xl relative" onclick="event.stopPropagation()">
-      <div class="sticky top-0 bg-white/95 backdrop-blur z-10 px-6 py-4 border-b border-slate-100 flex items-center justify-between rounded-t-3xl">
-        <h3 class="text-xl font-extrabold text-slate-900">Create Upcoming Event</h3>
-        <button type="button" onclick="closeAdminCreateUpcomingEventModal()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 flex items-center justify-center transition cursor-pointer">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-      <div class="p-6">
-        <form id="form-admin-upcoming" onsubmit="adminSubmitUpcomingEvent(event)" class="space-y-5">
-          <div><label class="form-label">Event Name *</label><input name="eventName" required class="form-input"></div>
-          
-          <div class="grid sm:grid-cols-2 gap-5">
-            <div>
-              <label class="form-label">Category *</label>
-              <select name="category" required class="form-input">
-                <option value="">Select category</option>
-                <option>Academic</option><option>Cultural</option><option>Sports</option><option>Workshop</option>
-                <option>Seminar</option><option>Competition</option><option>Reunion</option><option>Tour</option><option>Social</option><option>Fresher Reception</option><option>Farewell</option>
-              </select>
-            </div>
-            <div><label class="form-label">Event Date & Time *</label><input name="eventDate" required type="datetime-local" class="form-input"></div>
-          </div>
-          
-          <div><label class="form-label">Venue *</label><input name="venue" required class="form-input" placeholder="e.g. DUET Auditorium"></div>
-          
-          <div><label class="form-label">Short Description *</label><input name="shortDescription" required maxlength="240" class="form-input" placeholder="Describe the event in one line"></div>
-          
-          <div><label class="form-label">Full Description *</label><textarea name="fullDescription" required rows="3" class="form-input" placeholder="Write the full details"></textarea></div>
-          
-          <div><label class="form-label">Banner Image *</label><input name="mainImage" required type="file" accept="image/*" class="form-input py-2 text-sm"></div>
-          
-          <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-            <button type="button" onclick="closeAdminCreateUpcomingEventModal()" class="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition cursor-pointer">Cancel</button>
-            <button type="submit" class="px-6 py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition inline-flex items-center gap-2 cursor-pointer">
-              <i data-lucide="upload-cloud" class="w-4 h-4"></i> Create Event
-            </button>
-          </div>
-          
-          <!-- Status area -->
-          <div id="admin-upcoming-status" class="hidden rounded-xl p-4 text-sm font-bold text-center"></div>
-        </form>
-      </div>
-    </div>
-  </div>
 
 <!-- JAVASCRIPT LOGIC -->
 <script src="script.js?v=20260920-2300" defer></script>
