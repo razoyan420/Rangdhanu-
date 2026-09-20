@@ -4660,7 +4660,7 @@
         const imgInput = f.querySelector('[name="mainImage"]');
         let imgObj = null;
         if (imgInput.files && imgInput.files.length > 0) {
-          imgObj = await processImageForPayload(imgInput.files[0]);
+          imgObj = await filePayload(imgInput.files[0]);
         }
 
         const payload = {
