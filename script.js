@@ -4651,7 +4651,7 @@
         const imgInput = f.querySelector('[name="mainImage"]');
         let imgObj = null;
         if (imgInput.files && imgInput.files.length > 0) {
-          imgObj = await filePayload(imgInput.files[0], 2400);
+          imgObj = await filePayload(imgInput.files[0], 4000);
         }
 
         const payload = {
@@ -4698,7 +4698,7 @@
        quality down until it comfortably fits. Anything we cannot decode is passed
        through untouched rather than lost. */
     const RD_IMG_MAX_EDGE = 1600;                    // default longest side, in px
-    const RD_IMG_SKIP_UNDER = 600 * 1024;            // already small (e.g. a logo)? leave it alone
+    const RD_IMG_SKIP_UNDER = 1536 * 1024;           // keep < 1.5MB files as-is (preserves lossless PNGs)
     const RD_IMG_TARGET_BYTES = 3 * 1024 * 1024;     // base64 adds ~33%, so keep headroom under 5MB
     const RD_IMG_QUALITY_STEPS = [0.86, 0.78, 0.70, 0.60, 0.50];
     const RD_IMG_HARD_LIMIT = 5 * 1024 * 1024;       // must match MAX_PHOTO_BYTES in Code.gs
@@ -6508,10 +6508,10 @@
         setProgress(5, 'Preparing images...');
         const gallery=[]; const total = gf.length+1;
         for(let i=0; i<gf.length; i++) {
-          const x = await filePayload(gf[i]); x.sortOrder=i+1; gallery.push(x);
+          const x = await filePayload(gf[i], 4000); x.sortOrder=i+1; gallery.push(x);
           setProgress(Math.round(((i+1)/total)*40), `Gallery image ${i+1}/${gf.length} ready`);
         }
-        const mainPayload = await filePayload(main);
+        const mainPayload = await filePayload(main, 4000);
         const sponsors = [];
         const sponsorRows = collectSponsorRows();
         for (let i = 0; i < sponsorRows.length; i++) {
