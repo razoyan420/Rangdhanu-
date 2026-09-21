@@ -11602,7 +11602,7 @@ f.reset();
     }
     /* Close more dropdown when clicking outside */
     document.addEventListener('click', function(e) {
-      ['desktop'].forEach(function(k) {
+      ['desktop', 'directory'].forEach(function(k) {
         const wrap = document.getElementById('rd-more-wrap-' + k);
         if (wrap && !wrap.contains(e.target)) rdMoreClose(k);
       });

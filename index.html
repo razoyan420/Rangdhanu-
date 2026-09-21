@@ -261,7 +261,15 @@
   <nav class="nav-strip hidden xl:block" aria-label="Main">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center gap-1">
       <button class="nav-btn premium-nav-item active" data-page="home" onclick="switchPage('home')"><span>Home</span></button>
-      <button class="nav-btn premium-nav-item" data-page="alumni" onclick="switchPage('alumni')"><span>Directory</span></button>
+      <div class="rd-more-wrap" id="rd-more-wrap-directory">
+        <button type="button" class="rd-more-btn nav-btn premium-nav-item" data-page="alumni" id="rd-more-btn-directory" onclick="switchPage('alumni'); rdMoreToggle('directory')" aria-haspopup="true" aria-expanded="false"><span>Directory</span><i data-lucide="chevron-down"></i></button>
+        <div class="rd-more-panel" id="rd-more-panel-directory" role="menu">
+          <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('ALL');},50); rdMoreClose('directory')"><i data-lucide="users" class="w-4 h-4 text-slate-400"></i>Everyone</button>
+          <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('Alumni');},50); rdMoreClose('directory')"><i data-lucide="graduation-cap" class="w-4 h-4 text-slate-400"></i>Alumni</button>
+          <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('Running Member');},50); rdMoreClose('directory')"><i data-lucide="backpack" class="w-4 h-4 text-slate-400"></i>Running Member</button>
+          <button onclick="switchPage('alumni'); setTimeout(function(){openSubPage('family-faculty','alumni');},50); rdMoreClose('directory')"><i data-lucide="users-round" class="w-4 h-4 text-slate-400"></i>Teachers & Officers</button>
+        </div>
+      </div>
       <button class="nav-btn premium-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')"><span>PDACC</span></button>
       <button class="nav-btn premium-nav-item" data-page="events" onclick="switchPage('events')"><span>Events</span></button>
       <button class="nav-btn premium-nav-item" data-page="committee" onclick="switchPage('committee')"><span>Committee</span></button>
@@ -1898,12 +1906,12 @@
               </select>
             </div>
           </div>
-          <div class="family-view-tabs flex flex-wrap gap-2 pt-4 mt-4 border-t border-slate-100" id="alumni-view-tabs" role="group" aria-label="Directory filter">
+          <div class="family-view-tabs flex flex-wrap gap-2 pt-4 mt-4 border-t border-slate-100 xl:hidden" id="alumni-view-tabs" role="group" aria-label="Directory filter">
             <button type="button" class="alumni-view-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-blue-600 text-white border-blue-600 transition" data-view="ALL" onclick="setAlumniViewFilter('ALL')">Everyone</button>
             <button type="button" class="alumni-view-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-600 border-slate-200 hover:border-blue-300 transition" data-view="Alumni" onclick="setAlumniViewFilter('Alumni')"><span class="inline-flex items-center gap-1.5"><i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> Alumni</span></button>
             <button type="button" class="alumni-view-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-600 border-slate-200 hover:border-blue-300 transition" data-view="Running Member" onclick="setAlumniViewFilter('Running Member')"><span class="inline-flex items-center gap-1.5"><i data-lucide="backpack" class="w-3.5 h-3.5"></i> Running Member</span></button>
           </div>
-          <div class="flex flex-wrap gap-2 pt-4 mt-4 border-t border-slate-100" id="alumni-committee-links">
+          <div class="flex flex-wrap gap-2 pt-4 mt-4 border-t border-slate-100 xl:hidden" id="alumni-committee-links">
             <button type="button" id="alumni-btn-fac" onclick="openSubPage('family-faculty','alumni')" class="alumni-view-tab-btn family-teacher-btn inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-700 border-slate-200 hover:border-blue-300 transition cursor-pointer">
               <i data-lucide="users-round" class="w-3.5 h-3.5"></i> Teachers and Officers
             </button>
