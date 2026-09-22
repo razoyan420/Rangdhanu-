@@ -2027,6 +2027,7 @@
     /* Three bodies, three rails, newest term at the top of each. A member who
        has served only in Rangdhanu sees one group, not three empty ones. */
     function rdMpService(mp) {
+      if (RD_MP_OWN) return rdMpServiceOwn(mp);   /* editable list on the own page */
       const list = (mp.posts || []).filter(p => rdMpHas(p.post) && rdMpHas(p.session));
       if (!list.length) return rdMpLegacyService(mp);
       let groups = rdMpBodies().map(b => {
@@ -2210,6 +2211,150 @@
       const list = (rdMypRecord().work || []).slice();
       if (idx >= 0) list.splice(idx, 1);
       return rdMpWorkCommit(card, list);
+    }
+
+    /* Own page: Designations -- Rangdhanu / PDACC / Alumni Association posts,
+       session by session, each with its own Edit and Add. Former position at
+       Rangdhanu/PDACC lives here too (one value, its own small editor). Public
+       profile keeps the grouped timeline rails. */
+    function rdMpPosRow(p, i) {
+      const title = rdMpReal(p.post) || 'Designation';
+      const meta = [rdMpBodyOf(p.body).short, rdMpReal(p.session)].filter(rdMpHas).join(' · ');
+      return '<div class="rd-mp-work-row"><div class="rd-mp-work-info">' +
+        '<p class="rd-mp-work-t">' + escapeHtml(title) + '</p>' +
+        (meta ? '<p class="rd-mp-work-m">' + escapeHtml(meta) + '</p>' : '') +
+        '</div><button type="button" class="rd-mp-sec-edit" onclick="rdMpPosEdit(' + i + ')">' +
+        '<i data-lucide="pencil"></i>Edit</button></div>';
+    }
+
+    function rdMpServiceOwn(mp) {
+      const list = (mp.posts || []).filter(p => rdMpHas(p.post) || rdMpHas(p.session));
+      const entries = list.length
+        ? '<div class="rd-mp-worklist">' + list.map((p, i) => rdMpPosRow(p, i)).join('') + '</div>'
+        : '<p class="rd-mp-empty">No designations yet — add your Rangdhanu, PDACC or Alumni Association positions, session by session.</p>';
+      const fp = rdMpReal(mp.formerPos);
+      const former = '<div class="rd-mp-work-foot">' +
+        (rdMpHas(fp) ? '<p class="rd-mp-work-m" style="margin-bottom:.35rem"><b>Former position:</b> ' + escapeHtml(fp) + '</p>' : '') +
+        '<button type="button" class="rd-mp-ed-link" onclick="rdMpEditFormer()">' +
+          (rdMpHas(fp) ? 'Edit' : 'Add') + ' former position</button></div>';
+      return '<div class="rd-mp-sec" data-mp-sec="service">' +
+        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="shield"></i>Designations</p>' +
+          '<button type="button" class="rd-mp-sec-edit" onclick="rdMpPosEdit(-1)">' +
+          '<i data-lucide="plus"></i>Add designation</button></div>' +
+        entries + former +
+      '</div>';
+    }
+
+    function rdMpPosEdit(idx) {
+      const card = document.querySelector('[data-mp-sec="service"]');
+      if (!card) return;
+      if (RD_MP_EDITING && RD_MP_EDITING !== 'service') rdMpCancelSection();
+      RD_MP_EDITING = 'service';
+      const list = (rdMypRecord().posts || []);
+      const p = (idx >= 0 && list[idx]) ? list[idx] : { body: 'RANGDHANU', session: '', post: '' };
+      const bk = rdMpBodyOf(p.body).key;
+      card.classList.add('is-editing');
+      card.innerHTML =
+        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="shield"></i>' +
+          (idx < 0 ? 'Add designation' : 'Edit designation') + '</p></div>' +
+        '<div class="rd-mp-ed">' +
+          '<label class="rd-mp-ed-l" for="mps-p-body">Organisation</label>' +
+          '<select class="rd-mp-ed-i" id="mps-p-body">' +
+            rdMpBodies().map(b => '<option value="' + b.key + '"' + (b.key === bk ? ' selected' : '') + '>' +
+              escapeHtml(b.short) + '</option>').join('') +
+          '</select>' +
+          rdMpEdField('mps-p-post', 'Position / designation', p.post) +
+          rdMpEdField('mps-p-session', 'Session (e.g. 2020-2021)', p.session) +
+          '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
+          '<div class="rd-mp-ed-acts">' +
+            '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpPosEntrySave(' + idx + ')">Save</button>' +
+            (idx >= 0 ? '<button type="button" class="rd-mp-ed-del" onclick="rdMpPosDelete(' + idx + ')">Delete</button>' : '') +
+            '<button type="button" class="rd-mp-ed-cancel" onclick="rdMpCancelSection()">Cancel</button>' +
+          '</div>' +
+        '</div>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      const f = card.querySelector('input, select'); if (f) f.focus();
+    }
+
+    async function rdMpPosCommit(card, list) {
+      const btn = card && card.querySelector('.rd-mp-ed-save');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+      try {
+        const r = await apiPost('membersaveprofile', Object.assign(
+          { positions: rdMpJoin(list, ['body', 'session', 'post']) }, rdMemberParams()));
+        if (r && r.member) {
+          RD_MYP.me = r.member; RD_MEMBER.me = r.member;
+          try { localStorage.setItem(RD_MEMBER_PROFILE_KEY, JSON.stringify(r.member)); } catch (e) {}
+        }
+        rdFeedForget('alumni'); RD_MEMBER.contacts = null; RD_MP_EDITING = null;
+        rdMypViewPaint();
+      } catch (err) {
+        rdMpSecMsg(card, friendlyError(err).msg);
+        if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+      }
+      return false;
+    }
+
+    function rdMpPosEntrySave(idx) {
+      const card = document.querySelector('[data-mp-sec="service"]');
+      if (!card) return false;
+      const val = id => { const el = card.querySelector('#' + id); return el ? String(el.value || '').trim() : ''; };
+      const post = val('mps-p-post');
+      if (!post) { rdMpSecMsg(card, 'Add the position / designation.'); return false; }
+      const entry = { body: val('mps-p-body') || 'RANGDHANU', session: val('mps-p-session'), post: post };
+      const list = (rdMypRecord().posts || []).slice();
+      if (idx < 0) list.unshift(entry); else list[idx] = entry;
+      return rdMpPosCommit(card, list);
+    }
+
+    function rdMpPosDelete(idx) {
+      const card = document.querySelector('[data-mp-sec="service"]');
+      const list = (rdMypRecord().posts || []).slice();
+      if (idx >= 0) list.splice(idx, 1);
+      return rdMpPosCommit(card, list);
+    }
+
+    function rdMpEditFormer() {
+      const card = document.querySelector('[data-mp-sec="service"]');
+      if (!card) return;
+      if (RD_MP_EDITING && RD_MP_EDITING !== 'service') rdMpCancelSection();
+      RD_MP_EDITING = 'service';
+      const mp = rdMypRecord();
+      card.classList.add('is-editing');
+      card.innerHTML =
+        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="award"></i>Former position</p></div>' +
+        '<div class="rd-mp-ed">' +
+          rdMpEdField('mps-former', 'Former position at Rangdhanu / PDACC', mp.formerPos) +
+          '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
+          '<div class="rd-mp-ed-acts">' +
+            '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpFormerSave()">Save</button>' +
+            '<button type="button" class="rd-mp-ed-cancel" onclick="rdMpCancelSection()">Cancel</button>' +
+          '</div>' +
+        '</div>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      const f = card.querySelector('input'); if (f) f.focus();
+    }
+
+    async function rdMpFormerSave() {
+      const card = document.querySelector('[data-mp-sec="service"]');
+      if (!card) return false;
+      const el = card.querySelector('#mps-former');
+      const btn = card.querySelector('.rd-mp-ed-save');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+      try {
+        const r = await apiPost('membersaveprofile', Object.assign(
+          { formerPosition: el ? String(el.value || '').trim() : '' }, rdMemberParams()));
+        if (r && r.member) {
+          RD_MYP.me = r.member; RD_MEMBER.me = r.member;
+          try { localStorage.setItem(RD_MEMBER_PROFILE_KEY, JSON.stringify(r.member)); } catch (e) {}
+        }
+        rdFeedForget('alumni'); RD_MEMBER.contacts = null; RD_MP_EDITING = null;
+        rdMypViewPaint();
+      } catch (err) {
+        rdMpSecMsg(card, friendlyError(err).msg);
+        if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+      }
+      return false;
     }
 
     /* Education groups by level for the same reason service groups by body:
