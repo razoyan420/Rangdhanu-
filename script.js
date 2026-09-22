@@ -2807,6 +2807,11 @@
         '</select></div>';
     }
 
+    /* Shown once under the visibility controls of each editor that has them, so
+       members know "Only me" hides a field from the directory but not the
+       Association. Carried over from the old Update-profile form. */
+    const RD_MP_VIS_NOTE = '<p class="rd-mp-ed-note">"Only me" keeps a field out of the member directory. The Association still sees it.</p>';
+
     function rdMpEdField(id, label, value, type) {
       return '<label class="rd-mp-ed-l" for="' + id + '">' + escapeHtml(label) + '</label>' +
         '<input class="rd-mp-ed-i" id="' + id + '" type="' + (type || 'text') + '" value="' +
@@ -2823,6 +2828,7 @@
             rdMpEdVis('mps-vis-whatsapp', 'WhatsApp Number', vis) +
             rdMpEdField('mps-email', 'Email', mp.email, 'email') +
             rdMpEdVis('mps-vis-email', 'Email', vis) +
+            RD_MP_VIS_NOTE +
             '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
             '<div class="rd-mp-ed-acts">' +
               '<button type="button" class="rd-mp-ed-save" data-lbl="Save contact" onclick="rdMpSectionSave(\'contact\')">Save contact</button>' +
@@ -2868,6 +2874,7 @@
             '<label class="rd-mp-ed-l" style="margin-top:.9rem">Present address</label>' +
             '<div data-addr="mpPresent" data-addr-name="presentAddress"></div>' +
             rdMpEdVis('mps-vis-present', 'Present Address', vis) +
+            RD_MP_VIS_NOTE +
             '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
             '<div class="rd-mp-ed-acts">' +
               '<button type="button" class="rd-mp-ed-save" data-lbl="Save address" onclick="rdMpSectionSave(\'address\')">Save address</button>' +
@@ -2882,6 +2889,7 @@
           '<div class="rd-mp-ed">' +
             '<div id="mps-soc-mount" data-rd-social></div>' +
             rdMpEdVis('mps-vis-social', 'Social Links', vis) +
+            RD_MP_VIS_NOTE +
             '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
             '<div class="rd-mp-ed-acts">' +
               '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpSectionSave(\'social\')">Save</button>' +
@@ -5538,9 +5546,9 @@
     }
 
     async function adminToggleBloodBank(hide) {
-      /* No confirm() -- native popups are banned. The Show / Hide buttons state
-         the intent, so the click acts straight away and the result shows on the
-         notice page through showToast. */
+      /* No native confirm dialog -- browser popups are banned. The Show / Hide
+         buttons state the intent, so the click acts straight away and the result
+         shows on the notice page through showToast. */
       try {
         await apiPost('setbloodbankvisibility', { hidden: hide });
         RD_BB.loaded = false;            /* re-fetch the page fresh next visit */
