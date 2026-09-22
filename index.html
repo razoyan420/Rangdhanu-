@@ -276,6 +276,7 @@
       <div class="rd-more-wrap" id="rd-more-wrap-desktop">
         <button type="button" class="rd-more-btn nav-btn" id="rd-more-btn-desktop" onclick="rdMoreToggle('desktop')" aria-haspopup="true" aria-expanded="false"><span>More</span><i data-lucide="chevron-down"></i></button>
         <div class="rd-more-panel" id="rd-more-panel-desktop" role="menu">
+          <button onclick="switchPage('bloodbank'); rdMoreClose('desktop')"><i data-lucide="droplets" class="w-4 h-4 text-rose-400"></i>Blood Bank</button>
           <button onclick="switchPage('noticeboard'); rdMoreClose('desktop')"><i data-lucide="bell" class="w-4 h-4 text-slate-400"></i>Notice</button>
           <button onclick="switchPage('cgpa'); rdMoreClose('desktop')"><i data-lucide="calculator" class="w-4 h-4 text-slate-400"></i>CGPA Calculator</button>
         </div>
@@ -302,6 +303,7 @@
     <button class="mobile-nav-item" data-page="events" onclick="switchPage('events')">Events</button>
     <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')">Committee</button>
     <button class="mobile-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')">Notice Board</button>
+    <button class="mobile-nav-item" data-page="bloodbank" onclick="switchPage('bloodbank')">🩸 Blood Bank</button>
     <button class="mobile-nav-item" data-page="cgpa" onclick="switchPage('cgpa')">CGPA Calculator</button>
     <div id="mobile-member-menu" class="rd-mobile-profile-menu">
       <button id="mobile-member-item" type="button" class="mobile-nav-item rd-mobile-profile-trigger" data-page="my-profile" aria-haspopup="true" aria-expanded="false" onclick="rdNavProfileMenuToggle(this)">Restoring... <i data-lucide="chevron-down" class="w-4 h-4"></i></button>
@@ -2564,6 +2566,25 @@
             <label class="form-label" for="myp-blood">Blood Group</label>
             <select id="myp-blood" name="blood" class="form-input"><option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
           </div>
+          <div class="rounded-2xl border border-rose-100 bg-rose-50/40 p-4 mt-1">
+            <p class="text-xs font-extrabold text-rose-700 uppercase tracking-wider mb-3 flex items-center gap-1.5"><i data-lucide="droplets" class="w-3.5 h-3.5"></i> Blood Donation</p>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="form-label" for="myp-will-donate">Willing to Donate Blood?</label>
+                <select id="myp-will-donate" name="willDonate" class="form-input">
+                  <option value="">Not specified</option>
+                  <option value="YES">Yes, I'm willing to donate</option>
+                  <option value="NO">No, not at this time</option>
+                </select>
+                <p class="text-[11px] text-slate-500 mt-1">If yes, your name will appear in the Blood Bank directory.</p>
+              </div>
+              <div>
+                <label class="form-label" for="myp-last-donation">Last Donation Date</label>
+                <input type="date" id="myp-last-donation" name="lastDonation" class="form-input">
+                <p class="text-[11px] text-slate-500 mt-1">After 120 days you'll show as <span class="text-emerald-600 font-bold">Available</span> to donate again.</p>
+              </div>
+            </div>
+          </div>
 
           <p class="text-xs font-extrabold text-slate-500 uppercase tracking-wider pt-2">Work</p>
           <div>
@@ -2648,6 +2669,113 @@
 
       </div>
     </section>
+  </div>
+
+  <!-- ================= PAGE: BLOOD BANK ================= -->
+  <div class="page-view" id="page-bloodbank">
+    <!-- Hero Header -->
+    <div class="relative overflow-hidden" style="background:linear-gradient(135deg,#7f1d1d 0%,#b91c1c 50%,#dc2626 100%)">
+      <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(circle at 20% 50%,#fff 1px,transparent 1px),radial-gradient(circle at 80% 20%,#fff 1px,transparent 1px);background-size:40px 40px"></div>
+      <div class="relative max-w-4xl mx-auto px-4 py-14 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/15 backdrop-blur mb-5">
+          <i data-lucide="droplets" class="w-8 h-8 text-white"></i>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-3 font-display">Blood Bank</h1>
+        <p class="text-rose-100 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">Find a willing blood donor among Rangdhanu members. Every drop counts — save a life today.</p>
+        <div class="mt-6 flex flex-wrap justify-center gap-3">
+          <button onclick="rdBloodHowItWorks()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-sm font-bold border border-white/20 transition backdrop-blur">
+            <i data-lucide="info" class="w-4 h-4"></i> How It Works
+          </button>
+          <button onclick="openMyProfile('bloodbank')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-rose-700 text-sm font-bold hover:bg-rose-50 transition">
+            <i data-lucide="user-round-cog" class="w-4 h-4"></i> Register as Donor
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- How It Works Panel (hidden by default) -->
+    <div id="blood-bank-how" class="hidden bg-amber-50 border-b border-amber-200">
+      <div class="max-w-4xl mx-auto px-4 py-7">
+        <h2 class="text-base font-extrabold text-amber-900 mb-4 flex items-center gap-2"><i data-lucide="circle-help" class="w-5 h-5"></i> How Blood Bank Works</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white rounded-2xl p-4 border border-amber-100">
+            <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center mb-3"><i data-lucide="user-round-cog" class="w-4 h-4"></i></div>
+            <h3 class="font-bold text-slate-800 text-sm mb-1">1. Register</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Sign in and go to My Profile → Blood Donation → set "Willing to Donate" to Yes.</p>
+          </div>
+          <div class="bg-white rounded-2xl p-4 border border-amber-100">
+            <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3"><i data-lucide="calendar-check" class="w-4 h-4"></i></div>
+            <h3 class="font-bold text-slate-800 text-sm mb-1">2. Availability</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">You show as <span class="text-emerald-600 font-bold">Available</span> if 120+ days have passed since your last donation.</p>
+          </div>
+          <div class="bg-white rounded-2xl p-4 border border-amber-100">
+            <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-3"><i data-lucide="lock" class="w-4 h-4"></i></div>
+            <h3 class="font-bold text-slate-800 text-sm mb-1">3. Contact Privacy</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Phone numbers are only visible to signed-in Rangdhanu members to protect privacy.</p>
+          </div>
+          <div class="bg-white rounded-2xl p-4 border border-amber-100">
+            <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-3"><i data-lucide="refresh-cw" class="w-4 h-4"></i></div>
+            <h3 class="font-bold text-slate-800 text-sm mb-1">4. Keep Updated</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">After each donation, update your "Last Donation Date" in My Profile so your status stays accurate.</p>
+          </div>
+        </div>
+        <button onclick="rdBloodHowItWorks()" class="mt-4 text-xs font-bold text-amber-700 hover:text-amber-900 transition flex items-center gap-1"><i data-lucide="x" class="w-3.5 h-3.5"></i> Close</button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white border-b border-slate-100 sticky top-0 z-20 shadow-sm">
+      <div class="max-w-5xl mx-auto px-4 py-4">
+        <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <!-- Blood group filter -->
+          <div class="flex flex-wrap gap-2 flex-1">
+            <button class="bb-group-btn active" data-group="ALL" onclick="rdBloodFilter('ALL')">All Groups</button>
+            <button class="bb-group-btn" data-group="A+" onclick="rdBloodFilter('A+')">A+</button>
+            <button class="bb-group-btn" data-group="A-" onclick="rdBloodFilter('A-')">A−</button>
+            <button class="bb-group-btn" data-group="B+" onclick="rdBloodFilter('B+')">B+</button>
+            <button class="bb-group-btn" data-group="B-" onclick="rdBloodFilter('B-')">B−</button>
+            <button class="bb-group-btn" data-group="O+" onclick="rdBloodFilter('O+')">O+</button>
+            <button class="bb-group-btn" data-group="O-" onclick="rdBloodFilter('O-')">O−</button>
+            <button class="bb-group-btn" data-group="AB+" onclick="rdBloodFilter('AB+')">AB+</button>
+            <button class="bb-group-btn" data-group="AB-" onclick="rdBloodFilter('AB-')">AB−</button>
+          </div>
+          <!-- Location filter -->
+          <div class="flex items-center gap-2 shrink-0">
+            <select id="bb-location-filter" onchange="rdBloodRender()" class="text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-rose-400 transition">
+              <option value="ALL">All Locations</option>
+              <option value="GAZIPUR">📍 Gazipur / DUET</option>
+              <option value="DHAKA">Dhaka Div.</option>
+              <option value="RANGPUR">Rangpur Div.</option>
+              <option value="CHITTAGONG">Chittagong Div.</option>
+              <option value="RAJSHAHI">Rajshahi Div.</option>
+              <option value="KHULNA">Khulna Div.</option>
+              <option value="SYLHET">Sylhet Div.</option>
+              <option value="BARISAL">Barisal Div.</option>
+              <option value="MYMENSINGH">Mymensingh Div.</option>
+            </select>
+            <label class="flex items-center gap-1.5 text-sm font-semibold text-slate-600 cursor-pointer select-none whitespace-nowrap">
+              <input type="checkbox" id="bb-avail-only" onchange="rdBloodRender()" class="accent-rose-600 w-4 h-4">
+              Available only
+            </label>
+          </div>
+        </div>
+        <p id="blood-bank-status" class="text-xs text-slate-500 mt-2">Loading donors...</p>
+      </div>
+    </div>
+
+    <!-- Donor Grid -->
+    <div class="max-w-5xl mx-auto px-4 py-8">
+      <div id="blood-bank-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+      <!-- Sign-in notice for guests -->
+      <div id="blood-bank-signin-note" class="hidden mt-6 rounded-2xl bg-blue-50 border border-blue-100 p-5 text-center">
+        <i data-lucide="lock" class="w-8 h-8 text-blue-400 mx-auto mb-2"></i>
+        <p class="font-bold text-slate-800 text-sm mb-1">Contact numbers are for members only</p>
+        <p class="text-xs text-slate-500 mb-3">Sign in to view mobile and WhatsApp numbers of donors.</p>
+        <button onclick="openMemberSignIn('bloodbank')" class="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition">
+          <i data-lucide="log-in" class="w-4 h-4"></i> Sign In
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- ================= SUB-PAGE: PHOTO VIEWER ================= -->

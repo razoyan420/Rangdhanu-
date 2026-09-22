@@ -2792,3 +2792,59 @@ body.rd-member-restoring #page-my-profile > * {
 }
 
 
+
+/* ===== BLOOD BANK ===== */
+.bb-group-btn {
+  padding: .35rem .85rem;
+  border-radius: .65rem;
+  font-size: .75rem;
+  font-weight: 700;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  transition: background .16s, color .16s, border-color .16s;
+  font-family: ''Space Grotesk'', ''Plus Jakarta Sans'', sans-serif;
+  letter-spacing: .02em;
+}
+.bb-group-btn:hover { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
+.bb-group-btn.active { background: #b91c1c; border-color: #b91c1c; color: #fff; }
+
+.bb-card {
+  background: #fff;
+  border-radius: 1.25rem;
+  border: 1.5px solid #f1f5f9;
+  box-shadow: 0 2px 12px -4px rgba(0,0,0,.08);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  transition: box-shadow .22s, transform .22s;
+}
+.bb-card:hover { box-shadow: 0 8px 28px -8px rgba(0,0,0,.14); transform: translateY(-2px); }
+.bb-badge-avail {
+  display: inline-flex; align-items: center; gap: .3rem;
+  font-size: .65rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  padding: .2rem .55rem; border-radius: .45rem;
+}
+.bb-badge-avail.yes { background: #dcfce7; color: #15803d; }
+.bb-badge-avail.no  { background: #fee2e2; color: #b91c1c; }
+.bb-blood-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.5rem; height: 2.5rem; border-radius: .65rem;
+  background: #fef2f2; color: #b91c1c;
+  font-size: .88rem; font-weight: 900;
+  font-family: ''Space Grotesk'', sans-serif;
+  border: 1.5px solid #fca5a5;
+  flex-shrink: 0;
+}
+.bb-contact-locked {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .75rem; color: #94a3b8; font-style: italic;
+}
+.bb-contact-num {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .8rem; font-weight: 700; color: #1e293b;
+}
+.bb-contact-num a { color: #1d4ed8; text-decoration: none; }
+.bb-contact-num a:hover { text-decoration: underline; }

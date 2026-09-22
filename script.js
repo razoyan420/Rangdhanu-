@@ -125,7 +125,8 @@
       /* Rangdhanu Family's teacher list. needsData is false because the page
          fetches its own feed, so a reload lands here instead of bouncing the
          visitor out to the member directory. */
-      'family-faculty': { parent: 'alumni', needsData: false }
+      'family-faculty': { parent: 'alumni', needsData: false },
+      'bloodbank':       { parent: 'bloodbank', needsData: false }
     };
     const rdSubReturn = {};
     const rdSubFrom = {};
@@ -245,6 +246,7 @@
           loadPdaccStats();
         }
         if (pageId === 'family-faculty') loadFaculty();
+        if (pageId === 'bloodbank') loadBloodBank();
         if (pageId === 'pdacc-updates') loadPdacc();
         if (pageId === 'pdacc-admission') rdAdInit();
         if (pageId === 'admin') adminEnterPage();
@@ -3132,6 +3134,8 @@
       ['myp-whatsapp', 'WhatsApp Number'],
       ['myp-email', 'Email'],
       ['myp-blood', 'Blood Group'],
+      ['myp-will-donate', 'Blood Donor'],
+      ['myp-last-donation', 'Last Blood Donation'],
       ['myp-employment', 'Employment Type'],
       ['myp-organization', 'Current Organization / Company'],
       ['myp-designation', 'Current Designation'],
@@ -3255,6 +3259,10 @@
       rdMpEditorFill(rdMpFromSheet(m));
       rdMypViewPaint();
 
+      // Cap the last donation date picker at today
+      const donEl = document.getElementById('myp-last-donation');
+      if (donEl) donEl.max = new Date().toISOString().slice(0, 10);
+
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
     }
 
@@ -3316,6 +3324,8 @@
         permanentAddress: String(fd.get('permanentAddress') || '').trim(),
         presentAddress: String(fd.get('presentAddress') || '').trim(),
         blood: String(fd.get('blood') || '').trim(),
+        willDonate: String(fd.get('willDonate') || '').trim(),
+        lastDonation: String(fd.get('lastDonation') || '').trim(),
         employmentType: String(fd.get('employmentType') || '').trim(),
         organization: String(fd.get('organization') || '').trim(),
         designation: String(fd.get('designation') || '').trim(),
@@ -4587,6 +4597,156 @@
       ));
     }
     function resetAlumniFilters() { document.getElementById("alumni-search-input").value=""; document.getElementById("alumni-filter-dept").value="ALL"; document.getElementById("alumni-filter-series").value="ALL"; document.getElementById("alumni-filter-blood").value="ALL"; setAlumniViewFilter('ALL'); }
+
+    /* ================= BLOOD BANK ============================================
+       Full Blood Bank page: load donors from API, filter by group / location /
+       availability, render member-only contact info, admin hide toggle.
+       ======================================================================== */
+    const RD_BB = { donors: [], group: 'ALL', loaded: false, isMember: false };
+
+    async function loadBloodBank() {
+      if (RD_BB.loaded) { rdBloodRender(); return; }
+      const status = document.getElementById('blood-bank-status');
+      if (status) status.textContent = 'Loading donors...';
+      try {
+        const params = Object.assign({ _: Date.now() }, rdMemberParams());
+        const qs = Object.keys(params).map(k => k + '=' + encodeURIComponent(params[k])).join('&');
+        const res = await fetch(API_BASE_URL + '?action=bloodbank&' + qs, { cache: 'no-store' });
+        const data = await res.json();
+        if (data.hidden) {
+          const grid = document.getElementById('blood-bank-grid');
+          if (grid) grid.innerHTML = '<div class="col-span-3 py-20 text-center text-slate-400"><i data-lucide="eye-off" class="w-10 h-10 mx-auto mb-3"></i><p class="font-semibold">Blood Bank is currently unavailable.</p></div>';
+          if (status) status.textContent = '';
+          if (typeof lucide !== 'undefined') lucide.createIcons();
+          return;
+        }
+        RD_BB.donors  = data.donors || [];
+        RD_BB.isMember = !!data.isMember;
+        RD_BB.loaded  = true;
+        rdBloodRender();
+      } catch (err) {
+        if (status) status.textContent = 'Failed to load. Please refresh.';
+      }
+    }
+
+    function rdBloodFilter(group) {
+      RD_BB.group = group;
+      document.querySelectorAll('.bb-group-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.group === group);
+      });
+      rdBloodRender();
+    }
+
+    function rdBloodRender() {
+      const grid   = document.getElementById('blood-bank-grid');
+      const status = document.getElementById('blood-bank-status');
+      const note   = document.getElementById('blood-bank-signin-note');
+      if (!grid) return;
+
+      const locVal   = (document.getElementById('bb-location-filter') || {}).value || 'ALL';
+      const availOnly = document.getElementById('bb-avail-only') && document.getElementById('bb-avail-only').checked;
+
+      const filtered = RD_BB.donors.filter(d => {
+        if (RD_BB.group !== 'ALL' && d.blood !== RD_BB.group) return false;
+        if (availOnly && !d.available) return false;
+        if (locVal !== 'ALL') {
+          const locKey = locVal.toLowerCase();
+          if (locKey === 'gazipur') {
+            if (!d.isGazipur && !d.isRunning) return false;
+          } else {
+            const loc = (d.location || '').toLowerCase();
+            if (!loc.includes(locKey)) return false;
+          }
+        }
+        return true;
+      });
+
+      if (!filtered.length) {
+        grid.innerHTML = '<div class="sm:col-span-2 lg:col-span-3 py-16 text-center text-slate-400">' +
+          '<i data-lucide="droplets" class="w-10 h-10 mx-auto mb-3 text-rose-200"></i>' +
+          '<p class="font-semibold">No donors found for this filter.</p>' +
+          '<p class="text-xs mt-1">Try a different blood group or remove filters.</p></div>';
+        if (status) status.textContent = 'No donors found.';
+      } else {
+        grid.innerHTML = filtered.map(d => rdBloodCard(d, RD_BB.isMember)).join('');
+        if (status) status.textContent = filtered.length + ' donor' + (filtered.length === 1 ? '' : 's') + ' found.';
+      }
+
+      if (note) note.classList.toggle('hidden', RD_BB.isMember || !RD_BB.loaded);
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function rdBloodCard(d, isMember) {
+      const avail = d.available;
+      const badge = avail
+        ? '<span class="bb-badge-avail yes"><i data-lucide="circle-check" class="w-3 h-3"></i>Available</span>'
+        : '<span class="bb-badge-avail no"><i data-lucide="clock" class="w-3 h-3"></i>Unavailable</span>';
+
+      const daysNote = d.daysSince !== null
+        ? (avail ? d.daysSince + ' days since last donation' : 'Available in ' + Math.max(0, 120 - d.daysSince) + ' days')
+        : 'No previous donation recorded — likely available';
+
+      const photo = d.photo
+        ? '<img src="' + escapeHtml(d.photo) + '" alt="" class="w-12 h-12 rounded-xl object-cover border border-slate-100 shrink-0" loading="lazy">'
+        : '<div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center shrink-0"><i data-lucide="user-round" class="w-6 h-6 text-slate-400"></i></div>';
+
+      const plate = [d.dept, d.series ? 'Series ' + d.series : ''].filter(Boolean).join('  ·  ');
+      const statusTag = d.isRunning
+        ? '<span class="text-[10px] font-bold text-blue-600 bg-blue-50 rounded px-1.5 py-0.5">Running Member</span>'
+        : '<span class="text-[10px] font-bold text-slate-500 bg-slate-100 rounded px-1.5 py-0.5">Alumni</span>';
+
+      let contactHtml = '';
+      if (isMember) {
+        const mob = d.mobile ? '<a href="tel:' + escapeHtml(d.mobile) + '">' + escapeHtml(d.mobile) + '</a>' : '—';
+        const wa  = d.whatsapp ? '<a href="https://wa.me/88' + d.whatsapp.replace(/^0/, '') + '" target="_blank" rel="noopener" title="WhatsApp"><i data-lucide="message-circle" class="w-3.5 h-3.5 text-emerald-500"></i>' + escapeHtml(d.whatsapp) + '</a>' : '';
+        contactHtml =
+          '<div class="bb-contact-num"><i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>' + mob + '</div>' +
+          (wa ? '<div class="bb-contact-num">' + wa + '</div>' : '');
+      } else {
+        contactHtml = '<div class="bb-contact-locked"><i data-lucide="lock" class="w-3.5 h-3.5"></i>Sign in to view contact</div>';
+      }
+
+      const locBadge = d.isGazipur
+        ? '<span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5 flex items-center gap-0.5"><i data-lucide="map-pin" class="w-2.5 h-2.5"></i>Near DUET</span>'
+        : (d.location ? '<span class="text-[10px] text-slate-500 bg-slate-50 rounded px-1.5 py-0.5">' + escapeHtml(d.location) + '</span>' : '');
+
+      return '<div class="bb-card">' +
+        '<div class="flex items-start gap-3">' +
+          photo +
+          '<div class="min-w-0 flex-1">' +
+            '<div class="flex items-center gap-2 flex-wrap">' +
+              '<span class="font-bold text-slate-900 text-sm truncate">' + escapeHtml(d.name) + '</span>' +
+              badge +
+            '</div>' +
+            '<p class="text-xs text-slate-500 mt-0.5">' + escapeHtml(plate) + '</p>' +
+            '<div class="flex flex-wrap gap-1.5 mt-1.5">' + statusTag + locBadge + '</div>' +
+          '</div>' +
+          '<div class="bb-blood-pill shrink-0">' + escapeHtml(d.blood) + '</div>' +
+        '</div>' +
+        '<div class="border-t border-slate-100 pt-3 flex flex-col gap-1.5">' +
+          contactHtml +
+          '<p class="text-[11px] text-slate-400 mt-0.5"><i data-lucide="droplet" class="w-3 h-3 inline mr-0.5"></i>' + escapeHtml(daysNote) + '</p>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function rdBloodHowItWorks() {
+      const panel = document.getElementById('blood-bank-how');
+      if (!panel) return;
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden') && typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    async function adminToggleBloodBank(hide) {
+      if (!confirm((hide ? 'Hide' : 'Show') + ' Blood Bank for the public?')) return;
+      try {
+        await apiPost('setbloodbankvisibility', { hidden: hide });
+        showToast('Blood Bank is now ' + (hide ? 'hidden' : 'visible') + '.', 'success');
+        renderAdmin();
+      } catch (err) {
+        showToast('Failed: ' + (err.message || err), 'error');
+      }
+    }
 
     /* EVENT API & UPLOAD */
     /* EMAIL HINT LOGIC */
@@ -11190,6 +11350,19 @@ f.reset();
           adminBreakdown('Employment', 'briefcase', adminTally(members, a => a.emp_type), total) +
           adminBreakdown('Work location', 'map-pin', adminTally(members, a => a.loc), total) +
           adminBreakdown('Batch', 'calendar', adminTally(members, a => a.batch), total) +
+        '</div>' +
+        '<div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">' +
+          '<p class="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5"><i data-lucide="settings" class="w-3.5 h-3.5"></i> Site Features</p>' +
+          '<div class="flex items-center justify-between gap-4 bg-white rounded-xl border border-slate-200 px-4 py-3">' +
+            '<div>' +
+              '<p class="font-bold text-slate-800 text-sm flex items-center gap-1.5"><i data-lucide="droplets" class="w-4 h-4 text-rose-500"></i> Blood Bank</p>' +
+              '<p class="text-xs text-slate-500 mt-0.5">Show or hide the Blood Bank page from the public navigation.</p>' +
+            '</div>' +
+            '<div class="flex gap-2 shrink-0">' +
+              '<button onclick="adminToggleBloodBank(false)" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition">Show</button>' +
+              '<button onclick="adminToggleBloodBank(true)" class="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition">Hide</button>' +
+            '</div>' +
+          '</div>' +
         '</div>' +
       '</div>';
     }
