@@ -2493,6 +2493,7 @@
     let RD_MP_TH_N = 0;
 
     function rdMpResearch(mp) {
+      if (RD_MP_OWN) return rdMpResearchOwn(mp);   /* editable thesis + paper list on the own page */
       const papers = (mp.papers || []).filter(p => rdMpHas(p.url));
       if (!rdMpHas(mp.thesis) && !papers.length) return rdMpSection('flask-conical',
         'Thesis and papers', '', 0, 'research', 'Add your thesis topic or published papers.');
@@ -2528,6 +2529,139 @@
       }
       return rdMpSection('flask-conical', 'Thesis and papers', out,
         0, 'research', 'Add your thesis topic or published papers.');
+    }
+
+    /* Own page: thesis is one small block (topic + details) with its own Edit;
+       papers are an editable list, each with Edit and an Add paper at the top.
+       Both write through the same research commit, which sends only its fields. */
+    function rdMpPaperRow(p, i) {
+      const host = String(p.url).replace(/^https?:\/\//i, '').split('/')[0];
+      return '<div class="rd-mp-work-row"><div class="rd-mp-work-info">' +
+        '<p class="rd-mp-work-t">' + escapeHtml(p.title || p.url) + '</p>' +
+        '<p class="rd-mp-work-m">' + escapeHtml(host) + '</p>' +
+        '</div><button type="button" class="rd-mp-sec-edit" onclick="rdMpPaperEdit(' + i + ')">' +
+        '<i data-lucide="pencil"></i>Edit</button></div>';
+    }
+
+    function rdMpResearchOwn(mp) {
+      const th = rdMpReal(mp.thesis);
+      const det = String(mp.thesisDetails || '').trim();
+      let detClip = '';
+      if (th && det) {
+        detClip = det.length > 140 ? det.slice(0, 140).replace(/\s+\S*$/, '') + '…' : det;
+      }
+      const thRow = '<div class="rd-mp-work-row"><div class="rd-mp-work-info">' +
+        '<p class="rd-mp-work-t">' + escapeHtml(th || 'Thesis topic') + '</p>' +
+        (th
+          ? (detClip ? '<p class="rd-mp-work-m">' + escapeHtml(detClip) + '</p>' : '')
+          : '<p class="rd-mp-work-m">Not added yet</p>') +
+        '</div><button type="button" class="rd-mp-sec-edit" onclick="rdMpThesisEdit()">' +
+        '<i data-lucide="pencil"></i>Edit</button></div>';
+      const papers = (mp.papers || []).filter(p => rdMpHas(p.url));
+      const paperRows = papers.length
+        ? '<div class="rd-mp-worklist">' + papers.map((p, i) => rdMpPaperRow(p, i)).join('') + '</div>'
+        : '<p class="rd-mp-empty">No papers added yet — add a link to a published paper.</p>';
+      return '<div class="rd-mp-sec" data-mp-sec="research">' +
+        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="flask-conical"></i>Thesis and papers</p>' +
+          '<button type="button" class="rd-mp-sec-edit" onclick="rdMpPaperEdit(-1)">' +
+          '<i data-lucide="plus"></i>Add paper</button></div>' +
+        '<div class="rd-mp-worklist">' + thRow + '</div>' +
+        paperRows +
+      '</div>';
+    }
+
+    function rdMpThesisEdit() {
+      const card = document.querySelector('[data-mp-sec="research"]');
+      if (!card) return;
+      if (RD_MP_EDITING && RD_MP_EDITING !== 'research') rdMpCancelSection();
+      RD_MP_EDITING = 'research';
+      const mp = rdMypRecord();
+      card.classList.add('is-editing');
+      card.innerHTML =
+        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="flask-conical"></i>Thesis</p></div>' +
+        '<div class="rd-mp-ed">' +
+          rdMpEdField('mps-thesis', 'Thesis topic', mp.thesis) +
+          '<label class="rd-mp-ed-l" for="mps-thdet">Thesis details (optional)</label>' +
+          '<textarea class="rd-mp-ed-i" id="mps-thdet" rows="4">' + escapeHtml(mp.thesisDetails || '') + '</textarea>' +
+          '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
+          '<div class="rd-mp-ed-acts">' +
+            '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpThesisSave()">Save</button>' +
+            '<button type="button" class="rd-mp-ed-cancel" onclick="rdMpCancelSection()">Cancel</button>' +
+          '</div>' +
+        '</div>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      const f = card.querySelector('input, textarea'); if (f) f.focus();
+    }
+
+    function rdMpThesisSave() {
+      const card = document.querySelector('[data-mp-sec="research"]');
+      if (!card) return false;
+      const val = id => { const el = card.querySelector('#' + id); return el ? String(el.value || '').trim() : ''; };
+      return rdMpResearchCommit(card, { thesisTopic: val('mps-thesis'), thesisDetails: val('mps-thdet') });
+    }
+
+    function rdMpPaperEdit(idx) {
+      const card = document.querySelector('[data-mp-sec="research"]');
+      if (!card) return;
+      if (RD_MP_EDITING && RD_MP_EDITING !== 'research') rdMpCancelSection();
+      RD_MP_EDITING = 'research';
+      const list = (rdMypRecord().papers || []).filter(p => rdMpHas(p.url));
+      const p = (idx >= 0 && list[idx]) ? list[idx] : { title: '', url: '' };
+      card.classList.add('is-editing');
+      card.innerHTML =
+        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="file-text"></i>' +
+          (idx < 0 ? 'Add paper' : 'Edit paper') + '</p></div>' +
+        '<div class="rd-mp-ed">' +
+          rdMpEdField('mps-p-title', 'Title', p.title) +
+          rdMpEdField('mps-p-url', 'Link (https://…)', p.url, 'url') +
+          '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
+          '<div class="rd-mp-ed-acts">' +
+            '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpPaperEntrySave(' + idx + ')">Save</button>' +
+            (idx >= 0 ? '<button type="button" class="rd-mp-ed-del" onclick="rdMpPaperDelete(' + idx + ')">Delete</button>' : '') +
+            '<button type="button" class="rd-mp-ed-cancel" onclick="rdMpCancelSection()">Cancel</button>' +
+          '</div>' +
+        '</div>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      const f = card.querySelector('input'); if (f) f.focus();
+    }
+
+    async function rdMpResearchCommit(card, payload) {
+      const btn = card && card.querySelector('.rd-mp-ed-save');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+      try {
+        const r = await apiPost('membersaveprofile', Object.assign({}, payload, rdMemberParams()));
+        if (r && r.member) {
+          RD_MYP.me = r.member; RD_MEMBER.me = r.member;
+          try { localStorage.setItem(RD_MEMBER_PROFILE_KEY, JSON.stringify(r.member)); } catch (e) {}
+        }
+        rdFeedForget('alumni'); RD_MEMBER.contacts = null; RD_MP_EDITING = null;
+        rdMypViewPaint();
+      } catch (err) {
+        rdMpSecMsg(card, friendlyError(err).msg);
+        if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+      }
+      return false;
+    }
+
+    function rdMpPaperEntrySave(idx) {
+      const card = document.querySelector('[data-mp-sec="research"]');
+      if (!card) return false;
+      const val = id => { const el = card.querySelector('#' + id); return el ? String(el.value || '').trim() : ''; };
+      const url = val('mps-p-url');
+      if (!/^https?:\/\//i.test(url)) {
+        rdMpSecMsg(card, 'A paper link has to start with https:// and point at a page.'); return false;
+      }
+      const entry = { title: val('mps-p-title') || url, url: url };
+      const list = (rdMypRecord().papers || []).filter(p => rdMpHas(p.url)).slice();
+      if (idx < 0) list.unshift(entry); else list[idx] = entry;   /* new one goes to the top */
+      return rdMpResearchCommit(card, { papers: rdMpJoin(list, ['title', 'url']) });
+    }
+
+    function rdMpPaperDelete(idx) {
+      const card = document.querySelector('[data-mp-sec="research"]');
+      const list = (rdMypRecord().papers || []).filter(p => rdMpHas(p.url)).slice();
+      if (idx >= 0) list.splice(idx, 1);
+      return rdMpResearchCommit(card, { papers: rdMpJoin(list, ['title', 'url']) });
     }
 
     function rdMpThesisMore(btn) {
