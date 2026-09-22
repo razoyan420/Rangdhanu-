@@ -1885,7 +1885,10 @@
             '"><i data-lucide="phone"></i> Call</a>' : '') +
         (rdMpHas(mp.whatsapp)
           ? '<a class="rd-mp-act rd-mp-act-wa" href="https://wa.me/' + rdMpDigits(mp.whatsapp) +
-            '" target="_blank" rel="noopener"><i data-lucide="message-circle"></i> WhatsApp</a>' : '');
+            '" target="_blank" rel="noopener"><i data-lucide="message-circle"></i> WhatsApp</a>' : '') +
+        (rdMpHas(mp.email)
+          ? '<a class="rd-mp-act rd-mp-act-mail" href="mailto:' + escapeHtml(mp.email) +
+            '"><i data-lucide="mail"></i> Email</a>' : '');
       /* On your own page the extras are Edit and Share; on somebody else's,
          Save contact and Share. Saving your own number into your own phone
          book is the kind of button that makes a page feel unread. */

@@ -1595,7 +1595,7 @@
   gap:.5rem;margin-top:1.1rem}
 /* Full width is right on a phone, where the thumb needs the target. On a wide
    card two 900px-wide buttons would just look like a mistake. */
-@media (min-width:640px){.rd-mp-acts{grid-template-columns:repeat(2,minmax(0,11rem))}}
+@media (min-width:640px){.rd-mp-acts{grid-template-columns:repeat(auto-fit,minmax(0,11rem))}}
 .rd-mp-act{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;
   padding:.78rem 1rem;border-radius:.85rem;text-decoration:none;border:0;cursor:pointer;
   font-family:inherit;font-size:.84rem;font-weight:800;line-height:1;white-space:nowrap;
@@ -1607,6 +1607,9 @@
    own #25d366 is 1.9:1 with white, so the darker green carries the label. */
 .rd-mp-act-call{background:var(--mp-key);color:#fff;box-shadow:var(--mp-e1)}
 .rd-mp-act-wa{background:#047857;color:#fff;box-shadow:var(--mp-e1)}
+/* Email sits third; amber-700 is 5.0:1 with white and reads apart from the
+   indigo Call and green WhatsApp. */
+.rd-mp-act-mail{background:#b45309;color:#fff;box-shadow:var(--mp-e1)}
 .rd-mp-act-lock{background:#eef2ff;color:var(--mp-key);border:1px solid #dfe5f8;
   grid-column:1/-1}
 /* The two things a member actually does with somebody else's page: put the
