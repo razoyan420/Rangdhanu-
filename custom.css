@@ -1653,7 +1653,17 @@
 .rd-mp-ed-save.is-saved{background:#059669;opacity:1}
 .rd-mp-ed-cancel{padding:.68rem 1rem;border-radius:.75rem;background:#fff;color:#475569;font-weight:700;font-size:.85rem;border:1px solid var(--mp-line,#e7ebf0);cursor:pointer}
 .rd-mp-ed-note{font-size:.72rem;color:#64748b;margin:.55rem 0 0;line-height:1.5}
-.rd-mp-ed-link{color:#1d4ed8;font-weight:700;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.rd-mp-ed-link{color:#1d4ed8;font-weight:700;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;font-size:.78rem}
+.rd-mp-ed-two{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.rd-mp-ed-del{padding:.68rem 1rem;border-radius:.75rem;background:#fff;color:#be123c;font-weight:700;font-size:.85rem;border:1px solid #fecdd3;cursor:pointer}
+.rd-mp-ed-del:hover{background:#fff1f2}
+.rd-mp-worklist{margin-top:.55rem;display:grid;gap:.4rem}
+.rd-mp-work-row{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;
+  padding:.7rem .8rem;border:1px solid var(--mp-line,#e7ebf0);border-radius:.85rem;background:#fbfcfe}
+.rd-mp-work-info{min-width:0}
+.rd-mp-work-t{font-size:.9rem;font-weight:700;color:#0f172a;margin:0}
+.rd-mp-work-m{font-size:.76rem;color:#64748b;margin:.15rem 0 0}
+.rd-mp-work-foot{margin-top:.7rem}
 .rd-mp-empty{margin:.5rem 0 0;font-size:.83rem;color:#94a3b8;font-weight:600;line-height:1.5}
 .rd-mp-sec.is-empty{border-style:dashed}
 .rd-mp-rows{margin-top:.3rem}

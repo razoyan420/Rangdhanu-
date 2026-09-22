@@ -2079,6 +2079,7 @@
     }
 
     function rdMpWork(mp) {
+      if (RD_MP_OWN) return rdMpWorkOwn(mp);   /* editable list on the member's own page */
       const list = (mp.work || []).filter(w => rdMpHas(w.org) || rdMpHas(w.desig))
                                   .sort(rdMpByYearDesc);
       const extra = rdMpRowsBox(rdMpRow('layers', 'Employment type', mp.empType));
@@ -2100,6 +2101,112 @@
         '<div class="rd-sv">' + rdMpSvGroup('briefcase', 'Employment history',
           rdMpPlural(list.length, 'post'), inner) + '</div>' + extra, 0, 'work',
         'Add where you work — organization, designation and history.');
+    }
+
+    /* Own page: Work is an editable list -- each job has its own Edit, and Add
+       work drops a new one at the top. Employment type and former position (one
+       value each, not per-job) sit under the list with their own small edit. */
+    function rdMpWorkRow(w, i) {
+      const title = [w.desig, w.org].filter(rdMpHas).join(' — ') || 'Work';
+      const meta = [rdMpSpan(w.from, w.to), rdMpReal(w.loc)].filter(rdMpHas).join(' · ');
+      return '<div class="rd-mp-work-row"><div class="rd-mp-work-info">' +
+        '<p class="rd-mp-work-t">' + escapeHtml(title) + '</p>' +
+        (meta ? '<p class="rd-mp-work-m">' + escapeHtml(meta) + '</p>' : '') +
+        '</div><button type="button" class="rd-mp-sec-edit" onclick="rdMpWorkEdit(' + i + ')">' +
+        '<i data-lucide="pencil"></i>Edit</button></div>';
+    }
+
+    function rdMpWorkOwn(mp) {
+      const list = (mp.work || []);   /* stored order = display order, newest first */
+      const entries = list.length
+        ? '<div class="rd-mp-worklist">' + list.map((w, i) => rdMpWorkRow(w, i)).join('') + '</div>'
+        : '<p class="rd-mp-empty">No work added yet — add where you work, with years.</p>';
+      const et = rdMpReal(mp.empType), fp = rdMpReal(mp.formerPos);
+      const details = (rdMpHas(et) || rdMpHas(fp))
+        ? rdMpRowsBox(rdMpRow('layers', 'Employment type', et) +
+            rdMpRow('award', 'Former position at Rangdhanu / PDACC', fp))
+        : '';
+      return '<div class="rd-mp-sec" data-mp-sec="work">' +
+        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="briefcase"></i>Work</p>' +
+          '<button type="button" class="rd-mp-sec-edit" onclick="rdMpWorkEdit(-1)">' +
+          '<i data-lucide="plus"></i>Add work</button></div>' +
+        entries + details +
+        '<div class="rd-mp-work-foot"><button type="button" class="rd-mp-ed-link" onclick="rdMpEditSection(\'work\')">' +
+          'Edit employment type &amp; former position</button></div>' +
+      '</div>';
+    }
+
+    function rdMpWorkEdit(idx) {
+      const card = document.querySelector('[data-mp-sec="work"]');
+      if (!card) return;
+      if (RD_MP_EDITING && RD_MP_EDITING !== 'work') rdMpCancelSection();
+      RD_MP_EDITING = 'work';
+      const list = (rdMypRecord().work || []);
+      const w = (idx >= 0 && list[idx]) ? list[idx] : { org: '', desig: '', loc: '', from: '', to: '' };
+      card.classList.add('is-editing');
+      card.innerHTML =
+        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="briefcase"></i>' +
+          (idx < 0 ? 'Add work' : 'Edit work') + '</p></div>' +
+        '<div class="rd-mp-ed">' +
+          rdMpEdField('mps-w-desig', 'Designation / role', w.desig) +
+          rdMpEdField('mps-w-org', 'Organization / company', w.org) +
+          rdMpEdField('mps-w-loc', 'Location', w.loc) +
+          '<div class="rd-mp-ed-two">' +
+            '<div><label class="rd-mp-ed-l" for="mps-w-from">From (year)</label>' +
+              '<input class="rd-mp-ed-i" id="mps-w-from" inputmode="numeric" maxlength="4" value="' +
+              escapeHtml(w.from || '') + '" placeholder="2019"></div>' +
+            '<div><label class="rd-mp-ed-l" for="mps-w-to">To (year)</label>' +
+              '<input class="rd-mp-ed-i" id="mps-w-to" inputmode="numeric" maxlength="4" value="' +
+              escapeHtml(w.to || '') + '" placeholder="Present"></div>' +
+          '</div>' +
+          '<p class="rd-mp-ed-note">Leave “To” empty if this is your current job.</p>' +
+          '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
+          '<div class="rd-mp-ed-acts">' +
+            '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpWorkEntrySave(' + idx + ')">Save</button>' +
+            (idx >= 0 ? '<button type="button" class="rd-mp-ed-del" onclick="rdMpWorkDelete(' + idx + ')">Delete</button>' : '') +
+            '<button type="button" class="rd-mp-ed-cancel" onclick="rdMpCancelSection()">Cancel</button>' +
+          '</div>' +
+        '</div>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      const f = card.querySelector('input'); if (f) f.focus();
+    }
+
+    async function rdMpWorkCommit(card, list) {
+      const btn = card && card.querySelector('.rd-mp-ed-save');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+      try {
+        const r = await apiPost('membersaveprofile', Object.assign(
+          { workHistory: rdMpJoin(list, ['org', 'desig', 'loc', 'from', 'to']) }, rdMemberParams()));
+        if (r && r.member) {
+          RD_MYP.me = r.member; RD_MEMBER.me = r.member;
+          try { localStorage.setItem(RD_MEMBER_PROFILE_KEY, JSON.stringify(r.member)); } catch (e) {}
+        }
+        rdFeedForget('alumni'); RD_MEMBER.contacts = null; RD_MP_EDITING = null;
+        rdMypViewPaint();
+      } catch (err) {
+        rdMpSecMsg(card, friendlyError(err).msg);
+        if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+      }
+      return false;
+    }
+
+    function rdMpWorkEntrySave(idx) {
+      const card = document.querySelector('[data-mp-sec="work"]');
+      if (!card) return false;
+      const val = id => { const el = card.querySelector('#' + id); return el ? String(el.value || '').trim() : ''; };
+      const desig = val('mps-w-desig'), org = val('mps-w-org');
+      if (!desig && !org) { rdMpSecMsg(card, 'Add at least an organization or a designation.'); return false; }
+      const entry = { org: org, desig: desig, loc: val('mps-w-loc'), from: val('mps-w-from'), to: val('mps-w-to') };
+      const list = (rdMypRecord().work || []).slice();
+      if (idx < 0) list.unshift(entry); else list[idx] = entry;   /* new one goes to the top */
+      return rdMpWorkCommit(card, list);
+    }
+
+    function rdMpWorkDelete(idx) {
+      const card = document.querySelector('[data-mp-sec="work"]');
+      const list = (rdMypRecord().work || []).slice();
+      if (idx >= 0) list.splice(idx, 1);
+      return rdMpWorkCommit(card, list);
     }
 
     /* Education groups by level for the same reason service groups by body:
@@ -2291,21 +2398,18 @@
           '</div>';
       }
       if (key === 'work') {
+        /* Only the two single values here; the jobs themselves are the editable
+           list in rdMpWorkOwn, each with its own Edit and Add work. */
         const types = ['Student', 'Government', 'Autonomous', 'Semi-Autonomous', 'Private', 'Business', 'Self Employed', 'Other'];
         const et = String(mp.empType || '').trim();
-        return '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="briefcase"></i>Work</p></div>' +
+        return '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="briefcase"></i>Employment type &amp; former position</p></div>' +
           '<div class="rd-mp-ed">' +
             '<label class="rd-mp-ed-l" for="mps-emptype">Employment type</label>' +
             '<select class="rd-mp-ed-i" id="mps-emptype">' +
               '<option value=""' + (!et ? ' selected' : '') + '>Select</option>' +
               types.map(o => '<option' + (o === et ? ' selected' : '') + '>' + o + '</option>').join('') +
             '</select>' +
-            rdMpEdField('mps-org', 'Organization / company', mp.org) +
-            rdMpEdField('mps-desig', 'Designation', mp.desig) +
-            rdMpEdField('mps-worklocation', 'Work location', mp.loc) +
             rdMpEdField('mps-former', 'Former position at Rangdhanu / PDACC', mp.formerPos) +
-            '<p class="rd-mp-ed-note">To list several jobs with years, use ' +
-              '<button type="button" class="rd-mp-ed-link" onclick="rdMypTab(\'edit\')">the full work history editor</button>.</p>' +
             '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
             '<div class="rd-mp-ed-acts">' +
               '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpSectionSave(\'work\')">Save</button>' +
@@ -2378,11 +2482,7 @@
         payload = { blood: val('mps-blood'), willDonate: val('mps-willdonate'), lastDonation: val('mps-lastdonation') };
       }
       if (key === 'work') {
-        payload = {
-          employmentType: val('mps-emptype'), organization: val('mps-org'),
-          designation: val('mps-desig'), workLocation: val('mps-worklocation'),
-          formerPosition: val('mps-former')
-        };
+        payload = { employmentType: val('mps-emptype'), formerPosition: val('mps-former') };
       }
       if (!payload) return false;
       const btn = card.querySelector('.rd-mp-ed-save');
