@@ -4738,7 +4738,9 @@
     }
 
     async function adminToggleBloodBank(hide) {
-      if (!confirm((hide ? 'Hide' : 'Show') + ' Blood Bank for the public?')) return;
+      /* No confirm() -- native popups are banned. The Show / Hide buttons state
+         the intent, so the click acts straight away and the result shows on the
+         notice page through showToast. */
       try {
         await apiPost('setbloodbankvisibility', { hidden: hide });
         showToast('Blood Bank is now ' + (hide ? 'hidden' : 'visible') + '.', 'success');
