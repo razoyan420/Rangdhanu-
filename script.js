@@ -7564,6 +7564,14 @@
        ==================================================================== */
 
     const RD_REG_STEPS = 5;
+
+    /* Sign-in is Google-only. A Google-hosted school/office address is
+       indistinguishable from any other domain by its text, so we cannot force
+       "must be Gmail" without turning away legitimate Workspace members. We
+       only turn away the well-known non-Google providers -- a member who typed
+       their Yahoo/Outlook by habit -- and let Gmail or any unknown (possibly
+       Google) domain through. */
+    const RD_NON_GOOGLE_MAIL = ['yahoo.com','yahoo.co.uk','yahoo.co.in','ymail.com','rocketmail.com','outlook.com','hotmail.com','hotmail.co.uk','live.com','msn.com','icloud.com','me.com','mac.com','aol.com','protonmail.com','proton.me','yandex.com','yandex.ru','mail.ru','zoho.com','gmx.com','gmx.net','rediffmail.com'];
     let RD_REG_AT = 1;
     /* The furthest step reached. A step strip you can click back through is
        useful; one you can click forward through skips the checks. */
@@ -7647,6 +7655,17 @@
       Array.prototype.forEach.call(panel.querySelectorAll('[required]'), function (el) {
         if (String(el.value || '').trim()) return;
         setFieldError(f, el.name, rdRegLabel(el) + ' is needed.', !first);
+        first = first || el.name;
+      });
+      if (first) return false;
+      /* Google-only sign-in: turn away only the known non-Google providers,
+         with the fix said in the field itself. */
+      Array.prototype.forEach.call(panel.querySelectorAll('[name="email"]'), function (el) {
+        const raw = String(el.value || '').trim().toLowerCase();
+        const at = raw.indexOf('@');
+        if (at < 1) return;               /* type="email" already guards the shape */
+        if (RD_NON_GOOGLE_MAIL.indexOf(raw.slice(at + 1)) === -1) return;
+        setFieldError(f, el.name, 'Sign-in is through Google. Use a Gmail (or Google-hosted school/office) email so you can log in.', !first);
         first = first || el.name;
       });
       if (first) return false;
