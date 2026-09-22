@@ -4702,9 +4702,13 @@
         ? (avail ? d.daysSince + ' days since last donation' : 'Available in ' + Math.max(0, 120 - d.daysSince) + ' days')
         : 'No previous donation recorded — likely available';
 
-      const photo = d.photo
-        ? '<img src="' + escapeHtml(d.photo) + '" alt="" class="w-12 h-12 rounded-xl object-cover border border-slate-100 shrink-0" loading="lazy">'
-        : '<div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center shrink-0"><i data-lucide="user-round" class="w-6 h-6 text-slate-400"></i></div>';
+      /* The sheet stores a Drive share link / id, not a usable <img> src. The
+         raw value never rendered -- run it through the same normaliser the
+         directory uses, which also gives the monogram fallback and the
+         fade-in, so a blood-bank card matches every other avatar on the site. */
+      const photo = '<div class="shrink-0">' +
+        alumniAvatarMarkup({ image: d.photo, name: d.name }, 'w-12 h-12', 'text-base', 'rounded-xl') +
+        '</div>';
 
       const plate = [d.dept, d.series ? 'Series ' + d.series : ''].filter(Boolean).join('  ·  ');
       const statusTag = d.isRunning
