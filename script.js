@@ -2290,6 +2290,29 @@
             '</div>' +
           '</div>';
       }
+      if (key === 'work') {
+        const types = ['Student', 'Government', 'Autonomous', 'Semi-Autonomous', 'Private', 'Business', 'Self Employed', 'Other'];
+        const et = String(mp.empType || '').trim();
+        return '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="briefcase"></i>Work</p></div>' +
+          '<div class="rd-mp-ed">' +
+            '<label class="rd-mp-ed-l" for="mps-emptype">Employment type</label>' +
+            '<select class="rd-mp-ed-i" id="mps-emptype">' +
+              '<option value=""' + (!et ? ' selected' : '') + '>Select</option>' +
+              types.map(o => '<option' + (o === et ? ' selected' : '') + '>' + o + '</option>').join('') +
+            '</select>' +
+            rdMpEdField('mps-org', 'Organization / company', mp.org) +
+            rdMpEdField('mps-desig', 'Designation', mp.desig) +
+            rdMpEdField('mps-worklocation', 'Work location', mp.loc) +
+            rdMpEdField('mps-former', 'Former position at Rangdhanu / PDACC', mp.formerPos) +
+            '<p class="rd-mp-ed-note">To list several jobs with years, use ' +
+              '<button type="button" class="rd-mp-ed-link" onclick="rdMypTab(\'edit\')">the full work history editor</button>.</p>' +
+            '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
+            '<div class="rd-mp-ed-acts">' +
+              '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpSectionSave(\'work\')">Save</button>' +
+              '<button type="button" class="rd-mp-ed-cancel" onclick="rdMpCancelSection()">Cancel</button>' +
+            '</div>' +
+          '</div>';
+      }
       return '';
     }
 
@@ -2353,6 +2376,13 @@
       if (key === 'blood') {
         /* All three optional; the server validates the group, YES/NO and date. */
         payload = { blood: val('mps-blood'), willDonate: val('mps-willdonate'), lastDonation: val('mps-lastdonation') };
+      }
+      if (key === 'work') {
+        payload = {
+          employmentType: val('mps-emptype'), organization: val('mps-org'),
+          designation: val('mps-desig'), workLocation: val('mps-worklocation'),
+          formerPosition: val('mps-former')
+        };
       }
       if (!payload) return false;
       const btn = card.querySelector('.rd-mp-ed-save');

@@ -1652,7 +1652,8 @@
 .rd-mp-ed-save:disabled{opacity:.7;cursor:default}
 .rd-mp-ed-save.is-saved{background:#059669;opacity:1}
 .rd-mp-ed-cancel{padding:.68rem 1rem;border-radius:.75rem;background:#fff;color:#475569;font-weight:700;font-size:.85rem;border:1px solid var(--mp-line,#e7ebf0);cursor:pointer}
-.rd-mp-ed-note{font-size:.72rem;color:#64748b;margin:.35rem 0 0}
+.rd-mp-ed-note{font-size:.72rem;color:#64748b;margin:.55rem 0 0;line-height:1.5}
+.rd-mp-ed-link{color:#1d4ed8;font-weight:700;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
 .rd-mp-empty{margin:.5rem 0 0;font-size:.83rem;color:#94a3b8;font-weight:600;line-height:1.5}
 .rd-mp-sec.is-empty{border-style:dashed}
 .rd-mp-rows{margin-top:.3rem}
