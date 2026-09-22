@@ -2314,6 +2314,110 @@
       return rdMpPosCommit(card, list);
     }
 
+    /* Own page: Education -- university / polytechnic / school, each with Edit
+       and Add. Public profile keeps the grouped rails. */
+    function rdMpEduRow(e, i) {
+      const title = rdMpReal(e.inst) || 'Education';
+      const meta = [rdMpLevelOf(e.level).label, rdMpReal(e.field), rdMpSpan(e.from, e.to)]
+        .filter(rdMpHas).join(' · ');
+      return '<div class="rd-mp-work-row"><div class="rd-mp-work-info">' +
+        '<p class="rd-mp-work-t">' + escapeHtml(title) + '</p>' +
+        (meta ? '<p class="rd-mp-work-m">' + escapeHtml(meta) + '</p>' : '') +
+        '</div><button type="button" class="rd-mp-sec-edit" onclick="rdMpEduEdit(' + i + ')">' +
+        '<i data-lucide="pencil"></i>Edit</button></div>';
+    }
+
+    function rdMpEduOwn(mp) {
+      const list = (mp.edu || []).filter(e => rdMpHas(e.inst));
+      const entries = list.length
+        ? '<div class="rd-mp-worklist">' + list.map((e, i) => rdMpEduRow(e, i)).join('') + '</div>'
+        : '<p class="rd-mp-empty">No education added yet — add DUET, and your school.</p>';
+      return '<div class="rd-mp-sec" data-mp-sec="edu">' +
+        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="graduation-cap"></i>Education</p>' +
+          '<button type="button" class="rd-mp-sec-edit" onclick="rdMpEduEdit(-1)">' +
+          '<i data-lucide="plus"></i>Add education</button></div>' +
+        entries +
+      '</div>';
+    }
+
+    function rdMpEduEdit(idx) {
+      const card = document.querySelector('[data-mp-sec="edu"]');
+      if (!card) return;
+      if (RD_MP_EDITING && RD_MP_EDITING !== 'edu') rdMpCancelSection();
+      RD_MP_EDITING = 'edu';
+      const list = (rdMypRecord().edu || []);
+      const e = (idx >= 0 && list[idx]) ? list[idx] : { level: 'UNIVERSITY', inst: '', field: '', from: '', to: '' };
+      const lk = rdMpLevelOf(e.level).key;
+      card.classList.add('is-editing');
+      card.innerHTML =
+        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="graduation-cap"></i>' +
+          (idx < 0 ? 'Add education' : 'Edit education') + '</p></div>' +
+        '<div class="rd-mp-ed">' +
+          '<label class="rd-mp-ed-l" for="mps-e-level">Level</label>' +
+          '<select class="rd-mp-ed-i" id="mps-e-level">' +
+            RD_MP_LEVELS.map(l => '<option value="' + l.key + '"' + (l.key === lk ? ' selected' : '') + '>' +
+              escapeHtml(l.label) + '</option>').join('') +
+          '</select>' +
+          rdMpEdField('mps-e-inst', 'Institution', e.inst) +
+          rdMpEdField('mps-e-field', 'Degree / field', e.field) +
+          '<div class="rd-mp-ed-two">' +
+            '<div><label class="rd-mp-ed-l" for="mps-e-from">From (year)</label>' +
+              '<input class="rd-mp-ed-i" id="mps-e-from" inputmode="numeric" maxlength="4" value="' +
+              escapeHtml(e.from || '') + '" placeholder="2015"></div>' +
+            '<div><label class="rd-mp-ed-l" for="mps-e-to">To (year)</label>' +
+              '<input class="rd-mp-ed-i" id="mps-e-to" inputmode="numeric" maxlength="4" value="' +
+              escapeHtml(e.to || '') + '" placeholder="2019"></div>' +
+          '</div>' +
+          '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
+          '<div class="rd-mp-ed-acts">' +
+            '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpEduEntrySave(' + idx + ')">Save</button>' +
+            (idx >= 0 ? '<button type="button" class="rd-mp-ed-del" onclick="rdMpEduDelete(' + idx + ')">Delete</button>' : '') +
+            '<button type="button" class="rd-mp-ed-cancel" onclick="rdMpCancelSection()">Cancel</button>' +
+          '</div>' +
+        '</div>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      const f = card.querySelector('input, select'); if (f) f.focus();
+    }
+
+    async function rdMpEduCommit(card, list) {
+      const btn = card && card.querySelector('.rd-mp-ed-save');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+      try {
+        const r = await apiPost('membersaveprofile', Object.assign(
+          { education: rdMpJoin(list, ['level', 'inst', 'field', 'from', 'to']) }, rdMemberParams()));
+        if (r && r.member) {
+          RD_MYP.me = r.member; RD_MEMBER.me = r.member;
+          try { localStorage.setItem(RD_MEMBER_PROFILE_KEY, JSON.stringify(r.member)); } catch (e) {}
+        }
+        rdFeedForget('alumni'); RD_MEMBER.contacts = null; RD_MP_EDITING = null;
+        rdMypViewPaint();
+      } catch (err) {
+        rdMpSecMsg(card, friendlyError(err).msg);
+        if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+      }
+      return false;
+    }
+
+    function rdMpEduEntrySave(idx) {
+      const card = document.querySelector('[data-mp-sec="edu"]');
+      if (!card) return false;
+      const val = id => { const el = card.querySelector('#' + id); return el ? String(el.value || '').trim() : ''; };
+      const inst = val('mps-e-inst');
+      if (!inst) { rdMpSecMsg(card, 'Add the institution name.'); return false; }
+      const entry = { level: val('mps-e-level') || 'UNIVERSITY', inst: inst,
+                      field: val('mps-e-field'), from: val('mps-e-from'), to: val('mps-e-to') };
+      const list = (rdMypRecord().edu || []).slice();
+      if (idx < 0) list.unshift(entry); else list[idx] = entry;
+      return rdMpEduCommit(card, list);
+    }
+
+    function rdMpEduDelete(idx) {
+      const card = document.querySelector('[data-mp-sec="edu"]');
+      const list = (rdMypRecord().edu || []).slice();
+      if (idx >= 0) list.splice(idx, 1);
+      return rdMpEduCommit(card, list);
+    }
+
     function rdMpEditFormer() {
       const card = document.querySelector('[data-mp-sec="service"]');
       if (!card) return;
@@ -2361,6 +2465,7 @@
        three crests, three rails, and a reader can find the polytechnic without
        reading the university first. */
     function rdMpEdu(mp) {
+      if (RD_MP_OWN) return rdMpEduOwn(mp);   /* editable list on the own page */
       const list = (mp.edu || []).filter(e => rdMpHas(e.inst));
       if (!list.length) return rdMpSection('graduation-cap', 'Education', '', 0, 'edu',
         'Add your education — DUET, and your school.');
