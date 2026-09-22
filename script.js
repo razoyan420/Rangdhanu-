@@ -2864,6 +2864,19 @@
             '</div>' +
           '</div>';
       }
+      if (key === 'social') {
+        /* The widget draws its own rows, Add button and error line inside the
+           mount; the editor only frames it with the section's Save / Cancel. */
+        return '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="at-sign"></i>Social media</p></div>' +
+          '<div class="rd-mp-ed">' +
+            '<div id="mps-soc-mount" data-rd-social></div>' +
+            '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
+            '<div class="rd-mp-ed-acts">' +
+              '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpSectionSave(\'social\')">Save</button>' +
+              '<button type="button" class="rd-mp-ed-cancel" onclick="rdMpCancelSection()">Cancel</button>' +
+            '</div>' +
+          '</div>';
+      }
       return '';
     }
 
@@ -2890,6 +2903,14 @@
         if (typeof rdAddrInit === 'function') {
           rdAddrInit('mpPermanent', mp.permanent || '');
           rdAddrInit('mpPresent', mp.present || '');
+        }
+        return;
+      }
+      /* The social widget builds its own rows from the saved links, so the
+         member edits the same block the registration form uses. */
+      if (key === 'social') {
+        if (typeof rdSocialRender === 'function') {
+          rdSocialRender('mps-soc-mount', typeof rdSocialParse === 'function' ? rdSocialParse(mp.social) : []);
         }
         return;
       }
@@ -2944,6 +2965,13 @@
           permanentAddress: rdAddrJoin(rdAddrState.mpPermanent),
           presentAddress: rdAddrJoin(rdAddrState.mpPresent)
         };
+      }
+      if (key === 'social') {
+        /* rdSocialCollect validates each row and shows its own inline error
+           inside the widget, returning null when something is wrong. */
+        const serialized = rdSocialCollect('mps-soc-mount');
+        if (serialized === null) return false;
+        payload = { socialLinks: serialized };
       }
       if (!payload) return false;
       const btn = card.querySelector('.rd-mp-ed-save');
