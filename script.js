@@ -2265,6 +2265,9 @@
           '</select>' +
           rdMpEdField('mps-p-post', 'Position / designation', p.post) +
           rdMpEdField('mps-p-session', 'Session (e.g. 2020-2021)', p.session) +
+          '<label class="rd-mp-ed-check"><input type="checkbox" id="mps-p-committee">' +
+            '<span>Also add/update this on the committee section? ' +
+            '(If ticked, it appears on the committee page after admin approval.)</span></label>' +
           '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
           '<div class="rd-mp-ed-acts">' +
             '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpPosEntrySave(' + idx + ')">Save</button>' +
@@ -2276,7 +2279,7 @@
       const f = card.querySelector('input, select'); if (f) f.focus();
     }
 
-    async function rdMpPosCommit(card, list) {
+    async function rdMpPosCommit(card, list, propose) {
       const btn = card && card.querySelector('.rd-mp-ed-save');
       if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
       try {
@@ -2285,6 +2288,23 @@
         if (r && r.member) {
           RD_MYP.me = r.member; RD_MEMBER.me = r.member;
           try { localStorage.setItem(RD_MEMBER_PROFILE_KEY, JSON.stringify(r.member)); } catch (e) {}
+        }
+        /* When the member ticked "also on the committee section", that one post
+           goes to the committee inbox for admin review -- profile save first,
+           then the request. If the committee side rejects the input (a session
+           that is not the full 2020-2021 form is the usual one), the profile is
+           already saved, so we keep the editor open and say what to fix rather
+           than losing the edit or claiming a request that never left. */
+        if (propose && propose.post && propose.session) {
+          try {
+            await rdMpProposeCommittee(propose, (r && r.member) || RD_MYP.me || {});
+          } catch (ce) {
+            rdMpSecMsg(card, 'Profile saved, but the committee request was not sent: ' +
+              friendlyError(ce).msg);
+            if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+            RD_MP_EDITING = 'service';
+            return false;
+          }
         }
         rdFeedForget('alumni'); RD_MEMBER.contacts = null; RD_MP_EDITING = null;
         rdMypViewPaint();
@@ -2295,6 +2315,29 @@
       return false;
     }
 
+    /* One position -> the committee submission inbox, mirroring what the old
+       "upgrade to committee" checkbox on the full form did, but for the single
+       designation the member is saving right now. */
+    async function rdMpProposeCommittee(entry, m) {
+      const g = k => String((m && (m[k] || m[k.toLowerCase()])) || '').trim();
+      const bk = rdMpBodyOf(entry.body).key;
+      const committee = bk === 'PDACC' ? 'Prokoushali DUET Admission Coaching Centre (PDACC)'
+        : (bk === 'ALUMNI' ? 'Rangdhanu Alumni Association' : 'Rangdhanu');
+      return apiPost('submitexecutivecommittee', { data: {
+        committee: committee,
+        session: entry.session,
+        position: entry.post,
+        fullName: g('Full Name (English)'),
+        department: g('Department'),
+        series: g('Series'),
+        mobile: g('Mobile Number') || g('Mobile'),
+        email: g('Email'),
+        message: 'Submitted via My Profile update',
+        targetMemberId: g('Member ID') || g('memberId'),
+        submissionMode: 'own'
+      } });
+    }
+
     function rdMpPosEntrySave(idx) {
       const card = document.querySelector('[data-mp-sec="service"]');
       if (!card) return false;
@@ -2302,9 +2345,14 @@
       const post = val('mps-p-post');
       if (!post) { rdMpSecMsg(card, 'Add the position / designation.'); return false; }
       const entry = { body: val('mps-p-body') || 'RANGDHANU', session: val('mps-p-session'), post: post };
+      const chk = card.querySelector('#mps-p-committee');
+      const propose = chk && chk.checked ? entry : null;
+      if (propose && !entry.session) {
+        rdMpSecMsg(card, 'Add the session before requesting it on the committee page.'); return false;
+      }
       const list = (rdMypRecord().posts || []).slice();
       if (idx < 0) list.unshift(entry); else list[idx] = entry;
-      return rdMpPosCommit(card, list);
+      return rdMpPosCommit(card, list, propose);
     }
 
     function rdMpPosDelete(idx) {
