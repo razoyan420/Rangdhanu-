@@ -2595,6 +2595,9 @@
         '<i data-lucide="pencil"></i>Edit</button></div>';
     }
 
+    /* Thesis and published papers are two different things -- a final-year
+       thesis is often never published -- so each is its own section with its
+       own Edit, matching the two boxes on the update form. */
     function rdMpResearchOwn(mp) {
       const th = rdMpReal(mp.thesis);
       const det = String(mp.thesisDetails || '').trim();
@@ -2602,31 +2605,38 @@
       if (th && det) {
         detClip = det.length > 140 ? det.slice(0, 140).replace(/\s+\S*$/, '') + '…' : det;
       }
-      const thRow = '<div class="rd-mp-work-row"><div class="rd-mp-work-info">' +
-        '<p class="rd-mp-work-t">' + escapeHtml(th || 'Thesis topic') + '</p>' +
-        (th
-          ? (detClip ? '<p class="rd-mp-work-m">' + escapeHtml(detClip) + '</p>' : '')
-          : '<p class="rd-mp-work-m">Not added yet</p>') +
-        '</div><button type="button" class="rd-mp-sec-edit" onclick="rdMpThesisEdit()">' +
-        '<i data-lucide="pencil"></i>Edit</button></div>';
+      const thBody = th
+        ? '<div class="rd-mp-worklist"><div class="rd-mp-work-row"><div class="rd-mp-work-info">' +
+            '<p class="rd-mp-work-t">' + escapeHtml(th) + '</p>' +
+            (detClip ? '<p class="rd-mp-work-m">' + escapeHtml(detClip) + '</p>' : '') +
+          '</div></div></div>'
+        : '<p class="rd-mp-empty">Add your final-year thesis topic.</p>';
+      const thesisCard = '<div class="rd-mp-sec' + (th ? '' : ' is-empty') + '" data-mp-sec="thesis">' +
+        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="flask-conical"></i>Thesis</p>' +
+          '<button type="button" class="rd-mp-sec-edit" onclick="rdMpThesisEdit()">' +
+          '<i data-lucide="' + (th ? 'pencil' : 'plus') + '"></i>' + (th ? 'Edit' : 'Add') + '</button></div>' +
+        thBody +
+      '</div>';
+
       const papers = (mp.papers || []).filter(p => rdMpHas(p.url));
-      const paperRows = papers.length
+      const paperBody = papers.length
         ? '<div class="rd-mp-worklist">' + papers.map((p, i) => rdMpPaperRow(p, i)).join('') + '</div>'
         : '<p class="rd-mp-empty">No papers added yet — add a link to a published paper.</p>';
-      return '<div class="rd-mp-sec" data-mp-sec="research">' +
-        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="flask-conical"></i>Thesis and papers</p>' +
+      const papersCard = '<div class="rd-mp-sec' + (papers.length ? '' : ' is-empty') + '" data-mp-sec="papers">' +
+        '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="file-text"></i>Published papers</p>' +
           '<button type="button" class="rd-mp-sec-edit" onclick="rdMpPaperEdit(-1)">' +
           '<i data-lucide="plus"></i>Add paper</button></div>' +
-        '<div class="rd-mp-worklist">' + thRow + '</div>' +
-        paperRows +
+        paperBody +
       '</div>';
+
+      return thesisCard + papersCard;
     }
 
     function rdMpThesisEdit() {
-      const card = document.querySelector('[data-mp-sec="research"]');
+      const card = document.querySelector('[data-mp-sec="thesis"]');
       if (!card) return;
-      if (RD_MP_EDITING && RD_MP_EDITING !== 'research') rdMpCancelSection();
-      RD_MP_EDITING = 'research';
+      if (RD_MP_EDITING && RD_MP_EDITING !== 'thesis') rdMpCancelSection();
+      RD_MP_EDITING = 'thesis';
       const mp = rdMypRecord();
       card.classList.add('is-editing');
       card.innerHTML =
@@ -2646,17 +2656,17 @@
     }
 
     function rdMpThesisSave() {
-      const card = document.querySelector('[data-mp-sec="research"]');
+      const card = document.querySelector('[data-mp-sec="thesis"]');
       if (!card) return false;
       const val = id => { const el = card.querySelector('#' + id); return el ? String(el.value || '').trim() : ''; };
       return rdMpResearchCommit(card, { thesisTopic: val('mps-thesis'), thesisDetails: val('mps-thdet') });
     }
 
     function rdMpPaperEdit(idx) {
-      const card = document.querySelector('[data-mp-sec="research"]');
+      const card = document.querySelector('[data-mp-sec="papers"]');
       if (!card) return;
-      if (RD_MP_EDITING && RD_MP_EDITING !== 'research') rdMpCancelSection();
-      RD_MP_EDITING = 'research';
+      if (RD_MP_EDITING && RD_MP_EDITING !== 'papers') rdMpCancelSection();
+      RD_MP_EDITING = 'papers';
       const list = (rdMypRecord().papers || []).filter(p => rdMpHas(p.url));
       const p = (idx >= 0 && list[idx]) ? list[idx] : { title: '', url: '' };
       card.classList.add('is-editing');
@@ -2696,7 +2706,7 @@
     }
 
     function rdMpPaperEntrySave(idx) {
-      const card = document.querySelector('[data-mp-sec="research"]');
+      const card = document.querySelector('[data-mp-sec="papers"]');
       if (!card) return false;
       const val = id => { const el = card.querySelector('#' + id); return el ? String(el.value || '').trim() : ''; };
       const url = val('mps-p-url');
@@ -2710,7 +2720,7 @@
     }
 
     function rdMpPaperDelete(idx) {
-      const card = document.querySelector('[data-mp-sec="research"]');
+      const card = document.querySelector('[data-mp-sec="papers"]');
       const list = (rdMypRecord().papers || []).filter(p => rdMpHas(p.url)).slice();
       if (idx >= 0) list.splice(idx, 1);
       return rdMpResearchCommit(card, { papers: rdMpJoin(list, ['title', 'url']) });
