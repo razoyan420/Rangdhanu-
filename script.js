@@ -3044,6 +3044,13 @@
         mobileApplication.classList.toggle('hidden', !applicationVisible);
         mobileApplication.style.display = applicationVisible ? '' : 'none';
       }
+      /* Log out lives in the More menu now, shown only when signed in. Toggled
+         by style.display -- the same way the membership CTA above is -- so it
+         beats any nav-panel CSS the way a bare `.hidden` class would not. */
+      ['rd-more-logout-desktop', 'rd-more-logout-mobile'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = on ? '' : 'none';
+      });
       const btn = document.getElementById('mobile-member-btn');
       if (btn) btn.setAttribute('aria-label', on ? 'My Profile' : 'Member sign in');
       const icon = document.getElementById('mobile-member-icon');

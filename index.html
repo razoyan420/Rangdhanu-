@@ -279,15 +279,11 @@
           <button onclick="switchPage('bloodbank'); rdMoreClose('desktop')"><i data-lucide="droplets" class="w-4 h-4 text-rose-400"></i>Blood Bank</button>
           <button onclick="switchPage('noticeboard'); rdMoreClose('desktop')"><i data-lucide="bell" class="w-4 h-4 text-slate-400"></i>Notice</button>
           <button onclick="switchPage('cgpa'); rdMoreClose('desktop')"><i data-lucide="calculator" class="w-4 h-4 text-slate-400"></i>CGPA Calculator</button>
+          <button id="rd-more-logout-desktop" style="display:none" onclick="memberSignOut(); rdMoreClose('desktop')"><i data-lucide="log-out" class="w-4 h-4 text-slate-400"></i>Log out</button>
         </div>
       </div>
       <div id="nav-member-menu" class="rd-nav-profile-menu ml-auto">
-        <button id="nav-member-btn" type="button" class="nav-btn premium-nav-item rd-nav-profile-trigger" data-page="my-profile" aria-haspopup="true" aria-expanded="false" onclick="rdNavProfileMenuToggle(this)"><span id="nav-member-text">Restoring...</span><i data-lucide="chevron-down" class="rd-nav-profile-chevron"></i></button>
-        <div class="rd-nav-profile-dropdown hidden">
-          <button type="button" onclick="rdMemberMyProfile(); rdNavProfileMenuClose();">Profile</button>
-          <button type="button" onclick="rdMemberMyProfile(); rdMypTab('edit'); rdNavProfileMenuClose();">Update profile</button>
-          <button type="button" class="rd-nav-profile-danger" onclick="memberSignOut(); rdNavProfileMenuClose();">Log out</button>
-        </div>
+        <button id="nav-member-btn" type="button" class="nav-btn premium-nav-item rd-nav-profile-trigger" data-page="my-profile" onclick="rdMemberNavClick()"><span id="nav-member-text">Restoring...</span></button>
       </div>
       <div id="nav-admin-menu" class="hidden items-center gap-1 ml-2">
         <button type="button" class="nav-btn premium-nav-item flex items-center gap-1.5" onclick="switchPage('admin')"><i data-lucide="shield-check" class="w-4 h-4"></i><span>Admin Dashboard</span><span id="nav-admin-badge" class="hidden"></span></button>
@@ -306,13 +302,9 @@
     <button class="mobile-nav-item" data-page="bloodbank" onclick="switchPage('bloodbank')">🩸 Blood Bank</button>
     <button class="mobile-nav-item" data-page="cgpa" onclick="switchPage('cgpa')">CGPA Calculator</button>
     <div id="mobile-member-menu" class="rd-mobile-profile-menu">
-      <button id="mobile-member-item" type="button" class="mobile-nav-item rd-mobile-profile-trigger" data-page="my-profile" aria-haspopup="true" aria-expanded="false" onclick="rdNavProfileMenuToggle(this)">Restoring... <i data-lucide="chevron-down" class="w-4 h-4"></i></button>
-      <div class="rd-nav-profile-dropdown rd-mobile-profile-dropdown hidden">
-        <button type="button" onclick="rdMemberMyProfile(); rdNavProfileMenuClose();">Profile</button>
-        <button type="button" onclick="rdMemberMyProfile(); rdMypTab('edit'); rdNavProfileMenuClose();">Update profile</button>
-        <button type="button" class="rd-nav-profile-danger" onclick="memberSignOut(); rdNavProfileMenuClose();">Log out</button>
-      </div>
+      <button id="mobile-member-item" type="button" class="mobile-nav-item rd-mobile-profile-trigger" data-page="my-profile" onclick="rdMemberNavClick()">Restoring...</button>
     </div>
+    <button id="rd-more-logout-mobile" class="mobile-nav-item" style="display:none" onclick="memberSignOut()"><i data-lucide="log-out" class="w-4 h-4"></i> Log out</button>
     <div id="mobile-admin-menu" class="hidden border-t border-slate-100 mt-2 pt-2">
       <button type="button" class="mobile-nav-item flex items-center gap-2" onclick="switchPage('admin')"><i data-lucide="shield-check" class="w-4 h-4"></i> Admin Dashboard <span id="mobile-admin-badge" class="hidden"></span></button>
     </div>
