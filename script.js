@@ -1966,23 +1966,27 @@
        the wide column and none around the narrow one. is-side is what puts a
        section in the narrow column, so the public profile page can lay itself
        out from five separate variables without a div spanning two of them. */
-    function rdMpSection(icon, title, inner, side, editKey) {
+    function rdMpSection(icon, title, inner, side, editKey, emptyHint) {
       const canEdit = RD_MP_OWN && editKey;
-      /* An empty section still draws when it is one the owner can fill, so the
-         Edit/Add affordance is there to open it. Otherwise an empty one draws
-         nothing, as before. */
+      /* An empty section still draws on the member's own page when it is one
+         they can fill, so the Add affordance and a short hint tell them the
+         information can be added. Elsewhere an empty one draws nothing. */
       if (!inner && !canEdit) return '';
+      const isEmpty = !inner;
       const pencil = canEdit
         ? '<button type="button" class="rd-mp-sec-edit" onclick="rdMpEditSection(\'' +
-            editKey + '\')" aria-label="Edit ' + escapeHtml(title) + '">' +
-            '<i data-lucide="pencil"></i>Edit</button>'
+            editKey + '\')" aria-label="' + (isEmpty ? 'Add ' : 'Edit ') + escapeHtml(title) + '">' +
+            '<i data-lucide="' + (isEmpty ? 'plus' : 'pencil') + '"></i>' + (isEmpty ? 'Add' : 'Edit') + '</button>'
         : '';
-      return '<div class="rd-mp-sec' + (side ? ' is-side' : '') + '"' +
+      const body = inner || (canEdit
+        ? '<p class="rd-mp-empty">' + escapeHtml(emptyHint || 'Not added yet.') + '</p>'
+        : '');
+      return '<div class="rd-mp-sec' + (side ? ' is-side' : '') + (isEmpty ? ' is-empty' : '') + '"' +
         (editKey ? ' data-mp-sec="' + editKey + '"' : '') + '>' +
         '<div class="rd-mp-sech-row">' +
           '<p class="rd-mp-sech"><i data-lucide="' + icon + '"></i>' + escapeHtml(title) + '</p>' +
           pencil +
-        '</div>' + (inner || '') + '</div>';
+        '</div>' + body + '</div>';
     }
 
     function rdMpRowsBox(inner) { return inner ? '<div class="rd-mp-rows">' + inner + '</div>' : ''; }
@@ -2039,7 +2043,8 @@
       }).join('');
       groups += rdMpSvGroup('badge-check', 'Standing', '',
         rdMpSvTerm('Today', rdMpStanding(mp.status), RD_MP_ORG, true, ''));
-      return rdMpSection('shield', 'Service record', '<div class="rd-sv">' + groups + '</div>');
+      return rdMpSection('shield', 'Service record', '<div class="rd-sv">' + groups + '</div>',
+        0, 'service', 'Add your Rangdhanu / PDACC positions, session by session.');
     }
 
     /* Members who registered before the session-wise columns existed have one
@@ -2069,7 +2074,8 @@
          the input, which is where this text was typed. */
       return rdMpSection('shield', 'Service record', '<div class="rd-sv">' +
         rdMpSvGroup('shield-check', ev.length ? rdPositionCardLabel(mp.status) : 'Standing',
-          ev.length ? rdMpPlural(ev.length, 'term') : '', inner) + '</div>');
+          ev.length ? rdMpPlural(ev.length, 'term') : '', inner) + '</div>',
+        0, 'service', 'Add your Rangdhanu / PDACC positions, session by session.');
     }
 
     function rdMpWork(mp) {
@@ -2082,7 +2088,8 @@
               rdMpSvTerm('', [mp.desig, mp.org].filter(rdMpHas).join(', '),
                 rdMpReal(mp.loc), true, '')) + '</div>'
           : '';
-        return rdMpSection('briefcase', 'Work', one + extra);
+        return rdMpSection('briefcase', 'Work', one + extra, 0, 'work',
+          'Add where you work — organization, designation and history.');
       }
       /* No "Present" chip here: rdMpSpan already ends the line with the word,
          and printing it twice on one row is the sort of thing that makes a page
@@ -2091,7 +2098,8 @@
         [w.desig ? w.org : '', w.loc].filter(rdMpHas).join(' · '), !rdMpHas(w.to), '')).join('');
       return rdMpSection('briefcase', 'Work',
         '<div class="rd-sv">' + rdMpSvGroup('briefcase', 'Employment history',
-          rdMpPlural(list.length, 'post'), inner) + '</div>' + extra);
+          rdMpPlural(list.length, 'post'), inner) + '</div>' + extra, 0, 'work',
+        'Add where you work — organization, designation and history.');
     }
 
     /* Education groups by level for the same reason service groups by body:
@@ -2099,7 +2107,8 @@
        reading the university first. */
     function rdMpEdu(mp) {
       const list = (mp.edu || []).filter(e => rdMpHas(e.inst));
-      if (!list.length) return '';
+      if (!list.length) return rdMpSection('graduation-cap', 'Education', '', 0, 'edu',
+        'Add your education — DUET, and your school.');
       const groups = RD_MP_LEVELS.map(lv => {
         const mine = list.filter(e => rdMpLevelOf(e.level).key === lv.key).sort(rdMpByYearDesc);
         if (!mine.length) return '';
@@ -2107,7 +2116,8 @@
           rdMpReal(e.field), !rdMpHas(e.to) && rdMpHas(e.from), '')).join('');
         return rdMpSvGroup(lv.icon, lv.label, rdMpPlural(mine.length, 'record'), inner);
       }).join('');
-      return rdMpSection('graduation-cap', 'Education', '<div class="rd-sv">' + groups + '</div>');
+      return rdMpSection('graduation-cap', 'Education', '<div class="rd-sv">' + groups + '</div>',
+        0, 'edu', 'Add your education — DUET, and your school.');
     }
 
     /* ---- thesis and papers --------------------------------------------- */
@@ -2124,7 +2134,8 @@
 
     function rdMpResearch(mp) {
       const papers = (mp.papers || []).filter(p => rdMpHas(p.url));
-      if (!rdMpHas(mp.thesis) && !papers.length) return '';
+      if (!rdMpHas(mp.thesis) && !papers.length) return rdMpSection('flask-conical',
+        'Thesis and papers', '', 0, 'research', 'Add your thesis topic or published papers.');
       let out = '';
       if (rdMpHas(mp.thesis)) {
         out += '<div class="rd-mp-th"><p class="rd-mp-tht">' + escapeHtml(mp.thesis) + '</p>';
@@ -2155,7 +2166,8 @@
               '<span class="rd-mp-paperh">' + escapeHtml(host) + ' &#8599;</span></a>';
           }).join('') + '</div>';
       }
-      return rdMpSection('flask-conical', 'Thesis and papers', out);
+      return rdMpSection('flask-conical', 'Thesis and papers', out,
+        0, 'research', 'Add your thesis topic or published papers.');
     }
 
     function rdMpThesisMore(btn) {
@@ -2207,7 +2219,8 @@
     function rdMpSocial(mp, st) {
       if (!st.signed) return '';
       const chips = rdSocialChips(mp.social);
-      return chips ? rdMpSection('at-sign', 'Social media', chips, 1) : '';
+      return rdMpSection('at-sign', 'Social media', chips || '', 1, 'social',
+        'Add your social media links.');
     }
 
     /* ================= SECTION-WISE INLINE EDITING (Facebook-style) =======
@@ -2243,7 +2256,36 @@
             rdMpEdVis('mps-vis-email', 'Email', vis) +
             '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
             '<div class="rd-mp-ed-acts">' +
-              '<button type="button" class="rd-mp-ed-save" onclick="rdMpSectionSave(\'contact\')">Save contact</button>' +
+              '<button type="button" class="rd-mp-ed-save" data-lbl="Save contact" onclick="rdMpSectionSave(\'contact\')">Save contact</button>' +
+              '<button type="button" class="rd-mp-ed-cancel" onclick="rdMpCancelSection()">Cancel</button>' +
+            '</div>' +
+          '</div>';
+      }
+      if (key === 'blood') {
+        const groups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+        const g = String(mp.blood || '').trim();
+        const wd = String(mp.willDonate || '').trim().toUpperCase();
+        const ld = String(mp.lastDonation || '').trim();
+        const today = new Date().toISOString().slice(0, 10);
+        return '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="droplet"></i>Blood donation</p></div>' +
+          '<div class="rd-mp-ed">' +
+            '<label class="rd-mp-ed-l" for="mps-blood">Blood group</label>' +
+            '<select class="rd-mp-ed-i" id="mps-blood">' +
+              '<option value=""' + (!g ? ' selected' : '') + '>Select</option>' +
+              groups.map(o => '<option' + (o === g ? ' selected' : '') + '>' + o + '</option>').join('') +
+            '</select>' +
+            '<label class="rd-mp-ed-l" for="mps-willdonate">Willing to donate blood?</label>' +
+            '<select class="rd-mp-ed-i" id="mps-willdonate">' +
+              '<option value=""' + (!wd ? ' selected' : '') + '>Not specified</option>' +
+              '<option value="YES"' + (wd === 'YES' ? ' selected' : '') + '>Yes, I can donate</option>' +
+              '<option value="NO"' + (wd === 'NO' ? ' selected' : '') + '>No, not right now</option>' +
+            '</select>' +
+            '<p class="rd-mp-ed-note">If yes, your name shows in the Blood Bank directory.</p>' +
+            '<label class="rd-mp-ed-l" for="mps-lastdonation">Last donation date</label>' +
+            '<input class="rd-mp-ed-i" id="mps-lastdonation" type="date" value="' + escapeHtml(ld) + '" max="' + today + '">' +
+            '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
+            '<div class="rd-mp-ed-acts">' +
+              '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpSectionSave(\'blood\')">Save</button>' +
               '<button type="button" class="rd-mp-ed-cancel" onclick="rdMpCancelSection()">Cancel</button>' +
             '</div>' +
           '</div>';
@@ -2258,7 +2300,12 @@
       const mp = rdMypRecord();
       const vis = (RD_MYP.me && RD_MYP.me.visibility) || {};
       const editor = rdMpSectionEditor(key, mp, vis);
-      if (!editor) return;
+      if (!editor) {
+        /* Sections not yet converted to inline editing open the full form for
+           now -- Address and the multi-row editors come in a later stage. */
+        if (typeof rdMypTab === 'function') rdMypTab('edit');
+        return;
+      }
       RD_MP_EDITING = key;
       card.classList.add('is-editing');
       card.innerHTML = editor;
@@ -2303,8 +2350,13 @@
           }
         };
       }
+      if (key === 'blood') {
+        /* All three optional; the server validates the group, YES/NO and date. */
+        payload = { blood: val('mps-blood'), willDonate: val('mps-willdonate'), lastDonation: val('mps-lastdonation') };
+      }
       if (!payload) return false;
       const btn = card.querySelector('.rd-mp-ed-save');
+      const saveLbl = (btn && btn.dataset.lbl) || 'Save';
       if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
       try {
         const r = await apiPost('membersaveprofile', Object.assign({}, payload, rdMemberParams()));
@@ -2321,7 +2373,7 @@
         setTimeout(function () { RD_MP_EDITING = null; rdMypViewPaint(); }, 850);
       } catch (err) {
         rdMpSecMsg(card, friendlyError(err).msg);
-        if (btn) { btn.disabled = false; btn.textContent = 'Save contact'; }
+        if (btn) { btn.disabled = false; btn.textContent = saveLbl; }
       }
       return false;
     }
@@ -2369,7 +2421,21 @@
         '<div class="rd-mp-main">' +
           rdMpWork(mp) + rdMpService(mp) + rdMpEdu(mp) + rdMpResearch(mp) +
         '</div>' +
-        '<div class="rd-mp-side">' + rdMpContact(mp, s) + rdMpSocial(mp, s) + '</div>';
+        '<div class="rd-mp-side">' + rdMpContact(mp, s) + rdMpBlood(mp, s) + rdMpSocial(mp, s) + '</div>';
+    }
+
+    /* Blood group + donation, own page only -- on a public profile the group
+       already sits in the credential rule, so a second copy there would just
+       repeat it. Empty shows an Add prompt so a member knows it can be filled. */
+    function rdMpBlood(mp, st) {
+      if (!st.own) return '';
+      const wd = String(mp.willDonate || '').trim().toUpperCase();
+      const rows = rdMpRowsBox(
+        rdMpRow('droplet', 'Blood group', mp.blood) +
+        rdMpRow('heart-pulse', 'Willing to donate', wd === 'YES' ? 'Yes' : (wd === 'NO' ? 'No' : '')) +
+        rdMpRow('calendar', 'Last donation', mp.lastDonation));
+      return rdMpSection('droplet', 'Blood donation', rows, 1, 'blood',
+        'Add your blood group and whether you can donate — it helps the Blood Bank.');
     }
 
     /* ================= WHERE THE RECORD COMES FROM =======================
@@ -4492,6 +4558,7 @@
       RD_MP_SHOWN = mp;
       const canView = !!c || rdCanViewContacts();
       const st = rdMpState({ own: false, signed: canView, x: mp.pos.x, y: mp.pos.y });
+      RD_MP_OWN = false;   /* a public profile never carries the Add/Edit affordances */
 
       const head = rdMpCredential(mp, st);
       const idCard = rdProfileSection('Rangdhanu Identity', rdMpService(mp));
