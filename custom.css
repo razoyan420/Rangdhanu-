@@ -1649,7 +1649,8 @@
 .rd-mp-ed-acts{display:flex;gap:.5rem;margin-top:1rem}
 .rd-mp-ed-save{flex:1;padding:.68rem;border-radius:.75rem;background:#1d4ed8;color:#fff;font-weight:700;font-size:.85rem;border:0;cursor:pointer}
 .rd-mp-ed-save:hover{background:#1e40af}
-.rd-mp-ed-save:disabled{opacity:.6;cursor:default}
+.rd-mp-ed-save:disabled{opacity:.7;cursor:default}
+.rd-mp-ed-save.is-saved{background:#059669;opacity:1}
 .rd-mp-ed-cancel{padding:.68rem 1rem;border-radius:.75rem;background:#fff;color:#475569;font-weight:700;font-size:.85rem;border:1px solid var(--mp-line,#e7ebf0);cursor:pointer}
 .rd-mp-rows{margin-top:.3rem}
 .rd-mp-row{display:flex;align-items:flex-start;gap:.8rem;padding:.78rem 0}

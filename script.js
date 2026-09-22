@@ -2314,9 +2314,11 @@
         }
         rdFeedForget('alumni');
         RD_MEMBER.contacts = null;
-        RD_MP_EDITING = null;
-        rdMypViewPaint();
-        showToast('Your profile is up to date.', 'success', 'Saved');
+        /* No confirmation page. The "Saving..." label was the loading state;
+           on success the button turns into "Saved" for a beat, then the card
+           returns to its read view in place -- never leaving the profile. */
+        if (btn) { btn.textContent = 'Saved'; btn.classList.add('is-saved'); }
+        setTimeout(function () { RD_MP_EDITING = null; rdMypViewPaint(); }, 850);
       } catch (err) {
         rdMpSecMsg(card, friendlyError(err).msg);
         if (btn) { btn.disabled = false; btn.textContent = 'Save contact'; }
