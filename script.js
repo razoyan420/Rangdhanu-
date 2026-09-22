@@ -1890,8 +1890,8 @@
          Save contact and Share. Saving your own number into your own phone
          book is the kind of button that makes a page feel unread. */
       const more = (st.own
-            ? '<button type="button" class="rd-mp-act2" onclick="rdMypTab(\'edit\')">' +
-              '<i data-lucide="pencil"></i> Update profile</button>'
+            ? '<button type="button" class="rd-mp-act2" onclick="memberSignOut()">' +
+              '<i data-lucide="log-out"></i> Log out</button>'
           : '<button type="button" class="rd-mp-act2" onclick="rdMpVcard()">' +
               '<i data-lucide="user-round-plus"></i> Save contact</button>') +
         '<button type="button" class="rd-mp-act2" onclick="rdMpShare(this)">' +
@@ -1940,7 +1940,6 @@
                       ' aria-label="Change my photo" title="Change my photo">' +
                       '<i data-lucide="camera"></i></button>' : '') +
           '</div>' +
-          '<p class="rd-mp-eyebrow">' + escapeHtml(RD_MP_ORG) + '</p>' +
           '<h1 class="rd-mp-name">' + escapeHtml(mp.name || '') + tick + '</h1>' +
           rdMpHeadline(mp) +
           '<div class="rd-mp-pillrow">' + pill + rdMpDonorPill(mp) + '</div>' +
@@ -2865,8 +2864,10 @@
           '<div class="rd-mp-ed">' +
             '<label class="rd-mp-ed-l">Permanent address</label>' +
             '<div data-addr="mpPermanent" data-addr-name="permanentAddress"></div>' +
+            rdMpEdVis('mps-vis-permanent', 'Permanent Address', vis) +
             '<label class="rd-mp-ed-l" style="margin-top:.9rem">Present address</label>' +
             '<div data-addr="mpPresent" data-addr-name="presentAddress"></div>' +
+            rdMpEdVis('mps-vis-present', 'Present Address', vis) +
             '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
             '<div class="rd-mp-ed-acts">' +
               '<button type="button" class="rd-mp-ed-save" data-lbl="Save address" onclick="rdMpSectionSave(\'address\')">Save address</button>' +
@@ -2880,6 +2881,7 @@
         return '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="at-sign"></i>Social media</p></div>' +
           '<div class="rd-mp-ed">' +
             '<div id="mps-soc-mount" data-rd-social></div>' +
+            rdMpEdVis('mps-vis-social', 'Social Links', vis) +
             '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
             '<div class="rd-mp-ed-acts">' +
               '<button type="button" class="rd-mp-ed-save" data-lbl="Save" onclick="rdMpSectionSave(\'social\')">Save</button>' +
@@ -2973,7 +2975,11 @@
            in rdAddrState and rdAddrJoin is the one place that knows their order. */
         payload = {
           permanentAddress: rdAddrJoin(rdAddrState.mpPermanent),
-          presentAddress: rdAddrJoin(rdAddrState.mpPresent)
+          presentAddress: rdAddrJoin(rdAddrState.mpPresent),
+          visibility: {
+            'Permanent Address': val('mps-vis-permanent') || 'MEMBER',
+            'Present Address': val('mps-vis-present') || 'MEMBER'
+          }
         };
       }
       if (key === 'social') {
@@ -2981,7 +2987,10 @@
            inside the widget, returning null when something is wrong. */
         const serialized = rdSocialCollect('mps-soc-mount');
         if (serialized === null) return false;
-        payload = { socialLinks: serialized };
+        payload = {
+          socialLinks: serialized,
+          visibility: { 'Social Links': val('mps-vis-social') || 'MEMBER' }
+        };
       }
       if (!payload) return false;
       const btn = card.querySelector('.rd-mp-ed-save');
@@ -3031,14 +3040,30 @@
                    (RD_MP_WANTED.length - missing.length);
       const total = RD_MP_BASE.length + RD_MP_WANTED.length;
       const pct = Math.round(100 * done / total);
+      /* r = 15.915 makes the circumference exactly 100, so the dash offset is
+         just (100 - pct): the arc reads as a percentage with no arithmetic. */
+      const heading = missing.length
+        ? 'Finish your profile'
+        : 'Your profile is complete';
       return '<div class="rd-mp-todo">' +
-        '<div class="rd-mp-todo-t"><span>Your profile is ' +
-          '<span class="rd-mp-todo-n">' + pct + '%</span> complete</span>' +
-          '<span class="rd-mp-todo-n">' + done + '/' + total + '</span></div>' +
-        '<div class="rd-mp-bar"><i style="width:' + pct + '%"></i></div>' +
-        '<ul class="rd-mp-todo-l">' + missing.slice(0, 6).map(w =>
-          '<li>' + escapeHtml(w[1]) + '</li>').join('') +
-        (missing.length > 6 ? '<li>+' + (missing.length - 6) + ' more</li>' : '') + '</ul>' +
+        '<div class="rd-mp-ring' + (pct >= 100 ? ' is-full' : '') + '"' +
+          ' role="img" aria-label="Profile ' + pct + '% complete">' +
+          '<svg viewBox="0 0 40 40" aria-hidden="true">' +
+            '<circle class="rd-mp-ring-bg" cx="20" cy="20" r="15.915"></circle>' +
+            '<circle class="rd-mp-ring-fg" cx="20" cy="20" r="15.915"' +
+              ' stroke-dasharray="100" stroke-dashoffset="' + (100 - pct) + '"></circle>' +
+          '</svg>' +
+          '<span class="rd-mp-ring-n">' + pct + '<i>%</i></span>' +
+        '</div>' +
+        '<div class="rd-mp-todo-body">' +
+          '<p class="rd-mp-todo-t">' + heading +
+            '<span class="rd-mp-todo-c">' + done + '/' + total + ' done</span></p>' +
+          (missing.length
+            ? '<ul class="rd-mp-todo-l">' + missing.slice(0, 6).map(w =>
+                '<li>' + escapeHtml(w[1]) + '</li>').join('') +
+              (missing.length > 6 ? '<li>+' + (missing.length - 6) + ' more</li>' : '') + '</ul>'
+            : '') +
+        '</div>' +
       '</div>';
     }
 
@@ -4147,114 +4172,9 @@
       }
     }
 
-    async function rdMypSave(e) {
-      e.preventDefault();
-      if (RD_MYP.busy) return false;
-      const form = e.target, btn = document.getElementById('myp-save-btn');
-      const fd = new FormData(form);
-
-      const mobile = String(fd.get('mobile') || '').trim();
-      clearFieldErrors(form);
-      if (!mobile || !isValidBdMobile(mobile)) {
-        setFieldError(form, 'mobile', 'Mobile ' + RD_MOBILE_RULE, true);
-        return false;
-      }
-      const wa = String(fd.get('whatsapp') || '').trim();
-      if (wa && !isValidBdMobile(wa)) {
-        setFieldError(form, 'whatsapp', 'WhatsApp ' + RD_MOBILE_RULE, true);
-        return false;
-      }
-
-      const visibility = {};
-      document.querySelectorAll('[data-myp-vis]').forEach(sel => {
-        visibility[sel.getAttribute('data-myp-vis')] = sel.value;
-      });
-
-      /* null means one of the rows is wrong; the block says so itself, so
-         there is nothing to add here beyond not saving. */
-      const social = rdSocialCollect('myp-social');
-      if (social === null) return false;
-      const more = rdMpEdPayload();
-      if (more === null) return false;
-
-      const payload = Object.assign({
-        mobile: mobile,
-        whatsapp: wa,
-        email: String(fd.get('email') || '').trim(),
-        permanentAddress: String(fd.get('permanentAddress') || '').trim(),
-        presentAddress: String(fd.get('presentAddress') || '').trim(),
-        blood: String(fd.get('blood') || '').trim(),
-        willDonate: String(fd.get('willDonate') || '').trim(),
-        lastDonation: String(fd.get('lastDonation') || '').trim(),
-        employmentType: String(fd.get('employmentType') || '').trim(),
-        organization: String(fd.get('organization') || '').trim(),
-        designation: String(fd.get('designation') || '').trim(),
-        workLocation: String(fd.get('workLocation') || '').trim(),
-        formerPosition: String(fd.get('formerPosition') || '').trim(),
-        socialLinks: social,
-        visibility: visibility
-      }, more);
-
-      const upgradeCommittee = !!(form.querySelector('[name="upgradeCommittee"]') && form.querySelector('[name="upgradeCommittee"]').checked);
-
-      RD_MYP.busy = true;
-      if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
-      rdMemberMsg('myp-msg', 'Saving...', 'wait');
-      try {
-        const r = await apiPost('membersaveprofile', Object.assign({}, payload, rdMemberParams()));
-        if (r && r.member) {
-          RD_MYP.me = r.member;
-          RD_MEMBER.me = r.member;
-          try { localStorage.setItem(RD_MEMBER_PROFILE_KEY, JSON.stringify(r.member)); } catch (err) {}
-          rdMypPaint(r.member);
-        }
-        if (upgradeCommittee && more.positions && more.positions.length) {
-          try {
-            for (let pIdx = 0; pIdx < more.positions.length; pIdx++) {
-              const p = more.positions[pIdx];
-              if (!p.session || !p.post) continue;
-              const committeeName = p.body === 'pdacc'
-                ? 'Prokoushali DUET Admission Coaching Centre (PDACC)'
-                : (p.body === 'alumni' ? 'Rangdhanu Alumni Association' : 'Rangdhanu');
-              await apiPost('submitexecutivecommittee', { data: {
-                committee: committeeName,
-                session: p.session,
-                position: p.post,
-                fullName: (r && r.member && r.member['Full Name (English)']) || (RD_MEMBER.me && RD_MEMBER.me['Full Name (English)']) || '',
-                department: (r && r.member && r.member.Department) || (RD_MEMBER.me && RD_MEMBER.me.Department) || '',
-                series: (r && r.member && r.member.Series) || (RD_MEMBER.me && RD_MEMBER.me.Series) || '',
-                mobile: mobile,
-                email: String(fd.get('email') || (r && r.member && r.member.Email) || (RD_MEMBER.me && RD_MEMBER.me.Email) || '').trim(),
-                designation: String(fd.get('designation') || '').trim(),
-                organization: String(fd.get('organization') || '').trim(),
-                message: 'Submitted via My Profile update',
-                targetMemberId: String((r && r.member && (r.member['Member ID'] || r.member.memberId)) || (RD_MEMBER.me && (RD_MEMBER.me['Member ID'] || RD_MEMBER.me.memberId)) || '').trim(),
-                submissionMode: 'own'
-              }});
-            }
-          } catch (commErr) {
-            console.warn('Committee upgrade submission warning:', commErr);
-          }
-        }
-        /* The directory answer is cached for ten minutes, so it is dropped here
-           -- otherwise the member would keep seeing the old line on the alumni
-           page and think the save had failed. */
-        rdFeedForget('alumni');
-        RD_MEMBER.contacts = null;
-        rdMemberMsg('myp-msg', 'Saved.', 'ok');
-        if (upgradeCommittee && more.positions && more.positions.length) {
-          showToast('Profile updated & committee request sent for admin review.', 'success', 'Saved & Submitted');
-        } else {
-          showToast('Your profile is up to date.', 'success', 'Saved');
-        }
-      } catch (err) {
-        rdMemberMsg('myp-msg', friendlyError(err).msg);
-      } finally {
-        RD_MYP.busy = false;
-        if (btn) { btn.disabled = false; btn.textContent = 'Save changes'; }
-      }
-      return false;
-    }
+    /* rdMypSave (the old whole-form submit handler) was removed with the
+       Update-profile form: every field now saves through its own section via
+       rdMpSectionSave, and a committee request goes through rdMpProposeCommittee. */
 
     /* ================= THE FOUR REPEAT EDITORS ===========================
        A member holds a post in one session and then in another; works at one
