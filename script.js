@@ -2746,14 +2746,28 @@
       return rdMpRowsBox(
         rdMpRow('phone', 'Mobile', mp.mobile, true) +
         rdMpRow('message-circle', 'WhatsApp', mp.whatsapp, true) +
-        rdMpRow('mail', 'Email', mp.email) +
-        rdMpRow('home', 'Permanent address', mp.permanent) +
-        rdMpRow('map-pin', 'Present address', mp.present));
+        rdMpRow('mail', 'Email', mp.email));
     }
 
     function rdMpContact(mp, st) {
       /* editKey only on the member's own page; rdMpSection ignores it elsewhere. */
       return rdMpSection('contact', 'Contact', rdMpContactInner(mp, st), 1, 'contact');
+    }
+
+    /* Address is its own section so its editor can host the division/district
+       picker in the room it needs -- crammed into Contact it had no space, and
+       Contact's editor never edited it, so it was read-only by accident. */
+    function rdMpAddressInner(mp, st) {
+      if (!st.signed) return '';
+      return rdMpRowsBox(
+        rdMpRow('home', 'Permanent address', mp.permanent) +
+        rdMpRow('map-pin', 'Present address', mp.present));
+    }
+
+    function rdMpAddress(mp, st) {
+      if (!st.signed) return '';
+      return rdMpSection('map-pin', 'Address', rdMpAddressInner(mp, st), 1, 'address',
+        'Add your permanent and present address.');
     }
 
     /* The site already has one social block, with its own glyphs and its own
@@ -2832,6 +2846,20 @@
             '</div>' +
           '</div>';
       }
+      if (key === 'address') {
+        return '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="map-pin"></i>Address</p></div>' +
+          '<div class="rd-mp-ed">' +
+            '<label class="rd-mp-ed-l">Permanent address</label>' +
+            '<div data-addr="mpPermanent" data-addr-name="permanentAddress"></div>' +
+            '<label class="rd-mp-ed-l" style="margin-top:.9rem">Present address</label>' +
+            '<div data-addr="mpPresent" data-addr-name="presentAddress"></div>' +
+            '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
+            '<div class="rd-mp-ed-acts">' +
+              '<button type="button" class="rd-mp-ed-save" data-lbl="Save address" onclick="rdMpSectionSave(\'address\')">Save address</button>' +
+              '<button type="button" class="rd-mp-ed-cancel" onclick="rdMpCancelSection()">Cancel</button>' +
+            '</div>' +
+          '</div>';
+      }
       return '';
     }
 
@@ -2852,6 +2880,15 @@
       card.classList.add('is-editing');
       card.innerHTML = editor;
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      /* The address editor hosts the shared division/district picker; mount it
+         once the editor markup is in the DOM so the picker has its box. */
+      if (key === 'address') {
+        if (typeof rdAddrInit === 'function') {
+          rdAddrInit('mpPermanent', mp.permanent || '');
+          rdAddrInit('mpPresent', mp.present || '');
+        }
+        return;
+      }
       const first = card.querySelector('input, select');
       if (first) first.focus();
     }
@@ -2895,6 +2932,14 @@
       if (key === 'blood') {
         /* All three optional; the server validates the group, YES/NO and date. */
         payload = { blood: val('mps-blood'), willDonate: val('mps-willdonate'), lastDonation: val('mps-lastdonation') };
+      }
+      if (key === 'address') {
+        /* Read straight from the picker's state, not from #ids -- the parts live
+           in rdAddrState and rdAddrJoin is the one place that knows their order. */
+        payload = {
+          permanentAddress: rdAddrJoin(rdAddrState.mpPermanent),
+          presentAddress: rdAddrJoin(rdAddrState.mpPresent)
+        };
       }
       if (!payload) return false;
       const btn = card.querySelector('.rd-mp-ed-save');
@@ -2963,7 +3008,7 @@
         '<div class="rd-mp-main">' +
           rdMpWork(mp) + rdMpService(mp) + rdMpEdu(mp) + rdMpResearch(mp) +
         '</div>' +
-        '<div class="rd-mp-side">' + rdMpContact(mp, s) + rdMpBlood(mp, s) + rdMpSocial(mp, s) + '</div>';
+        '<div class="rd-mp-side">' + rdMpContact(mp, s) + rdMpAddress(mp, s) + rdMpBlood(mp, s) + rdMpSocial(mp, s) + '</div>';
     }
 
     /* Blood group + donation, own page only -- on a public profile the group
