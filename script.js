@@ -2153,7 +2153,8 @@
           '</select>' +
           rdMpEdField('mps-w-desig', 'Position / designation', w.desig) +
           rdMpEdField('mps-w-org', 'Organization / company', w.org) +
-          rdMpEdField('mps-w-loc', 'Location', w.loc) +
+          '<label class="rd-mp-ed-l">Location</label>' +
+          '<div data-addr="mpWorkLoc" data-addr-name="loc"></div>' +
           '<div class="rd-mp-ed-two">' +
             '<div><label class="rd-mp-ed-l" for="mps-w-from">From (year)</label>' +
               '<input class="rd-mp-ed-i" id="mps-w-from" inputmode="numeric" maxlength="4" value="' +
@@ -2171,6 +2172,9 @@
           '</div>' +
         '</div>';
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      /* Location uses the same division/district picker as the address section,
+         so a member picks it the same way everywhere instead of free-typing. */
+      if (typeof rdAddrInit === 'function') rdAddrInit('mpWorkLoc', w.loc || '');
       const f = card.querySelector('input'); if (f) f.focus();
     }
 
@@ -2199,7 +2203,7 @@
       const val = id => { const el = card.querySelector('#' + id); return el ? String(el.value || '').trim() : ''; };
       const desig = val('mps-w-desig'), org = val('mps-w-org');
       if (!desig && !org) { rdMpSecMsg(card, 'Add at least an organization or a designation.'); return false; }
-      const entry = { org: org, desig: desig, loc: val('mps-w-loc'),
+      const entry = { org: org, desig: desig, loc: rdAddrJoin(rdAddrState.mpWorkLoc),
                       from: val('mps-w-from'), to: val('mps-w-to'), type: val('mps-w-type') };
       const list = (rdMypRecord().work || []).slice();
       if (idx < 0) list.unshift(entry); else list[idx] = entry;   /* new one goes to the top */
