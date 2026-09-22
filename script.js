@@ -1901,6 +1901,25 @@
     }
 
     /* ---- the credential ------------------------------------------------ */
+    /* Willing-to-donate is worth seeing without opening the edit form -- the
+       owner wanted it to catch the eye on the profile itself. A rose pill next
+       to the standing pill, only when the member said Yes, with the same
+       120-day availability the Blood Bank uses. */
+    function rdMpDonorPill(mp) {
+      if (String(mp.willDonate == null ? '' : mp.willDonate).trim().toUpperCase() !== 'YES') return '';
+      let avail = '';
+      const last = String(mp.lastDonation == null ? '' : mp.lastDonation).trim();
+      if (last) {
+        const d = new Date(last);
+        if (!isNaN(d.getTime())) {
+          const days = Math.floor((Date.now() - d.getTime()) / 86400000);
+          avail = days >= 120 ? ' · Available' : ' · Available in ' + Math.max(0, 120 - days) + 'd';
+        }
+      }
+      return '<span class="rd-mp-pill rd-mp-pill-donor"><i data-lucide="droplet"></i> Blood donor' +
+             escapeHtml(avail) + '</span>';
+    }
+
     function rdMpCredential(mp, st) {
       const k = rdMpNormStatus(mp.status);
       const pill = k === 'PENDING'
@@ -1924,7 +1943,7 @@
           '<p class="rd-mp-eyebrow">' + escapeHtml(RD_MP_ORG) + '</p>' +
           '<h1 class="rd-mp-name">' + escapeHtml(mp.name || '') + tick + '</h1>' +
           rdMpHeadline(mp) +
-          '<div class="rd-mp-pillrow">' + pill + '</div>' +
+          '<div class="rd-mp-pillrow">' + pill + rdMpDonorPill(mp) + '</div>' +
           rdMpRuleMarkup(mp) +
           rdMpActsMarkup(mp, st) +
         '</div>' +
@@ -2277,7 +2296,8 @@
         posts: rdMpParsePosts(r['Positions']), work: rdMpParseWork(r['Work History']),
         edu: rdMpParseEdu(r['Education']), papers: rdMpParsePapers(r['Papers']),
         thesis: g('Thesis Topic'), thesisDetails: g('Thesis Details'),
-        formerPos: r['Former Position at Rangdhanu / PDACC']
+        formerPos: r['Former Position at Rangdhanu / PDACC'],
+        willDonate: g('Blood Donor'), lastDonation: g('Last Blood Donation')
       };
     }
 

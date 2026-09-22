@@ -1583,6 +1583,7 @@
 .rd-mp-pill i{width:.8rem;height:.8rem}
 .rd-mp-pill-ok{background:#effcfa;color:var(--mp-seal);border:1px solid #bdece5}
 .rd-mp-pill-wait{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+.rd-mp-pill-donor{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}
 
 /* ---- the actions ----------------------------------------------------- */
 /* Reaching a member is what somebody opened this page to do, so it is the
