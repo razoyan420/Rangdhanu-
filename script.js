@@ -9308,6 +9308,7 @@ f.reset();
       { key: 'unclaimed',     label: 'Unclaimed Profiles',       icon: 'user-round-search', action: 'adminunclaimedprofiles', custom: true },
       { key: 'unclaimed-matches', label: 'Possible Matches',      icon: 'git-compare-arrows', action: 'adminunclaimedmatches', custom: true },
       { key: 'unclaimed-audits', label: 'Merge Audit',             icon: 'file-check-2', action: 'adminunclaimedaudits', custom: true },
+      { key: 'email',         label: 'Email Members',           icon: 'mail',         action: '',                    custom: true },
       { key: 'summary',       label: 'Members Summary',         icon: 'bar-chart-3',  action: '',                    custom: true }
     ];
     const RD_ADMIN_STATUSES = ['PENDING', 'DUPLICATE', 'APPROVED', 'REJECTED', 'UPCOMING', 'ALL'];
@@ -9328,7 +9329,7 @@ f.reset();
                      pdKind: 'LINE', pdEdit: '', role: 'ALL',
                      facEdit: '', facMissing: [],
                      askWhat: '', askId: '', backfillPreview: null, backfillChoices: {},
-                     queueErrors: {}, selected: {} };
+                     queueErrors: {}, selected: {}, emMode: 'group', emPick: '' };
 
     function adminTabMeta(key) {
       return RD_ADMIN_TABS.find(t => t.key === key) || RD_ADMIN_TABS[0];
@@ -10334,6 +10335,16 @@ f.reset();
        alias so adminFind() keeps working for all six. */
     async function adminLoadCustom(tab) {
 
+      if (tab === 'email') {
+        /* The compose form only needs the approved directory -- the same public
+           feed the Members Summary already leans on -- to build the recipient
+           picker and the series / department filters. The emails themselves are
+           never sent to the browser: the server reads them from the Alumni sheet
+           when it sends. */
+        if (!alumniData.length) await loadPublicAlumni();
+        return [{ id: 'email' }];
+      }
+
       if (tab === 'summary') {
         /* The member count is the approved directory, which the public feed
            already carries -- no extra admin call for something visitors can
@@ -10373,6 +10384,7 @@ f.reset();
     }
 
     function adminCustomHtml(tab) {
+      if (tab === 'email') return adminMailHtml();
       if (tab === 'notices') return adminNoticesHtml();
       if (tab === 'social') return adminSocialHtml();
       if (tab === 'slides') return adminSlidesHtml();
@@ -12148,6 +12160,197 @@ f.reset();
         '<h4 class="font-extrabold text-slate-900 text-sm">' + escapeHtml(title) + '</h4>' +
         '<span class="ml-auto text-[11px] font-extrabold text-slate-400">' + pairs.length + ' groups</span></div>' +
         body + '</div>';
+    }
+
+    /* ---------- Email Members tab -------------------------------------------
+       Two ways to reach members: a whole group (approved directory, with an
+       optional series / department filter) or one named member. The addresses
+       stay on the server -- the browser only ever sends the filter or the
+       Member ID, and the Alumni sheet is read for the real emails at send time.
+       Members go out as BCC so nobody sees anyone else's address, and replies
+       land at the public association inbox, not any admin's own mail. */
+
+    function adminMailUnique(field) {
+      const seen = {}, out = [];
+      (Array.isArray(alumniData) ? alumniData : []).forEach(function (a) {
+        const v = String((a && a[field]) || '').trim();
+        if (v && !seen[v]) { seen[v] = true; out.push(v); }
+      });
+      return out.sort(function (a, b) { return a.localeCompare(b); });
+    }
+
+    function adminMailGroup() {
+      const series = String((document.getElementById('em-series') || {}).value || '').trim();
+      const dept = String((document.getElementById('em-dept') || {}).value || '').trim();
+      return (Array.isArray(alumniData) ? alumniData : []).filter(function (a) {
+        if (series && String(a.series || '').trim() !== series) return false;
+        if (dept && String(a.dept || '').trim() !== dept) return false;
+        return true;
+      });
+    }
+
+    function adminMailRecount() {
+      const el = document.getElementById('em-count');
+      if (el) el.textContent = String(adminMailGroup().length);
+    }
+
+    function adminMailHtml() {
+      const mode = RD_ADMIN.emMode === 'one' ? 'one' : 'group';
+      const members = Array.isArray(alumniData) ? alumniData : [];
+      const opt = function (v) { return '<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</option>'; };
+      const seriesOpts = adminMailUnique('series').map(opt).join('');
+      const deptOpts = adminMailUnique('dept').map(opt).join('');
+      const memberOpts = members.slice().sort(function (a, b) {
+          return String(a.name || '').localeCompare(String(b.name || ''));
+        }).map(function (a) {
+          const label = (a.name || '(no name)') + (a.dept ? ' — ' + a.dept : '') +
+            (a.memberId ? ' · ' + a.memberId : '');
+          return '<option value="' + escapeHtml(a.memberId || '') + '">' + escapeHtml(label) + '</option>';
+        }).join('');
+
+      const segBtn = function (m, label) {
+        const on = mode === m;
+        return '<button type="button" id="em-mode-' + m + '" onclick="adminMailMode(\'' + m + '\')" ' +
+          'class="flex-1 px-4 py-2.5 rounded-2xl text-sm font-extrabold cursor-pointer border transition ' +
+          (on ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50') +
+          '">' + escapeHtml(label) + '</button>';
+      };
+
+      const inner =
+        '<div class="mt-5 flex gap-2">' + segBtn('group', 'A group') + segBtn('one', 'One member') + '</div>' +
+
+        '<div id="em-group" class="mt-4 ' + (mode === 'one' ? 'hidden' : '') + '">' +
+          '<div class="grid sm:grid-cols-2 gap-4">' +
+            '<div><label class="form-label" for="em-series">Series</label>' +
+              '<select id="em-series" class="form-input" onchange="adminMailRecount()">' +
+                '<option value="">All series</option>' + seriesOpts + '</select></div>' +
+            '<div><label class="form-label" for="em-dept">Department</label>' +
+              '<select id="em-dept" class="form-input" onchange="adminMailRecount()">' +
+                '<option value="">All departments</option>' + deptOpts + '</select></div>' +
+          '</div>' +
+          '<p class="mt-3 text-xs font-bold text-slate-500">About <span id="em-count">' + members.length +
+            '</span> approved members match. The server sends only to those it finds a valid email for.</p>' +
+        '</div>' +
+
+        '<div id="em-one" class="mt-4 ' + (mode === 'group' ? 'hidden' : '') + '">' +
+          '<label class="form-label" for="em-one-sel">Choose a member</label>' +
+          '<select id="em-one-sel" class="form-input">' +
+            '<option value="">Select a member…</option>' + memberOpts + '</select>' +
+          '<p class="mt-2 text-xs font-semibold text-slate-500">Start typing a name to jump down the list.</p>' +
+        '</div>' +
+
+        '<div class="mt-4"><label class="form-label" for="em-subject">Subject *</label>' +
+          '<input id="em-subject" class="form-input" maxlength="160" placeholder="What the email is about"></div>' +
+        '<div class="mt-4"><label class="form-label" for="em-body">Message *</label>' +
+          '<textarea id="em-body" rows="9" maxlength="6000" class="form-input" ' +
+            'placeholder="Write the message members will receive. Plain text."></textarea></div>' +
+
+        '<div class="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">' +
+          '<p class="text-xs font-semibold text-slate-600 leading-relaxed">' +
+            'Members are added as BCC, so nobody sees anyone else\'s address. Replies go to the ' +
+            'association inbox. Sending is limited by the account\'s daily email quota — a very large ' +
+            'group may be turned down until the quota resets.</p></div>' +
+
+        '<div class="mt-5 flex flex-wrap gap-2">' +
+          '<button id="em-send" type="button" onclick="adminMailArm()" ' +
+            'class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 ' +
+            'hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-extrabold cursor-pointer">' +
+            '<i data-lucide="send" class="w-4 h-4"></i> Review &amp; send</button></div>' +
+
+        '<div id="em-confirm" class="hidden mt-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3">' +
+          '<p id="em-confirm-text" class="text-xs font-bold text-amber-900 leading-relaxed"></p>' +
+          '<div class="mt-2.5 flex flex-wrap gap-2">' +
+            '<button type="button" onclick="adminMailSend()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 text-white text-[11px] font-extrabold hover:bg-amber-700 cursor-pointer"><i data-lucide="send" class="w-3.5 h-3.5"></i> Send now</button>' +
+            '<button type="button" onclick="adminMailCancel()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-[11px] font-extrabold hover:bg-slate-50 cursor-pointer"><i data-lucide="x" class="w-3.5 h-3.5"></i> Not yet</button>' +
+          '</div></div>';
+
+      return adminPanelShell('mail', 'Email Members',
+        'Write to one member, or a whole group at once. Everyone is blind-copied.', inner);
+    }
+
+    /* Group / one toggle keeps whatever is typed: the two blocks are hidden,
+       never redrawn. A full re-render (after a send) restores the right one
+       from RD_ADMIN.emMode. */
+    function adminMailMode(m) {
+      RD_ADMIN.emMode = m === 'one' ? 'one' : 'group';
+      const g = document.getElementById('em-group');
+      const o = document.getElementById('em-one');
+      if (g) g.classList.toggle('hidden', RD_ADMIN.emMode === 'one');
+      if (o) o.classList.toggle('hidden', RD_ADMIN.emMode === 'group');
+      ['group', 'one'].forEach(function (k) {
+        const b = document.getElementById('em-mode-' + k);
+        if (!b) return;
+        const on = RD_ADMIN.emMode === k;
+        b.className = 'flex-1 px-4 py-2.5 rounded-2xl text-sm font-extrabold cursor-pointer border transition ' +
+          (on ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50');
+      });
+      adminMailCancel();
+    }
+
+    function adminMailCancel() {
+      const c = document.getElementById('em-confirm');
+      if (c) c.classList.add('hidden');
+    }
+
+    /* Sending real mail to real people asks first -- and, like everywhere else
+       on the site, it asks inside the card, never with a popup. */
+    function adminMailArm() {
+      const mode = RD_ADMIN.emMode === 'one' ? 'one' : 'group';
+      const subject = String((document.getElementById('em-subject') || {}).value || '').trim();
+      const body = String((document.getElementById('em-body') || {}).value || '').trim();
+      if (!subject) { showToast('Please write a subject.', 'error', 'Subject is needed', { backTo: 'admin' }); return; }
+      if (!body) { showToast('Please write the message.', 'error', 'Message is needed', { backTo: 'admin' }); return; }
+
+      let text;
+      if (mode === 'one') {
+        const sel = document.getElementById('em-one-sel');
+        const id = String((sel || {}).value || '').trim();
+        if (!id) { showToast('Please choose a member to email.', 'error', 'No member chosen', { backTo: 'admin' }); return; }
+        const who = (Array.isArray(alumniData) ? alumniData : []).find(function (a) { return String(a.memberId || '') === id; });
+        text = 'This will email ' + ((who && who.name) || 'the selected member') + '. Send now?';
+      } else {
+        const n = adminMailGroup().length;
+        if (!n) { showToast('No members match this filter.', 'error', 'Nobody to email', { backTo: 'admin' }); return; }
+        text = 'This will email about ' + n + ' member' + (n === 1 ? '' : 's') +
+          ' (only those with a valid address on file). Send now?';
+      }
+      const c = document.getElementById('em-confirm');
+      const t = document.getElementById('em-confirm-text');
+      if (t) t.textContent = text;
+      if (c) { c.classList.remove('hidden'); c.scrollIntoView({ block: 'nearest' }); }
+    }
+
+    async function adminMailSend() {
+      if (RD_ADMIN.busy) return;
+      const mode = RD_ADMIN.emMode === 'one' ? 'one' : 'group';
+      const subject = String((document.getElementById('em-subject') || {}).value || '').trim();
+      const body = String((document.getElementById('em-body') || {}).value || '').trim();
+      if (!subject || !body) { adminMailCancel(); return; }
+
+      const data = { mode: mode, subject: subject, body: body };
+      if (mode === 'one') {
+        data.memberId = String((document.getElementById('em-one-sel') || {}).value || '').trim();
+        if (!data.memberId) { adminMailCancel(); return; }
+      } else {
+        data.series = String((document.getElementById('em-series') || {}).value || '').trim();
+        data.dept = String((document.getElementById('em-dept') || {}).value || '').trim();
+      }
+
+      RD_ADMIN.busy = 'email';
+      const btns = document.querySelectorAll('#em-confirm button, #em-send');
+      btns.forEach(function (b) { b.disabled = true; });
+      try {
+        const r = await apiPost('sendmemberemail', { data: data });
+        RD_ADMIN.busy = '';
+        showToast(r.message || ('Emailed ' + (r.sent || 0) + ' member(s).'), 'success', 'Email sent', { backTo: 'admin' });
+        /* Clear the compose fields but stay on the tab. */
+        ['em-subject', 'em-body'].forEach(function (id) { const el = document.getElementById(id); if (el) el.value = ''; });
+        adminMailCancel();
+      } catch (err) {
+        RD_ADMIN.busy = '';
+        btns.forEach(function (b) { b.disabled = false; });
+        showToast(friendlyError(err).msg, 'error', 'Could not send', { backTo: 'admin' });
+      }
     }
 
     function adminSummaryHtml() {
