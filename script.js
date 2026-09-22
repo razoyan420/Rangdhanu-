@@ -1317,6 +1317,7 @@
       rdAdminRestore();
       loadExecutiveCommittee();
       renderCgpa();
+      rdBloodBankNavSync();
       /* loadPublicAlumni() and loadPublicEvents() used to run here.  The home
          page renders neither feed, so those were two Apps Script round trips
          -- each with a 302 hop -- taken before the first screen was done. */
@@ -4604,6 +4605,21 @@
        ======================================================================== */
     const RD_BB = { donors: [], group: 'ALL', loaded: false, isMember: false };
 
+    /* The Blood Bank link is static in both menus. When an admin hides the page
+       the link has to leave the public menus too -- it staying put was the
+       "hide korar poreo ace" bug. getconfig now carries the flag; this hides or
+       shows both nav items to match. Runs at boot and after the admin toggle. */
+    async function rdBloodBankNavSync() {
+      let hidden = false;
+      try {
+        const cfg = await apiGet('getconfig');
+        hidden = !!(cfg && cfg.bloodBankHidden);
+      } catch (err) { return; }   /* leave the menu as-is if config cannot load */
+      document.querySelectorAll('[onclick*="switchPage(\'bloodbank\')"]').forEach(el => {
+        el.classList.toggle('hidden', hidden);
+      });
+    }
+
     async function loadBloodBank() {
       if (RD_BB.loaded) { rdBloodRender(); return; }
       const status = document.getElementById('blood-bank-status');
@@ -4743,6 +4759,8 @@
          notice page through showToast. */
       try {
         await apiPost('setbloodbankvisibility', { hidden: hide });
+        RD_BB.loaded = false;            /* re-fetch the page fresh next visit */
+        rdBloodBankNavSync();            /* hide/show the link in both menus now */
         showToast('Blood Bank is now ' + (hide ? 'hidden' : 'visible') + '.', 'success');
         renderAdmin();
       } catch (err) {
