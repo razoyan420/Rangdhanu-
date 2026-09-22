@@ -1966,11 +1966,23 @@
        the wide column and none around the narrow one. is-side is what puts a
        section in the narrow column, so the public profile page can lay itself
        out from five separate variables without a div spanning two of them. */
-    function rdMpSection(icon, title, inner, side) {
-      if (!inner) return '';
-      return '<div class="rd-mp-sec' + (side ? ' is-side' : '') + '">' +
-        '<p class="rd-mp-sech"><i data-lucide="' + icon + '"></i>' +
-        escapeHtml(title) + '</p>' + inner + '</div>';
+    function rdMpSection(icon, title, inner, side, editKey) {
+      const canEdit = RD_MP_OWN && editKey;
+      /* An empty section still draws when it is one the owner can fill, so the
+         Edit/Add affordance is there to open it. Otherwise an empty one draws
+         nothing, as before. */
+      if (!inner && !canEdit) return '';
+      const pencil = canEdit
+        ? '<button type="button" class="rd-mp-sec-edit" onclick="rdMpEditSection(\'' +
+            editKey + '\')" aria-label="Edit ' + escapeHtml(title) + '">' +
+            '<i data-lucide="pencil"></i>Edit</button>'
+        : '';
+      return '<div class="rd-mp-sec' + (side ? ' is-side' : '') + '"' +
+        (editKey ? ' data-mp-sec="' + editKey + '"' : '') + '>' +
+        '<div class="rd-mp-sech-row">' +
+          '<p class="rd-mp-sech"><i data-lucide="' + icon + '"></i>' + escapeHtml(title) + '</p>' +
+          pencil +
+        '</div>' + (inner || '') + '</div>';
     }
 
     function rdMpRowsBox(inner) { return inner ? '<div class="rd-mp-rows">' + inner + '</div>' : ''; }
@@ -2186,7 +2198,8 @@
     }
 
     function rdMpContact(mp, st) {
-      return rdMpSection('contact', 'Contact', rdMpContactInner(mp, st), 1);
+      /* editKey only on the member's own page; rdMpSection ignores it elsewhere. */
+      return rdMpSection('contact', 'Contact', rdMpContactInner(mp, st), 1, 'contact');
     }
 
     /* The site already has one social block, with its own glyphs and its own
@@ -2195,6 +2208,120 @@
       if (!st.signed) return '';
       const chips = rdSocialChips(mp.social);
       return chips ? rdMpSection('at-sign', 'Social media', chips, 1) : '';
+    }
+
+    /* ================= SECTION-WISE INLINE EDITING (Facebook-style) =======
+       Each section on the member's own profile carries an Edit pencil. Opening
+       one swaps that one card into an editor with its own Save / Cancel -- no
+       global form, one section at a time. Save sends only that section's
+       fields; membersaveprofile already writes only what the payload carries. */
+
+    function rdMpEdVis(id, header, vis) {
+      const v = String((vis && vis[header]) || '').toUpperCase() === 'ONLY_ME' ? 'ONLY_ME' : 'MEMBER';
+      return '<div class="rd-mp-ed-vis"><i data-lucide="eye"></i><span>Visible to</span>' +
+        '<select id="' + id + '">' +
+          '<option value="MEMBER"' + (v === 'MEMBER' ? ' selected' : '') + '>Rangdhanu members</option>' +
+          '<option value="ONLY_ME"' + (v === 'ONLY_ME' ? ' selected' : '') + '>Only me</option>' +
+        '</select></div>';
+    }
+
+    function rdMpEdField(id, label, value, type) {
+      return '<label class="rd-mp-ed-l" for="' + id + '">' + escapeHtml(label) + '</label>' +
+        '<input class="rd-mp-ed-i" id="' + id + '" type="' + (type || 'text') + '" value="' +
+          escapeHtml(value || '') + '">';
+    }
+
+    function rdMpSectionEditor(key, mp, vis) {
+      if (key === 'contact') {
+        return '<div class="rd-mp-sech-row"><p class="rd-mp-sech"><i data-lucide="contact"></i>Contact</p></div>' +
+          '<div class="rd-mp-ed">' +
+            rdMpEdField('mps-mobile', 'Mobile number', mp.mobile, 'tel') +
+            rdMpEdVis('mps-vis-mobile', 'Mobile Number', vis) +
+            rdMpEdField('mps-whatsapp', 'WhatsApp number', mp.whatsapp, 'tel') +
+            rdMpEdVis('mps-vis-whatsapp', 'WhatsApp Number', vis) +
+            rdMpEdField('mps-email', 'Email', mp.email, 'email') +
+            rdMpEdVis('mps-vis-email', 'Email', vis) +
+            '<p class="rd-mp-ed-msg" id="mps-msg" hidden></p>' +
+            '<div class="rd-mp-ed-acts">' +
+              '<button type="button" class="rd-mp-ed-save" onclick="rdMpSectionSave(\'contact\')">Save contact</button>' +
+              '<button type="button" class="rd-mp-ed-cancel" onclick="rdMpCancelSection()">Cancel</button>' +
+            '</div>' +
+          '</div>';
+      }
+      return '';
+    }
+
+    function rdMpEditSection(key) {
+      if (RD_MP_EDITING && RD_MP_EDITING !== key) rdMpCancelSection();
+      const card = document.querySelector('[data-mp-sec="' + key + '"]');
+      if (!card) return;
+      const mp = rdMypRecord();
+      const vis = (RD_MYP.me && RD_MYP.me.visibility) || {};
+      const editor = rdMpSectionEditor(key, mp, vis);
+      if (!editor) return;
+      RD_MP_EDITING = key;
+      card.classList.add('is-editing');
+      card.innerHTML = editor;
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      const first = card.querySelector('input, select');
+      if (first) first.focus();
+    }
+
+    function rdMpCancelSection() {
+      RD_MP_EDITING = null;
+      rdMypViewPaint();     /* repaint restores the section to its read state */
+    }
+
+    function rdMpSecMsg(card, msg) {
+      const box = card && card.querySelector('.rd-mp-ed-msg');
+      if (!box) return;
+      box.textContent = msg;
+      box.hidden = false;
+    }
+
+    async function rdMpSectionSave(key) {
+      const card = document.querySelector('[data-mp-sec="' + key + '"]');
+      if (!card) return false;
+      const val = id => { const el = card.querySelector('#' + id); return el ? String(el.value || '').trim() : ''; };
+      let payload = null;
+      if (key === 'contact') {
+        const mobile = val('mps-mobile');
+        if (!mobile) { rdMpSecMsg(card, 'Mobile number cannot be empty.'); return false; }
+        if (typeof isValidBdMobile === 'function' && !isValidBdMobile(mobile)) {
+          rdMpSecMsg(card, 'That mobile number does not look right. Example: 017xxxxxxxx'); return false;
+        }
+        const wa = val('mps-whatsapp');
+        if (wa && typeof isValidBdMobile === 'function' && !isValidBdMobile(wa)) {
+          rdMpSecMsg(card, 'That WhatsApp number does not look right.'); return false;
+        }
+        payload = {
+          mobile: mobile, whatsapp: wa, email: val('mps-email'),
+          visibility: {
+            'Mobile Number': val('mps-vis-mobile') || 'MEMBER',
+            'WhatsApp Number': val('mps-vis-whatsapp') || 'MEMBER',
+            'Email': val('mps-vis-email') || 'MEMBER'
+          }
+        };
+      }
+      if (!payload) return false;
+      const btn = card.querySelector('.rd-mp-ed-save');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+      try {
+        const r = await apiPost('membersaveprofile', Object.assign({}, payload, rdMemberParams()));
+        if (r && r.member) {
+          RD_MYP.me = r.member; RD_MEMBER.me = r.member;
+          try { localStorage.setItem(RD_MEMBER_PROFILE_KEY, JSON.stringify(r.member)); } catch (e) {}
+        }
+        rdFeedForget('alumni');
+        RD_MEMBER.contacts = null;
+        RD_MP_EDITING = null;
+        rdMypViewPaint();
+        showToast('Your profile is up to date.', 'success', 'Saved');
+      } catch (err) {
+        rdMpSecMsg(card, friendlyError(err).msg);
+        if (btn) { btn.disabled = false; btn.textContent = 'Save contact'; }
+      }
+      return false;
     }
 
     /* ---- what is still missing ----------------------------------------- */
@@ -2235,6 +2362,7 @@
     /* ---- the whole page ------------------------------------------------- */
     function rdMpProfile(mp, st) {
       const s = rdMpState(st);
+      RD_MP_OWN = !!s.own;      /* gates the per-section Edit pencils below */
       return rdMpCredential(mp, s) + rdMpTodo(mp, s) +
         '<div class="rd-mp-main">' +
           rdMpWork(mp) + rdMpService(mp) + rdMpEdu(mp) + rdMpResearch(mp) +
@@ -2306,6 +2434,13 @@
        painted last owns it, so both read the same holder instead of each page
        wiring its own copy of the same two buttons. */
     let RD_MP_SHOWN = null;
+
+    /* Facebook-style section-wise editing. RD_MP_OWN gates the per-section Edit
+       pencils to the member's own profile; the public profile never passes an
+       editKey, so it stays read-only regardless. RD_MP_EDITING holds the one
+       section open at a time -- opening a second closes the first. */
+    let RD_MP_OWN = false;
+    let RD_MP_EDITING = null;
 
     /* A button says so itself for a moment. The site bans modals and alerts,
        and rdFlash scrolls the page back to the top, which would throw a reader

@@ -1630,6 +1630,27 @@
 .rd-mp-sech{display:flex;align-items:center;gap:.5rem;font-size:.62rem;font-weight:800;
   letter-spacing:.16em;text-transform:uppercase;color:var(--mp-mute)}
 .rd-mp-sech i{width:.9rem;height:.9rem;color:var(--mp-key);opacity:.75}
+/* Facebook-style per-section edit: a pencil in the header, an inline editor. */
+.rd-mp-sech-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.rd-mp-sec-edit{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:700;
+  text-transform:none;letter-spacing:0;color:var(--mp-key,#1d4ed8);background:transparent;
+  border:1px solid transparent;border-radius:.55rem;padding:.28rem .5rem;cursor:pointer;transition:background .15s}
+.rd-mp-sec-edit:hover{background:#eff4ff}
+.rd-mp-sec-edit i{width:.85rem;height:.85rem;opacity:1;color:inherit}
+.rd-mp-sec.is-editing{border-color:#bfdbfe;box-shadow:0 0 0 4px #eff4ff}
+.rd-mp-ed-l{display:block;font-size:.72rem;font-weight:700;color:#475569;margin:.65rem 0 .25rem}
+.rd-mp-ed-i{width:100%;background:#f8fafc;border:1px solid #dce3ea;border-radius:.7rem;
+  padding:.6rem .8rem;font-size:.88rem;outline:none;transition:border-color .15s,box-shadow .15s}
+.rd-mp-ed-i:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px #dbeafe;background:#fff}
+.rd-mp-ed-vis{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;color:#64748b;font-weight:600;margin-top:.4rem}
+.rd-mp-ed-vis i{width:.8rem;height:.8rem}
+.rd-mp-ed-vis select{border:1px solid #e2e8f0;border-radius:.5rem;padding:.15rem .4rem;font-size:.72rem;background:#fff;color:#334155;font-weight:700;cursor:pointer}
+.rd-mp-ed-msg{color:#be123c;font-size:.8rem;font-weight:700;margin-top:.6rem}
+.rd-mp-ed-acts{display:flex;gap:.5rem;margin-top:1rem}
+.rd-mp-ed-save{flex:1;padding:.68rem;border-radius:.75rem;background:#1d4ed8;color:#fff;font-weight:700;font-size:.85rem;border:0;cursor:pointer}
+.rd-mp-ed-save:hover{background:#1e40af}
+.rd-mp-ed-save:disabled{opacity:.6;cursor:default}
+.rd-mp-ed-cancel{padding:.68rem 1rem;border-radius:.75rem;background:#fff;color:#475569;font-weight:700;font-size:.85rem;border:1px solid var(--mp-line,#e7ebf0);cursor:pointer}
 .rd-mp-rows{margin-top:.3rem}
 .rd-mp-row{display:flex;align-items:flex-start;gap:.8rem;padding:.78rem 0}
 .rd-mp-row+.rd-mp-row{border-top:1px solid #f2f5fc}
