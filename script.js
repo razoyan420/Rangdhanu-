@@ -5046,6 +5046,7 @@
       rdMemberNavPaint();
       if (rdCurrentPageId === 'committee-new') ecPrepareSubmissionForm();
       if (rdCurrentPageId === 'my-profile') openMyProfile('home');
+      if (rdCurrentPageId === 'polls') rdPollOpen();
     }
 
     function rdMemberLandedSignedOut() {
@@ -10356,7 +10357,7 @@ f.reset();
            an admin token. Ids come straight from the poll object. */
         const res = await apiGet('polls', {});
         const rows = Array.isArray(res.polls) ? res.polls : [];
-        return rows.map(function (r) { return Object.assign({}, r, { id: r.id }); }).filter(function (r) { return r.id; });
+        return rows.map(rdPollNorm).filter(function (r) { return r.id; });
       }
 
       if (tab === 'summary') {
@@ -13125,6 +13126,18 @@ f.reset();
       rdPollLoadList();
     }
 
+    /* The backend speaks pollId + type 'single'/'multi'; the UI is written
+       around id + type 'single'/'multiple'. Normalise every poll on the way in
+       so both the member page and the admin tab render off one shape. */
+    function rdPollNorm(r) {
+      if (!r || typeof r !== 'object') return r;
+      const out = Object.assign({}, r);
+      out.id = r.pollId || r.id || '';
+      out.type = (String(r.type) === 'multi' || String(r.type) === 'multiple') ? 'multiple' : 'single';
+      out.eligibleSeries = r.eligibleSeries || r.eligSeries || [];
+      return out;
+    }
+
     function rdPollSigninHint() {
       const box = document.getElementById('poll-signin-hint');
       if (!box) return;
@@ -13142,7 +13155,7 @@ f.reset();
       RD_POLL.loading = true; RD_POLL.error = '';
       try {
         const res = await apiGet('polls', {});
-        RD_POLL.polls = Array.isArray(res.polls) ? res.polls : [];
+        RD_POLL.polls = Array.isArray(res.polls) ? res.polls.map(rdPollNorm) : [];
         RD_POLL.loaded = true;
       } catch (err) {
         RD_POLL.error = friendlyError(err).msg;
@@ -13316,7 +13329,13 @@ f.reset();
       try {
         const res = await apiPost('pollvote', { data: { pollId: pollId, choice: choice } });
         const idx = RD_POLL.polls.findIndex(function (x) { return x.id === pollId; });
-        if (idx !== -1 && res.poll) RD_POLL.polls[idx] = res.poll;
+        if (idx !== -1) {
+          RD_POLL.polls[idx] = Object.assign({}, RD_POLL.polls[idx], {
+            hasVoted: true,
+            myChoice: res.myChoice || choice,
+            results: res.results || RD_POLL.polls[idx].results
+          });
+        }
         showToast('Your vote has been recorded.', 'success', 'Thank you');
       } catch (err) {
         reportError(err);
@@ -13380,8 +13399,11 @@ f.reset();
         '<div><label class="block text-xs font-bold text-slate-600 mb-1.5">Options</label>' +
           '<div class="space-y-2">' + optRows + '</div>' +
           '<button onclick="adminPollAddOpt()" class="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700"><i data-lucide="plus" class="w-4 h-4"></i>Add option</button></div>' +
-        '<div><label class="block text-xs font-bold text-slate-600 mb-1.5">Who may vote (series) &mdash; leave all unchecked for everyone</label>' +
-          '<div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1">' + seriesBoxes + '</div></div>' +
+        '<div><label class="block text-xs font-bold text-slate-600 mb-1.5">Who may vote</label>' +
+          '<label class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-indigo-200 bg-indigo-50/60 text-sm font-semibold text-slate-700 cursor-pointer mb-2">' +
+            '<input type="checkbox" id="adpoll-all" class="w-4 h-4 accent-indigo-600" checked onchange="rdPollAllSeriesToggle(this)"><i data-lucide="users" class="w-4 h-4 text-indigo-600"></i>All series (everyone can vote)</label>' +
+          '<div id="adpoll-series-wrap" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1 opacity-40 pointer-events-none" aria-hidden="true">' + seriesBoxes + '</div>' +
+          '<p class="text-xs text-slate-400 mt-1">Uncheck &ldquo;All series&rdquo; to limit voting to the series you tick.</p></div>' +
         '<div class="flex flex-wrap gap-6"><div><label class="block text-xs font-bold text-slate-600 mb-1.5">Deadline (optional)</label>' +
           '<input id="adpoll-end" type="datetime-local" class="px-3 py-2 rounded-xl border border-slate-300 text-sm"></div>' +
           '<div><label class="block text-xs font-bold text-slate-600 mb-1.5">Start as</label>' +
@@ -13446,6 +13468,19 @@ f.reset();
       renderAdmin();
     }
 
+    /* "All series" is the default. When it is on, the per-series ticks are
+       dimmed and ignored (an empty eligible list = everyone). Turning it off
+       hands control to the individual series checkboxes. */
+    function rdPollAllSeriesToggle(el) {
+      const wrap = document.getElementById('adpoll-series-wrap');
+      if (!wrap) return;
+      const all = !!(el && el.checked);
+      wrap.classList.toggle('opacity-40', all);
+      wrap.classList.toggle('pointer-events-none', all);
+      wrap.setAttribute('aria-hidden', all ? 'true' : 'false');
+      if (all) wrap.querySelectorAll('.adpoll-series:checked').forEach(function (b) { b.checked = false; });
+    }
+
     function adminPollAddOpt() {
       adminPollCaptureForm();
       RD_ADMIN.plOpts.push('');
@@ -13465,16 +13500,20 @@ f.reset();
       const options = RD_ADMIN.plOpts.map(function (s) { return String(s || '').trim(); }).filter(Boolean);
       if (!q.trim()) { showToast('Please write the poll question.', 'info'); return; }
       if (options.length < 2) { showToast('Please add at least two options.', 'info'); return; }
-      const series = Array.prototype.map.call(document.querySelectorAll('.adpoll-series:checked'), function (b) { return b.value; });
+      const allEl = document.getElementById('adpoll-all');
+      const series = (allEl && allEl.checked)
+        ? []
+        : Array.prototype.map.call(document.querySelectorAll('.adpoll-series:checked'), function (b) { return b.value; });
       const statusEl = document.querySelector('input[name="adpoll-status"]:checked');
       const endEl = document.getElementById('adpoll-end');
       const maxEl = document.getElementById('adpoll-maxpick');
       const payload = {
         question: q.trim(),
-        type: RD_ADMIN.plType,
+        type: RD_ADMIN.plType === 'multiple' ? 'multi' : 'single',
         maxPick: RD_ADMIN.plType === 'multiple' ? Number(maxEl && maxEl.value) || options.length : 1,
         options: options,
         eligibleSeries: series,
+        eligSeries: series,
         endAt: endEl && endEl.value ? new Date(endEl.value).toISOString() : '',
         status: statusEl ? statusEl.value : 'open',
         resultVisibility: RD_ADMIN.plVis
