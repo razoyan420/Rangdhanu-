@@ -3723,21 +3723,21 @@
 
     function memberGoogleCredential(resp) {
       const token = (resp && resp.credential) || '';
-      if (!token) { hideGlobalLoader(false);
+      if (!token) { dismissGlobalLoader();
       rdMemberMsg('member-signin-msg', 'Google sign in did not finish.'); return; }
       rdMemberRemember(token);
       memberVerify(false);
     }
 
     async function memberVerify(quiet) {
-      if(!quiet) showGlobalLoader("Signing In...", "Authenticating with Google.");
       if (!RD_MEMBER.token || RD_MEMBER.busy) return;
+      if (!quiet) showGlobalLoader("Signing In...", "Authenticating with Google.");
       RD_MEMBER.busy = true;
       if (!quiet) rdMemberMsg('member-signin-msg', 'Checking...', 'wait');
       try {
         const r = await apiGet('membersignin', rdMemberParams());
         if (r && r.status === 'NO_MATCH') {
-          hideGlobalLoader(false);
+          dismissGlobalLoader();
             RD_MEMBER.me = null;
             RD_MEMBER.email = r.email || '';
           rdMemberPaintLinkBox();
@@ -3756,7 +3756,7 @@
         /* The stored token stays. A dropped connection or a sleeping Apps
            Script deployment is not the member asking to be signed out, and
            wiping it here was what made a refresh look like a logout. */
-        hideGlobalLoader(false);
+        failGlobalLoader('Sign in failed', friendlyError(err).msg);
           if (!quiet) rdMemberMsg('member-signin-msg', friendlyError(err).msg);
         rdMemberPaintSignInLinks();
       } finally {
@@ -3779,7 +3779,7 @@
         if (alumniData.length) renderAlumniPage();
       });
       if (quiet) { rdMemberPaintSignInLinks(); return; }
-      hideGlobalLoader(true);
+      hideGlobalLoader(true, null, 'Signed in successfully.');
         rdMemberMsg('member-signin-msg', 'You are signed in.', 'ok');
       rdMemberPaintLinkBox();
       /* No page of its own for this. A member who signs in is taken to the
@@ -3866,7 +3866,7 @@
       tries = tries || 0;
       if (!rdGsiReady()) {
         if (tries < 6) { setTimeout(function () { rdMemberAskGoogle(tries + 1); }, 500); return; }
-        hideGlobalLoader(false);
+        dismissGlobalLoader();
         rdMemberMsg('member-link-msg', 'Google sign in did not load. Check your connection and try again.');
         return;
       }
@@ -5634,12 +5634,12 @@
     }
     
     async function adminSubmitUpcomingEvent(e) {
-      showGlobalLoader("Uploading...", "Publishing event.");
       e.preventDefault();
       const f = e.target;
       const st = document.getElementById('admin-upcoming-status');
       const btn = f.querySelector('button[type="submit"]');
-      
+      showGlobalLoader("Uploading...", "Publishing event.");
+
       try {
         st.className = 'block rounded-xl p-4 text-sm font-bold text-center bg-blue-50 text-blue-700';
         st.innerHTML = '<i data-lucide="loader" class="w-4 h-4 inline animate-spin mr-1"></i> Creating upcoming event...';
@@ -5677,7 +5677,7 @@
         st.className = 'block rounded-xl p-4 text-sm font-bold text-center bg-rose-50 text-rose-700 border border-rose-200';
         st.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4 inline mr-1"></i> ' + (err.message || 'Error occurred');
         lucide.createIcons();
-        hideGlobalLoader(false);
+        failGlobalLoader('Could not publish', friendlyError(err).msg);
           reportError(err, f);
       } finally {
         btn.disabled = false;
@@ -6953,7 +6953,6 @@
     }
 
     async function submitExecutiveCommitteeForm(e) {
-      showGlobalLoader("Uploading...", "Saving committee details.");
       e.preventDefault();
       const form = e.target;
       const btn = document.getElementById('ec-submit-btn');
@@ -6982,6 +6981,7 @@
       btn.disabled = true;
       btn.innerHTML = '<span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> Submitting...</span>';
       lucide.createIcons();
+      showGlobalLoader("Uploading...", "Saving committee details.");
 
       try {
         const photo = file ? await filePayload(file, 900) : null;
@@ -6999,10 +6999,11 @@
         form.reset();
         ecFillFormCommittees();
         hideGlobalLoader(true, () => {
-            if (rdCurrentPageId !== 'committee') switchPage('committee');
+            showToast('Your information has been submitted. It will appear on the Committee page once an admin approves it.',
+                      'success', 'Submitted', { backTo: 'committee' });
         }, 'Committee entry submitted successfully.');
       } catch (err) {
-        hideGlobalLoader(false);
+        failGlobalLoader('Could not submit', friendlyError(err).msg);
         reportError(err, form);
       } finally {
         btn.disabled = false;
@@ -7491,14 +7492,13 @@
     }
 
     async function submitEventFromWebsite(e) {
-      showGlobalLoader("Uploading...", "Submitting event request.");
       e.preventDefault();
       const f=e.target, b=document.getElementById('event-submit-btn'), fd=new FormData(f);
       const main=f.querySelector('[name="mainImage"]').files[0], gf=[...f.querySelector('[name="gallery"]').files];
       const box=document.getElementById('event-upload-progress'), status=document.getElementById('event-upload-status'), pct=document.getElementById('event-upload-percent'), bar=document.getElementById('event-upload-bar');
-      
+
       if(!main) return showToast('Please choose a main image.', 'error');
-      showGlobalLoader('Submitting...', 'Registering your membership.');
+      showGlobalLoader('Uploading...', 'Submitting event request.');
         b.disabled=true; b.innerHTML='<span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> Uploading...</span>'; lucide.createIcons();
       box.classList.remove('hidden');
       
@@ -7545,10 +7545,12 @@
         resetSponsorRows();
         box.classList.add('hidden'); setProgress(0, '');
         loadPublicEvents();
-        hideGlobalLoader(true, () => { if(rdCurrentPageId !== 'events') switchPage('events'); }, 'Event submitted successfully.');
+        hideGlobalLoader(true, () => {
+            showToast(r.message || 'Your event has been submitted. It will be published once an admin approves it.', 'success', 'Event submitted', {backTo: 'events'});
+        }, 'Event submitted successfully.');
       } catch(err) {
         status.textContent = 'Upload failed!'; bar.style.width='0%';
-        hideGlobalLoader(false);
+        failGlobalLoader('Could not submit', friendlyError(err).msg);
           reportError(err, f);
       } finally {
         b.disabled=false; b.textContent='Submit Event';
@@ -8618,9 +8620,14 @@
         /* The backend flags a duplicate instead of failing; say so plainly and
            keep the "admin will review" promise, because that is what happens. */
         const dup = String(r.status || '').toUpperCase() === 'DUPLICATE';
-        hideGlobalLoader(true, () => { if(rdCurrentPageId !== 'home') switchPage('home'); }, dup ? 'Application is under admin review.' : 'Application submitted successfully.');
+        hideGlobalLoader(true, () => {
+            showToast(friendlyError(r.message || 'Once an admin verifies your details, your Member ID will be emailed to you.').msg,
+                      dup ? 'info' : 'success',
+                      dup ? 'Application is under admin review' : 'Application submitted',
+                      {backTo: 'home'});
+        }, dup ? 'Application is under admin review.' : 'Application submitted successfully.');
       } catch(err) {
-        hideGlobalLoader(false);
+        failGlobalLoader('Could not submit', friendlyError(err).msg);
           reportError(err, f);
       } finally {
         b.disabled=false;
@@ -8730,10 +8737,10 @@
     }
 
     async function submitUpdateInfoEdit(e) {
-      showGlobalLoader("Updating...", "Saving your profile.");
       e.preventDefault();
       const f = e.target, btn = document.getElementById('uinfo-edit-submit-btn');
       btn.disabled = true; btn.innerHTML = '<span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> Updating...</span>'; lucide.createIcons();
+      showGlobalLoader("Updating...", "Saving your profile.");
       try {
         const payload = {
           memberId: uinfoAuthed.memberId,
@@ -8752,8 +8759,11 @@
         if (!r.success) throw new Error(r.message);
 f.reset();
         loadPublicAlumni();
-        hideGlobalLoader(true, () => { if(rdCurrentPageId !== 'alumni') switchPage('alumni'); }, 'Information updated successfully.');
+        hideGlobalLoader(true, () => {
+            showToast(r.message || 'Your information has been updated.', 'success', 'Update complete', {backTo: 'alumni'});
+        }, 'Information updated successfully.', { autoClose: true });
       } catch (err) {
+        failGlobalLoader('Update failed', friendlyError(err).msg);
         reportError(err);
       } finally {
         btn.disabled = false; btn.textContent = 'Update information'; lucide.createIcons();
@@ -12855,9 +12865,9 @@ f.reset();
     }
 
     async function adminRunAction(id, what, note) {
-      showGlobalLoader("Processing...", "Executing action.");
       const row = adminFind(id);
       if (!row || RD_ADMIN.busy) return;
+      showGlobalLoader("Processing...", "Executing action.");
       RD_ADMIN.busy = id;
       renderAdmin();
       try {
@@ -12872,9 +12882,11 @@ f.reset();
         hideGlobalLoader(true, () => {
             RD_ADMIN.busy = '';
             renderAdmin();
+            showToast(row.title + ' — ' + (what === 'approve' ? 'approved' : 'rejected') + '.',
+              'success', what === 'approve' ? 'Approved' : 'Rejected', { backTo: 'admin' });
         }, what === 'approve' ? 'Approved successfully.' : 'Rejected successfully.');
       } catch (err) {
-        hideGlobalLoader(false);
+        failGlobalLoader('Could not save', friendlyError(err).msg);
         showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
         RD_ADMIN.busy = '';
         renderAdmin();
@@ -13608,9 +13620,10 @@ f.reset();
         hideGlobalLoader(true, async () => {
             RD_ADMIN.plBusy = '';
             await loadAdminDashboard(true);
+            showToast('Poll created.', 'success');
         }, 'Poll created successfully.');
       } catch (err) {
-        hideGlobalLoader(false);
+        failGlobalLoader('Could not create poll', friendlyError(err).msg);
         RD_ADMIN.plBusy = ''; reportError(err); renderAdmin();
       }
     }
@@ -13659,141 +13672,136 @@ f.reset();
 
 // ==========================================
 // PREMIUM GLOBAL LOADER SYSTEM
+// (owner-authorised overlay; markup in index.html, styles in custom.css .rd-gl*)
 // ==========================================
 let rdLoaderInterval = null;
 let rdLoaderPct = 0;
 let rdLocalConfetti = null;
+let rdLoaderCloseCb = null;   // runs when the user clicks "OK, Close"
+
+function rdGlEl(id) { return document.getElementById(id); }
 
 function changeLoaderTextSmoothly(newTitle, newSub) {
-    const titleEl = document.getElementById('loader-title');
-    const subEl = document.getElementById('loader-sub');
-    if(!titleEl || !subEl) return;
-    
-    titleEl.style.opacity = '0';
-    titleEl.style.transform = 'translateY(-6px)';
-    subEl.style.opacity = '0';
-    subEl.style.transform = 'translateY(-6px)';
+    const titleEl = rdGlEl('loader-title');
+    const subEl = rdGlEl('loader-sub');
+    if (!titleEl || !subEl) return;
+
+    titleEl.style.opacity = '0'; titleEl.style.transform = 'translateY(-6px)';
+    subEl.style.opacity = '0'; subEl.style.transform = 'translateY(-6px)';
 
     setTimeout(() => {
         titleEl.textContent = newTitle;
         subEl.textContent = newSub;
-
-        titleEl.style.transition = 'none';
-        subEl.style.transition = 'none';
-        titleEl.style.transform = 'translateY(6px)';
-        subEl.style.transform = 'translateY(6px)';
-
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                titleEl.style.transition = 'all 0.25s ease';
-                subEl.style.transition = 'all 0.25s ease';
-                subEl.style.transitionDelay = '0.05s';
-                titleEl.style.opacity = '1';
-                titleEl.style.transform = 'translateY(0)';
-                subEl.style.opacity = '1';
-                subEl.style.transform = 'translateY(0)';
-            });
-        });
+        titleEl.style.transition = 'none'; subEl.style.transition = 'none';
+        titleEl.style.transform = 'translateY(6px)'; subEl.style.transform = 'translateY(6px)';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            titleEl.style.transition = 'all 0.25s ease'; subEl.style.transition = 'all 0.25s ease';
+            subEl.style.transitionDelay = '0.05s';
+            titleEl.style.opacity = '1'; titleEl.style.transform = 'translateY(0)';
+            subEl.style.opacity = '1'; subEl.style.transform = 'translateY(0)';
+        }));
     }, 250);
 }
 
 function showGlobalLoader(title, sub) {
-    const overlay = document.getElementById('demo-loader');
-    const card = document.getElementById('demo-card');
-    const titleEl = document.getElementById('loader-title');
-    const subEl = document.getElementById('loader-sub');
+    const overlay = rdGlEl('demo-loader');
     if (!overlay) return;
-    
+    rdLoaderCloseCb = null;
+
     if (typeof confetti !== 'undefined' && !rdLocalConfetti) {
-        rdLocalConfetti = confetti.create(document.getElementById('confetti-canvas'), { resize: true, useWorker: true });
+        rdLocalConfetti = confetti.create(rdGlEl('confetti-canvas'), { resize: true, useWorker: true });
     }
-    
-    titleEl.style.transition = 'none';
-    subEl.style.transition = 'none';
+
+    const titleEl = rdGlEl('loader-title'), subEl = rdGlEl('loader-sub');
+    titleEl.style.transition = 'none'; subEl.style.transition = 'none';
     titleEl.textContent = title || 'Verifying...';
     subEl.textContent = sub || 'Securely checking your credentials.';
-    titleEl.style.opacity = '1';
-    titleEl.style.transform = 'translateY(0)';
-    subEl.style.opacity = '1';
-    subEl.style.transform = 'translateY(0)';
+    titleEl.style.opacity = '1'; titleEl.style.transform = 'translateY(0)';
+    subEl.style.opacity = '1'; subEl.style.transform = 'translateY(0)';
     setTimeout(() => {
-        titleEl.style.transition = 'all 0.25s ease';
-        subEl.style.transition = 'all 0.25s ease';
+        titleEl.style.transition = 'all 0.25s ease'; subEl.style.transition = 'all 0.25s ease';
         subEl.style.transitionDelay = '0.05s';
     }, 50);
 
-    card.className = "bg-white rounded-[2rem] p-8 w-[320px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-200 card-transition flex flex-col items-center text-center transform scale-100 opacity-100";
-    
-    document.getElementById('loader-pct').textContent = '0';
-    document.getElementById('loader-ring').style.opacity = '1';
-    document.getElementById('wave-1').style.opacity = '1';
-    document.getElementById('wave-2').style.opacity = '1';
-    document.getElementById('loader-text-wrap').style.transform = 'scale(1)';
-    document.getElementById('loader-text-wrap').style.opacity = '1';
-    document.getElementById('loader-success').classList.replace('scale-100', 'scale-0');
-    
-    overlay.classList.remove('pointer-events-none');
-    overlay.classList.replace('opacity-0', 'opacity-100');
-    
+    overlay.classList.remove('is-success', 'is-error', 'show-close');
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden', 'false');
+    rdGlEl('loader-pct').textContent = '0';
     if (rdLocalConfetti) rdLocalConfetti.reset();
-    
+
     rdLoaderPct = 0;
     clearInterval(rdLoaderInterval);
     rdLoaderInterval = setInterval(() => {
         rdLoaderPct += Math.floor(Math.random() * 8) + 2;
         if (rdLoaderPct > 98) rdLoaderPct = 98;
-        document.getElementById('loader-pct').textContent = rdLoaderPct;
+        const p = rdGlEl('loader-pct'); if (p) p.textContent = rdLoaderPct;
     }, 120);
 }
 
-function hideGlobalLoader(isSuccess = false, onSuccess = null, customMsg = 'Action completed successfully.') {
-    const overlay = document.getElementById('demo-loader');
-    const card = document.getElementById('demo-card');
-    if (!overlay) return;
-    
+// Immediately close the overlay and run whatever callback was queued for it.
+// Bound to the "OK, Close" button.
+function dismissGlobalLoader() {
+    const overlay = rdGlEl('demo-loader');
     clearInterval(rdLoaderInterval);
-    
-    if (isSuccess) {
-        document.getElementById('loader-pct').textContent = '100';
-        changeLoaderTextSmoothly('Success', customMsg);
-        
-        setTimeout(() => {
-            document.getElementById('loader-ring').style.opacity = '0';
-            document.getElementById('wave-1').style.opacity = '0';
-            document.getElementById('wave-2').style.opacity = '0';
-            
-            document.getElementById('loader-text-wrap').style.transform = 'scale(0.5)';
-            document.getElementById('loader-text-wrap').style.opacity = '0';
-            
-            setTimeout(() => {
-                document.getElementById('loader-success').classList.replace('scale-0', 'scale-100');
-                
-                if (rdLocalConfetti) {
-                    rdLocalConfetti({
-                        particleCount: 120,
-                        spread: 80,
-                        origin: { y: 0.6 },
-                        colors: ['#6366f1', '#10b981', '#f43f5e', '#f59e0b', '#8b5cf6'],
-                        disableForReducedMotion: true
-                    });
-                }
-                
-                card.style.borderColor = '#10b981';
-                card.style.boxShadow = '0 20px 60px -15px rgba(16, 185, 129, 0.2)';
-                
-                setTimeout(() => {
-                    card.classList.replace('scale-100', 'scale-[0.92]');
-                    card.style.opacity = '0';
-                    overlay.classList.replace('opacity-100', 'opacity-0');
-                    overlay.classList.add('pointer-events-none');
-                    if (typeof onSuccess === 'function') onSuccess();
-                }, 1800);
-            }, 300);
-        }, 400);
-    } else {
-        card.classList.replace('scale-100', 'scale-[0.92]');
-        overlay.classList.replace('opacity-100', 'opacity-0');
-        overlay.classList.add('pointer-events-none');
-        if (typeof onSuccess === 'function') onSuccess();
+    const cb = rdLoaderCloseCb; rdLoaderCloseCb = null;
+    if (overlay) {
+        overlay.classList.remove('is-open', 'is-success', 'is-error', 'show-close');
+        overlay.setAttribute('aria-hidden', 'true');
     }
+    if (typeof cb === 'function') cb();
+}
+
+// Success. By DEFAULT the popup STAYS OPEN with an "OK, Close" button so the
+// user cannot re-submit and create a duplicate entry; onSuccess runs when they
+// acknowledge. Pass {autoClose:true} only where a duplicate is impossible
+// (e.g. My-profile edit). When the overlay is absent (test harness / no DOM)
+// onSuccess runs synchronously so navigation, busy flags and the notice-page
+// confirmation are never left stuck.
+function hideGlobalLoader(isSuccess = false, onSuccess = null, customMsg = 'Action completed successfully.', opts = {}) {
+    const overlay = rdGlEl('demo-loader');
+    clearInterval(rdLoaderInterval);
+
+    if (!overlay) { if (isSuccess && typeof onSuccess === 'function') onSuccess(); return; }
+
+    if (!isSuccess) {   // legacy failure entry point
+        failGlobalLoader('Something went wrong', customMsg, onSuccess);
+        return;
+    }
+
+    rdGlEl('loader-pct').textContent = '100';
+    overlay.classList.remove('is-error');
+    overlay.classList.add('is-success');
+    changeLoaderTextSmoothly('Success', customMsg);
+    if (rdLocalConfetti) {
+        setTimeout(() => rdLocalConfetti({
+            particleCount: 120, spread: 80, origin: { y: 0.6 },
+            colors: ['#6366f1', '#10b981', '#f43f5e', '#f59e0b', '#8b5cf6'],
+            disableForReducedMotion: true
+        }), 300);
+    }
+
+    if (opts && opts.autoClose) {
+        rdLoaderCloseCb = null;
+        setTimeout(() => {
+            overlay.classList.remove('is-open', 'is-success', 'show-close');
+            overlay.setAttribute('aria-hidden', 'true');
+            if (typeof onSuccess === 'function') onSuccess();
+        }, 1800);
+    } else {
+        rdLoaderCloseCb = onSuccess;   // fires on the "OK, Close" click
+        setTimeout(() => overlay.classList.add('show-close'), 500);
+    }
+}
+
+// Failure. NEVER auto-dismisses: shows the red error badge and an "OK, Close"
+// button in the premium font. onClose (if any) runs when acknowledged.
+function failGlobalLoader(title, msg, onClose = null) {
+    const overlay = rdGlEl('demo-loader');
+    clearInterval(rdLoaderInterval);
+    if (!overlay) { if (typeof onClose === 'function') onClose(); return; }
+    overlay.classList.remove('is-success');
+    overlay.classList.add('is-open', 'is-error', 'show-close');
+    overlay.setAttribute('aria-hidden', 'false');
+    changeLoaderTextSmoothly(title || 'Something went wrong', msg || 'Please try again.');
+    rdLoaderCloseCb = onClose;
 }
