@@ -3571,8 +3571,17 @@
       return {};
     }
     function rdMemberSignedIn() { return !!(RD_MEMBER.token && RD_MEMBER.me); }
+    /* A signed-in admin is granted every member VIEW power -- contact rows and
+       any "signed in members only" content -- without a second, member sign in.
+       This is view/open only: it never makes the admin act as a member (voting,
+       saving a member profile, submitting committee data all still need a real
+       member token). rdCanViewContacts is the one gate all the view surfaces
+       already run through, so admin passes them everywhere at once. */
+    function rdAdminGateOpen() {
+      return typeof RD_ADMIN !== 'undefined' && RD_ADMIN.gate === 'open';
+    }
     function rdCanViewContacts() {
-      return rdMemberSignedIn() || (typeof RD_ADMIN !== 'undefined' && RD_ADMIN.gate === 'open');
+      return rdMemberSignedIn() || rdAdminGateOpen();
     }
 
     async function rdMemberEnsureSession() {
@@ -4953,7 +4962,9 @@
         ? '<span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold"><i data-lucide="badge-check" class="w-4 h-4"></i> ' +
           escapeHtml(RD_MEMBER.email) + '</span>' +
           '<button type="button" onclick="memberSignOut()" class="ml-2 underline font-bold text-slate-500 hover:text-slate-900">Sign out</button>'
-        : '<button type="button" onclick="openMemberSignIn(\'alumni\')" class="inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900"><i data-lucide="lock" class="w-4 h-4"></i> Sign in to see contact details</button>';
+        : (rdAdminGateOpen()
+          ? '<span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold"><i data-lucide="shield-check" class="w-4 h-4"></i> Admin access &mdash; contact details unlocked</span>'
+          : '<button type="button" onclick="openMemberSignIn(\'alumni\')" class="inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900"><i data-lucide="lock" class="w-4 h-4"></i> Sign in to see contact details</button>');
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
     }
 
