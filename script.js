@@ -5667,15 +5667,11 @@
 
         const r = await apiPost('admincreateupcomingevent', payload);
         
-        st.className = 'block rounded-xl p-4 text-sm font-bold text-center bg-emerald-50 text-emerald-700 border border-emerald-200';
-        st.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i> ' + (r.message || 'Upcoming event created successfully!');
-        lucide.createIcons();
         f.reset();
-        
-        // Refresh admin event list
         if (window.adminNav) window.adminNav('events');
-        
-        setTimeout(() => goBackFromSubPage('admin-event-new'), 2000);
+        hideGlobalLoader(true, () => {
+            goBackFromSubPage('admin-event-new');
+        }, 'Event published successfully.');
         
       } catch (err) {
         st.className = 'block rounded-xl p-4 text-sm font-bold text-center bg-rose-50 text-rose-700 border border-rose-200';
@@ -7002,9 +6998,11 @@
         }});
         form.reset();
         ecFillFormCommittees();
-        showToast('Your information has been submitted. It will appear on the Committee page once an admin approves it.',
-                  'success', 'Submitted', { backTo: 'committee' });
+        hideGlobalLoader(true, () => {
+            if (rdCurrentPageId !== 'committee') switchPage('committee');
+        }, 'Committee entry submitted successfully.');
       } catch (err) {
+        hideGlobalLoader(false);
         reportError(err, form);
       } finally {
         btn.disabled = false;
@@ -7547,7 +7545,7 @@
         resetSponsorRows();
         box.classList.add('hidden'); setProgress(0, '');
         loadPublicEvents();
-        showToast(r.message || 'Your event has been submitted. It will be published once an admin approves it.', 'success', 'Event submitted', {backTo: 'events'});
+        hideGlobalLoader(true, () => { if(rdCurrentPageId !== 'events') switchPage('events'); }, 'Event submitted successfully.');
       } catch(err) {
         status.textContent = 'Upload failed!'; bar.style.width='0%';
         hideGlobalLoader(false);
@@ -8620,11 +8618,7 @@
         /* The backend flags a duplicate instead of failing; say so plainly and
            keep the "admin will review" promise, because that is what happens. */
         const dup = String(r.status || '').toUpperCase() === 'DUPLICATE';
-        hideGlobalLoader(true);
-          showToast(friendlyError(r.message || 'Once an admin verifies your details, your Member ID will be emailed to you.').msg,
-                  dup ? 'info' : 'success',
-                  dup ? 'Application is under admin review' : 'Application submitted',
-                  {backTo: 'home'});
+        hideGlobalLoader(true, () => { if(rdCurrentPageId !== 'home') switchPage('home'); }, dup ? 'Application is under admin review.' : 'Application submitted successfully.');
       } catch(err) {
         hideGlobalLoader(false);
           reportError(err, f);
@@ -8758,8 +8752,7 @@
         if (!r.success) throw new Error(r.message);
 f.reset();
         loadPublicAlumni();
-        hideGlobalLoader(true);
-          showToast(r.message || 'Your information has been updated.', 'success', 'Update complete', {backTo: 'alumni'});
+        hideGlobalLoader(true, () => { if(rdCurrentPageId !== 'alumni') switchPage('alumni'); }, 'Information updated successfully.');
       } catch (err) {
         reportError(err);
       } finally {
@@ -12876,13 +12869,16 @@ f.reset();
         row.status = what === 'approve' ? 'APPROVED' : 'REJECTED';
         if (note) row.note = note;
         RD_ADMIN.noteOpen = '';
-        showToast(row.title + ' \u2014 ' + (what === 'approve' ? 'approved' : 'rejected') + '.',
-          'success', what === 'approve' ? 'Approved' : 'Rejected', { backTo: 'admin' });
+        hideGlobalLoader(true, () => {
+            RD_ADMIN.busy = '';
+            renderAdmin();
+        }, what === 'approve' ? 'Approved successfully.' : 'Rejected successfully.');
       } catch (err) {
+        hideGlobalLoader(false);
         showToast(friendlyError(err).msg, 'error', 'Could not save', { backTo: 'admin' });
+        RD_ADMIN.busy = '';
+        renderAdmin();
       }
-      RD_ADMIN.busy = '';
-      renderAdmin();
     }
 
     function adminApprove(id) { return adminRunAction(id, 'approve', ''); }
@@ -13604,14 +13600,17 @@ f.reset();
         status: statusEl ? statusEl.value : 'open',
         resultVisibility: RD_ADMIN.plVis
       };
+      showGlobalLoader("Creating Poll...", "Saving poll to database.");
       RD_ADMIN.plBusy = 'new'; renderAdmin();
       try {
         await apiPost('pollcreate', { data: payload });
         RD_ADMIN.plNew = false; RD_ADMIN.plOpts = ['', ''];
-        showToast('Poll created.', 'success');
-        RD_ADMIN.plBusy = '';
-        await loadAdminDashboard(true);
+        hideGlobalLoader(true, async () => {
+            RD_ADMIN.plBusy = '';
+            await loadAdminDashboard(true);
+        }, 'Poll created successfully.');
       } catch (err) {
+        hideGlobalLoader(false);
         RD_ADMIN.plBusy = ''; reportError(err); renderAdmin();
       }
     }
@@ -13747,7 +13746,7 @@ function showGlobalLoader(title, sub) {
     }, 120);
 }
 
-function hideGlobalLoader(isSuccess = false) {
+function hideGlobalLoader(isSuccess = false, onSuccess = null, customMsg = 'Action completed successfully.') {
     const overlay = document.getElementById('demo-loader');
     const card = document.getElementById('demo-card');
     if (!overlay) return;
@@ -13756,7 +13755,7 @@ function hideGlobalLoader(isSuccess = false) {
     
     if (isSuccess) {
         document.getElementById('loader-pct').textContent = '100';
-        changeLoaderTextSmoothly('Success', 'Action completed successfully.');
+        changeLoaderTextSmoothly('Success', customMsg);
         
         setTimeout(() => {
             document.getElementById('loader-ring').style.opacity = '0';
@@ -13787,6 +13786,7 @@ function hideGlobalLoader(isSuccess = false) {
                     card.style.opacity = '0';
                     overlay.classList.replace('opacity-100', 'opacity-0');
                     overlay.classList.add('pointer-events-none');
+                    if (typeof onSuccess === 'function') onSuccess();
                 }, 1800);
             }, 300);
         }, 400);
@@ -13794,5 +13794,6 @@ function hideGlobalLoader(isSuccess = false) {
         card.classList.replace('scale-100', 'scale-[0.92]');
         overlay.classList.replace('opacity-100', 'opacity-0');
         overlay.classList.add('pointer-events-none');
+        if (typeof onSuccess === 'function') onSuccess();
     }
 }
