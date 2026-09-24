@@ -9329,7 +9329,7 @@ f.reset();
                      pdKind: 'LINE', pdEdit: '', role: 'ALL',
                      facEdit: '', facMissing: [],
                      askWhat: '', askId: '', backfillPreview: null, backfillChoices: {},
-                     queueErrors: {}, selected: {}, emMode: 'group', emPick: '' };
+                     queueErrors: {}, selected: {}, emMode: 'group', emPick: '', emSel: {} };
 
     function adminTabMeta(key) {
       return RD_ADMIN_TABS.find(t => t.key === key) || RD_ADMIN_TABS[0];
@@ -12194,8 +12194,104 @@ f.reset();
       if (el) el.textContent = String(adminMailGroup().length);
     }
 
+    /* ---- "Pick several" (mode 'each') ------------------------------------
+       A filterable checkbox list. Selection is kept in RD_ADMIN.emSel keyed
+       by Member ID, so it survives filtering (a member hidden by a filter
+       stays chosen). Each chosen member gets a SEPARATE, private email on the
+       server -- no group copy, no BCC. Hard cap RD_MM_EACH_CAP mirrors the
+       consumer-Gmail daily quota so a blast can't overrun it. */
+    const RD_MM_EACH_CAP = 100;
+
+    function adminMailEachSelectedIds() {
+      return Object.keys(RD_ADMIN.emSel || {}).filter(function (id) { return RD_ADMIN.emSel[id]; });
+    }
+
+    function adminMailEachFiltered() {
+      const series = String((document.getElementById('em-each-series') || {}).value || '').trim();
+      const dept = String((document.getElementById('em-each-dept') || {}).value || '').trim();
+      const q = String((document.getElementById('em-each-q') || {}).value || '').trim().toLowerCase();
+      return (Array.isArray(alumniData) ? alumniData : []).filter(function (a) {
+        if (!a || !a.memberId) return false;
+        if (series && String(a.series || '').trim() !== series) return false;
+        if (dept && String(a.dept || '').trim() !== dept) return false;
+        if (q) {
+          const hay = (String(a.name || '') + ' ' + String(a.memberId || '') + ' ' +
+            String(a.dept || '') + ' ' + String(a.series || '')).toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
+      }).sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || '')); });
+    }
+
+    function adminMailEachRowsHtml() {
+      const rows = adminMailEachFiltered();
+      if (!rows.length) {
+        return '<p class="px-3 py-6 text-center text-xs font-semibold text-slate-400">No members match.</p>';
+      }
+      return rows.map(function (a) {
+        const id = a.memberId || '';
+        const on = !!RD_ADMIN.emSel[id];
+        const sub = [a.dept, a.series, id].filter(Boolean).map(escapeHtml).join(' · ');
+        return '<label class="flex items-center gap-3 px-3 py-2 border-b border-slate-100 cursor-pointer hover:bg-slate-50">' +
+          '<input type="checkbox" ' + (on ? 'checked ' : '') +
+            'onchange="adminMailEachToggle(\'' + escapeHtml(id).replace(/'/g, "\\'") + '\', this.checked)" ' +
+            'class="w-4 h-4 rounded border-slate-300 text-blue-600 shrink-0">' +
+          '<span class="min-w-0">' +
+            '<span class="block text-sm font-bold text-slate-800 truncate">' + escapeHtml(a.name || '(no name)') + '</span>' +
+            (sub ? '<span class="block text-[11px] font-semibold text-slate-400 truncate">' + sub + '</span>' : '') +
+          '</span></label>';
+      }).join('');
+    }
+
+    function adminMailEachRender() {
+      const list = document.getElementById('em-each-list');
+      if (list) list.innerHTML = adminMailEachRowsHtml();
+      adminMailEachCount();
+    }
+
+    function adminMailEachCount() {
+      const n = adminMailEachSelectedIds().length;
+      const el = document.getElementById('em-each-count');
+      if (el) {
+        el.textContent = n + ' selected' + (n >= RD_MM_EACH_CAP ? ' (max)' : '');
+        el.className = 'ml-auto text-xs font-extrabold ' + (n >= RD_MM_EACH_CAP ? 'text-rose-600' : 'text-slate-500');
+      }
+    }
+
+    function adminMailEachToggle(id, checked) {
+      if (!id) return;
+      if (checked && !RD_ADMIN.emSel[id] && adminMailEachSelectedIds().length >= RD_MM_EACH_CAP) {
+        showToast('You can pick at most ' + RD_MM_EACH_CAP + ' members at a time.', 'error',
+          'Limit reached', { backTo: 'admin' });
+        adminMailEachRender();
+        return;
+      }
+      if (checked) RD_ADMIN.emSel[id] = true; else delete RD_ADMIN.emSel[id];
+      adminMailEachCount();
+    }
+
+    /* Select-all fills up to the cap from the currently-shown rows; Clear wipes
+       everything (not just what is shown), so nothing hides an unwanted pick. */
+    function adminMailEachAll(on) {
+      if (!on) { RD_ADMIN.emSel = {}; adminMailEachRender(); return; }
+      const shown = adminMailEachFiltered();
+      let room = RD_MM_EACH_CAP - adminMailEachSelectedIds().length;
+      let capped = false;
+      shown.forEach(function (a) {
+        const id = a.memberId || '';
+        if (!id || RD_ADMIN.emSel[id]) return;
+        if (room <= 0) { capped = true; return; }
+        RD_ADMIN.emSel[id] = true; room--;
+      });
+      adminMailEachRender();
+      if (capped) {
+        showToast('Only the first ' + RD_MM_EACH_CAP + ' could be selected — that is the per-send limit.',
+          'info', 'Limit reached', { backTo: 'admin' });
+      }
+    }
+
     function adminMailHtml() {
-      const mode = RD_ADMIN.emMode === 'one' ? 'one' : 'group';
+      const mode = ['one', 'each'].indexOf(RD_ADMIN.emMode) >= 0 ? RD_ADMIN.emMode : 'group';
       const members = Array.isArray(alumniData) ? alumniData : [];
       const opt = function (v) { return '<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</option>'; };
       const seriesOpts = adminMailUnique('series').map(opt).join('');
@@ -12217,9 +12313,10 @@ f.reset();
       };
 
       const inner =
-        '<div class="mt-5 flex gap-2">' + segBtn('group', 'A group') + segBtn('one', 'One member') + '</div>' +
+        '<div class="mt-5 flex gap-2">' + segBtn('group', 'A group') + segBtn('one', 'One member') +
+          segBtn('each', 'Pick several') + '</div>' +
 
-        '<div id="em-group" class="mt-4 ' + (mode === 'one' ? 'hidden' : '') + '">' +
+        '<div id="em-group" class="mt-4 ' + (mode === 'group' ? '' : 'hidden') + '">' +
           '<div class="grid sm:grid-cols-2 gap-4">' +
             '<div><label class="form-label" for="em-series">Series</label>' +
               '<select id="em-series" class="form-input" onchange="adminMailRecount()">' +
@@ -12232,11 +12329,33 @@ f.reset();
             '</span> approved members match. The server sends only to those it finds a valid email for.</p>' +
         '</div>' +
 
-        '<div id="em-one" class="mt-4 ' + (mode === 'group' ? 'hidden' : '') + '">' +
+        '<div id="em-one" class="mt-4 ' + (mode === 'one' ? '' : 'hidden') + '">' +
           '<label class="form-label" for="em-one-sel">Choose a member</label>' +
           '<select id="em-one-sel" class="form-input">' +
             '<option value="">Select a member…</option>' + memberOpts + '</select>' +
           '<p class="mt-2 text-xs font-semibold text-slate-500">Start typing a name to jump down the list.</p>' +
+        '</div>' +
+
+        '<div id="em-each" class="mt-4 ' + (mode === 'each' ? '' : 'hidden') + '">' +
+          '<div class="grid sm:grid-cols-3 gap-3">' +
+            '<div><label class="form-label" for="em-each-series">Series</label>' +
+              '<select id="em-each-series" class="form-input" onchange="adminMailEachRender()">' +
+                '<option value="">All series</option>' + seriesOpts + '</select></div>' +
+            '<div><label class="form-label" for="em-each-dept">Department</label>' +
+              '<select id="em-each-dept" class="form-input" onchange="adminMailEachRender()">' +
+                '<option value="">All departments</option>' + deptOpts + '</select></div>' +
+            '<div><label class="form-label" for="em-each-q">Search name / ID</label>' +
+              '<input id="em-each-q" class="form-input" placeholder="Type to filter…" oninput="adminMailEachRender()"></div>' +
+          '</div>' +
+          '<div class="mt-3 flex items-center gap-2 flex-wrap">' +
+            '<button type="button" onclick="adminMailEachAll(true)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-extrabold cursor-pointer">Select all shown</button>' +
+            '<button type="button" onclick="adminMailEachAll(false)" class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-[11px] font-extrabold cursor-pointer">Clear</button>' +
+            '<span id="em-each-count" class="ml-auto text-xs font-extrabold text-slate-500">0 selected</span>' +
+          '</div>' +
+          '<div id="em-each-list" class="mt-3 max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white">' +
+            adminMailEachRowsHtml() + '</div>' +
+          '<p class="mt-2 text-xs font-semibold text-slate-500">Up to ' + RD_MM_EACH_CAP +
+            ' members at a time. Each gets a <b>separate, private</b> email — not a group copy, so nobody sees who else was written to.</p>' +
         '</div>' +
 
         '<div class="mt-4"><label class="form-label" for="em-subject">Subject *</label>' +
@@ -12272,18 +12391,20 @@ f.reset();
        never redrawn. A full re-render (after a send) restores the right one
        from RD_ADMIN.emMode. */
     function adminMailMode(m) {
-      RD_ADMIN.emMode = m === 'one' ? 'one' : 'group';
-      const g = document.getElementById('em-group');
-      const o = document.getElementById('em-one');
-      if (g) g.classList.toggle('hidden', RD_ADMIN.emMode === 'one');
-      if (o) o.classList.toggle('hidden', RD_ADMIN.emMode === 'group');
-      ['group', 'one'].forEach(function (k) {
+      RD_ADMIN.emMode = ['one', 'each'].indexOf(m) >= 0 ? m : 'group';
+      const blocks = { group: 'em-group', one: 'em-one', each: 'em-each' };
+      Object.keys(blocks).forEach(function (k) {
+        const el = document.getElementById(blocks[k]);
+        if (el) el.classList.toggle('hidden', RD_ADMIN.emMode !== k);
+      });
+      ['group', 'one', 'each'].forEach(function (k) {
         const b = document.getElementById('em-mode-' + k);
         if (!b) return;
         const on = RD_ADMIN.emMode === k;
         b.className = 'flex-1 px-4 py-2.5 rounded-2xl text-sm font-extrabold cursor-pointer border transition ' +
           (on ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50');
       });
+      if (RD_ADMIN.emMode === 'each') adminMailEachCount();
       adminMailCancel();
     }
 
@@ -12295,7 +12416,7 @@ f.reset();
     /* Sending real mail to real people asks first -- and, like everywhere else
        on the site, it asks inside the card, never with a popup. */
     function adminMailArm() {
-      const mode = RD_ADMIN.emMode === 'one' ? 'one' : 'group';
+      const mode = ['one', 'each'].indexOf(RD_ADMIN.emMode) >= 0 ? RD_ADMIN.emMode : 'group';
       const subject = String((document.getElementById('em-subject') || {}).value || '').trim();
       const body = String((document.getElementById('em-body') || {}).value || '').trim();
       if (!subject) { showToast('Please write a subject.', 'error', 'Subject is needed', { backTo: 'admin' }); return; }
@@ -12308,6 +12429,11 @@ f.reset();
         if (!id) { showToast('Please choose a member to email.', 'error', 'No member chosen', { backTo: 'admin' }); return; }
         const who = (Array.isArray(alumniData) ? alumniData : []).find(function (a) { return String(a.memberId || '') === id; });
         text = 'This will email ' + ((who && who.name) || 'the selected member') + '. Send now?';
+      } else if (mode === 'each') {
+        const n = adminMailEachSelectedIds().length;
+        if (!n) { showToast('Tick at least one member first.', 'error', 'Nobody chosen', { backTo: 'admin' }); return; }
+        text = 'This will send a separate, private email to each of the ' + n + ' chosen member' +
+          (n === 1 ? '' : 's') + ' (only those with a valid address on file). Send now?';
       } else {
         const n = adminMailGroup().length;
         if (!n) { showToast('No members match this filter.', 'error', 'Nobody to email', { backTo: 'admin' }); return; }
@@ -12322,7 +12448,7 @@ f.reset();
 
     async function adminMailSend() {
       if (RD_ADMIN.busy) return;
-      const mode = RD_ADMIN.emMode === 'one' ? 'one' : 'group';
+      const mode = ['one', 'each'].indexOf(RD_ADMIN.emMode) >= 0 ? RD_ADMIN.emMode : 'group';
       const subject = String((document.getElementById('em-subject') || {}).value || '').trim();
       const body = String((document.getElementById('em-body') || {}).value || '').trim();
       if (!subject || !body) { adminMailCancel(); return; }
@@ -12331,6 +12457,9 @@ f.reset();
       if (mode === 'one') {
         data.memberId = String((document.getElementById('em-one-sel') || {}).value || '').trim();
         if (!data.memberId) { adminMailCancel(); return; }
+      } else if (mode === 'each') {
+        data.memberIds = adminMailEachSelectedIds();
+        if (!data.memberIds.length) { adminMailCancel(); return; }
       } else {
         data.series = String((document.getElementById('em-series') || {}).value || '').trim();
         data.dept = String((document.getElementById('em-dept') || {}).value || '').trim();
@@ -12345,6 +12474,7 @@ f.reset();
         showToast(r.message || ('Emailed ' + (r.sent || 0) + ' member(s).'), 'success', 'Email sent', { backTo: 'admin' });
         /* Clear the compose fields but stay on the tab. */
         ['em-subject', 'em-body'].forEach(function (id) { const el = document.getElementById(id); if (el) el.value = ''; });
+        if (mode === 'each') { RD_ADMIN.emSel = {}; adminMailEachRender(); }
         adminMailCancel();
       } catch (err) {
         RD_ADMIN.busy = '';
