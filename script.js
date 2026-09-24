@@ -3723,20 +3723,23 @@
 
     function memberGoogleCredential(resp) {
       const token = (resp && resp.credential) || '';
-      if (!token) { rdMemberMsg('member-signin-msg', 'Google sign in did not finish.'); return; }
+      if (!token) { hideGlobalLoader(false);
+      rdMemberMsg('member-signin-msg', 'Google sign in did not finish.'); return; }
       rdMemberRemember(token);
       memberVerify(false);
     }
 
     async function memberVerify(quiet) {
+      if(!quiet) showGlobalLoader("Signing In...", "Authenticating with Google.");
       if (!RD_MEMBER.token || RD_MEMBER.busy) return;
       RD_MEMBER.busy = true;
       if (!quiet) rdMemberMsg('member-signin-msg', 'Checking...', 'wait');
       try {
         const r = await apiGet('membersignin', rdMemberParams());
         if (r && r.status === 'NO_MATCH') {
-          RD_MEMBER.me = null;
-          RD_MEMBER.email = r.email || '';
+          hideGlobalLoader(false);
+            RD_MEMBER.me = null;
+            RD_MEMBER.email = r.email || '';
           rdMemberPaintLinkBox();
           if (!quiet) {
             rdMemberMsg('member-signin-msg',
@@ -3753,7 +3756,8 @@
         /* The stored token stays. A dropped connection or a sleeping Apps
            Script deployment is not the member asking to be signed out, and
            wiping it here was what made a refresh look like a logout. */
-        if (!quiet) rdMemberMsg('member-signin-msg', friendlyError(err).msg);
+        hideGlobalLoader(false);
+          if (!quiet) rdMemberMsg('member-signin-msg', friendlyError(err).msg);
         rdMemberPaintSignInLinks();
       } finally {
         RD_MEMBER.busy = false;
@@ -3775,7 +3779,8 @@
         if (alumniData.length) renderAlumniPage();
       });
       if (quiet) { rdMemberPaintSignInLinks(); return; }
-      rdMemberMsg('member-signin-msg', 'You are signed in.', 'ok');
+      hideGlobalLoader(true);
+        rdMemberMsg('member-signin-msg', 'You are signed in.', 'ok');
       rdMemberPaintLinkBox();
       /* No page of its own for this. A member who signs in is taken to the
          thing they signed in for -- the profile they were reading, or their own
@@ -3861,6 +3866,7 @@
       tries = tries || 0;
       if (!rdGsiReady()) {
         if (tries < 6) { setTimeout(function () { rdMemberAskGoogle(tries + 1); }, 500); return; }
+        hideGlobalLoader(false);
         rdMemberMsg('member-link-msg', 'Google sign in did not load. Check your connection and try again.');
         return;
       }
@@ -5628,6 +5634,7 @@
     }
     
     async function adminSubmitUpcomingEvent(e) {
+      showGlobalLoader("Uploading...", "Publishing event.");
       e.preventDefault();
       const f = e.target;
       const st = document.getElementById('admin-upcoming-status');
@@ -5674,7 +5681,8 @@
         st.className = 'block rounded-xl p-4 text-sm font-bold text-center bg-rose-50 text-rose-700 border border-rose-200';
         st.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4 inline mr-1"></i> ' + (err.message || 'Error occurred');
         lucide.createIcons();
-        reportError(err, f);
+        hideGlobalLoader(false);
+          reportError(err, f);
       } finally {
         btn.disabled = false;
       }
@@ -6949,6 +6957,7 @@
     }
 
     async function submitExecutiveCommitteeForm(e) {
+      showGlobalLoader("Uploading...", "Saving committee details.");
       e.preventDefault();
       const form = e.target;
       const btn = document.getElementById('ec-submit-btn');
@@ -7484,13 +7493,15 @@
     }
 
     async function submitEventFromWebsite(e) {
+      showGlobalLoader("Uploading...", "Submitting event request.");
       e.preventDefault();
       const f=e.target, b=document.getElementById('event-submit-btn'), fd=new FormData(f);
       const main=f.querySelector('[name="mainImage"]').files[0], gf=[...f.querySelector('[name="gallery"]').files];
       const box=document.getElementById('event-upload-progress'), status=document.getElementById('event-upload-status'), pct=document.getElementById('event-upload-percent'), bar=document.getElementById('event-upload-bar');
       
       if(!main) return showToast('Please choose a main image.', 'error');
-      b.disabled=true; b.innerHTML='<span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> Uploading...</span>'; lucide.createIcons();
+      showGlobalLoader('Submitting...', 'Registering your membership.');
+        b.disabled=true; b.innerHTML='<span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> Uploading...</span>'; lucide.createIcons();
       box.classList.remove('hidden');
       
       const setProgress = (p, text) => { pct.textContent = p+'%'; status.textContent = text; bar.style.width = p+'%'; };
@@ -7539,7 +7550,8 @@
         showToast(r.message || 'Your event has been submitted. It will be published once an admin approves it.', 'success', 'Event submitted', {backTo: 'events'});
       } catch(err) {
         status.textContent = 'Upload failed!'; bar.style.width='0%';
-        reportError(err, f);
+        hideGlobalLoader(false);
+          reportError(err, f);
       } finally {
         b.disabled=false; b.textContent='Submit Event';
       }
@@ -8567,7 +8579,8 @@
          anything is uploaded. */
       const regSocial = rdSocialCollect('reg-social');
       if (regSocial === null) return;
-      b.disabled=true; b.innerHTML='<span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> Submitting...</span>'; lucide.createIcons();
+      showGlobalLoader('Submitting...', 'Registering your membership.');
+        b.disabled=true; b.innerHTML='<span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> Submitting...</span>'; lucide.createIcons();
       try {
         const payload = {
           fullName: fd.get('fullName'),
@@ -8607,12 +8620,14 @@
         /* The backend flags a duplicate instead of failing; say so plainly and
            keep the "admin will review" promise, because that is what happens. */
         const dup = String(r.status || '').toUpperCase() === 'DUPLICATE';
-        showToast(friendlyError(r.message || 'Once an admin verifies your details, your Member ID will be emailed to you.').msg,
+        hideGlobalLoader(true);
+          showToast(friendlyError(r.message || 'Once an admin verifies your details, your Member ID will be emailed to you.').msg,
                   dup ? 'info' : 'success',
                   dup ? 'Application is under admin review' : 'Application submitted',
                   {backTo: 'home'});
       } catch(err) {
-        reportError(err, f);
+        hideGlobalLoader(false);
+          reportError(err, f);
       } finally {
         b.disabled=false;
         b.innerHTML='<span id="reg-next-label"></span>'+
@@ -8721,6 +8736,7 @@
     }
 
     async function submitUpdateInfoEdit(e) {
+      showGlobalLoader("Updating...", "Saving your profile.");
       e.preventDefault();
       const f = e.target, btn = document.getElementById('uinfo-edit-submit-btn');
       btn.disabled = true; btn.innerHTML = '<span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> Updating...</span>'; lucide.createIcons();
@@ -8742,7 +8758,8 @@
         if (!r.success) throw new Error(r.message);
 f.reset();
         loadPublicAlumni();
-        showToast(r.message || 'Your information has been updated.', 'success', 'Update complete', {backTo: 'alumni'});
+        hideGlobalLoader(true);
+          showToast(r.message || 'Your information has been updated.', 'success', 'Update complete', {backTo: 'alumni'});
       } catch (err) {
         reportError(err);
       } finally {
@@ -12845,6 +12862,7 @@ f.reset();
     }
 
     async function adminRunAction(id, what, note) {
+      showGlobalLoader("Processing...", "Executing action.");
       const row = adminFind(id);
       if (!row || RD_ADMIN.busy) return;
       RD_ADMIN.busy = id;
@@ -13638,3 +13656,143 @@ f.reset();
       return false;
     }
 
+
+
+// ==========================================
+// PREMIUM GLOBAL LOADER SYSTEM
+// ==========================================
+let rdLoaderInterval = null;
+let rdLoaderPct = 0;
+let rdLocalConfetti = null;
+
+function changeLoaderTextSmoothly(newTitle, newSub) {
+    const titleEl = document.getElementById('loader-title');
+    const subEl = document.getElementById('loader-sub');
+    if(!titleEl || !subEl) return;
+    
+    titleEl.style.opacity = '0';
+    titleEl.style.transform = 'translateY(-6px)';
+    subEl.style.opacity = '0';
+    subEl.style.transform = 'translateY(-6px)';
+
+    setTimeout(() => {
+        titleEl.textContent = newTitle;
+        subEl.textContent = newSub;
+
+        titleEl.style.transition = 'none';
+        subEl.style.transition = 'none';
+        titleEl.style.transform = 'translateY(6px)';
+        subEl.style.transform = 'translateY(6px)';
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                titleEl.style.transition = 'all 0.25s ease';
+                subEl.style.transition = 'all 0.25s ease';
+                subEl.style.transitionDelay = '0.05s';
+                titleEl.style.opacity = '1';
+                titleEl.style.transform = 'translateY(0)';
+                subEl.style.opacity = '1';
+                subEl.style.transform = 'translateY(0)';
+            });
+        });
+    }, 250);
+}
+
+function showGlobalLoader(title, sub) {
+    const overlay = document.getElementById('demo-loader');
+    const card = document.getElementById('demo-card');
+    const titleEl = document.getElementById('loader-title');
+    const subEl = document.getElementById('loader-sub');
+    if (!overlay) return;
+    
+    if (typeof confetti !== 'undefined' && !rdLocalConfetti) {
+        rdLocalConfetti = confetti.create(document.getElementById('confetti-canvas'), { resize: true, useWorker: true });
+    }
+    
+    titleEl.style.transition = 'none';
+    subEl.style.transition = 'none';
+    titleEl.textContent = title || 'Verifying...';
+    subEl.textContent = sub || 'Securely checking your credentials.';
+    titleEl.style.opacity = '1';
+    titleEl.style.transform = 'translateY(0)';
+    subEl.style.opacity = '1';
+    subEl.style.transform = 'translateY(0)';
+    setTimeout(() => {
+        titleEl.style.transition = 'all 0.25s ease';
+        subEl.style.transition = 'all 0.25s ease';
+        subEl.style.transitionDelay = '0.05s';
+    }, 50);
+
+    card.className = "bg-white rounded-[2rem] p-8 w-[320px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-200 card-transition flex flex-col items-center text-center transform scale-100 opacity-100";
+    
+    document.getElementById('loader-pct').textContent = '0';
+    document.getElementById('loader-ring').style.opacity = '1';
+    document.getElementById('wave-1').style.opacity = '1';
+    document.getElementById('wave-2').style.opacity = '1';
+    document.getElementById('loader-text-wrap').style.transform = 'scale(1)';
+    document.getElementById('loader-text-wrap').style.opacity = '1';
+    document.getElementById('loader-success').classList.replace('scale-100', 'scale-0');
+    
+    overlay.classList.remove('pointer-events-none');
+    overlay.classList.replace('opacity-0', 'opacity-100');
+    
+    if (rdLocalConfetti) rdLocalConfetti.reset();
+    
+    rdLoaderPct = 0;
+    clearInterval(rdLoaderInterval);
+    rdLoaderInterval = setInterval(() => {
+        rdLoaderPct += Math.floor(Math.random() * 8) + 2;
+        if (rdLoaderPct > 98) rdLoaderPct = 98;
+        document.getElementById('loader-pct').textContent = rdLoaderPct;
+    }, 120);
+}
+
+function hideGlobalLoader(isSuccess = false) {
+    const overlay = document.getElementById('demo-loader');
+    const card = document.getElementById('demo-card');
+    if (!overlay) return;
+    
+    clearInterval(rdLoaderInterval);
+    
+    if (isSuccess) {
+        document.getElementById('loader-pct').textContent = '100';
+        changeLoaderTextSmoothly('Success', 'Action completed successfully.');
+        
+        setTimeout(() => {
+            document.getElementById('loader-ring').style.opacity = '0';
+            document.getElementById('wave-1').style.opacity = '0';
+            document.getElementById('wave-2').style.opacity = '0';
+            
+            document.getElementById('loader-text-wrap').style.transform = 'scale(0.5)';
+            document.getElementById('loader-text-wrap').style.opacity = '0';
+            
+            setTimeout(() => {
+                document.getElementById('loader-success').classList.replace('scale-0', 'scale-100');
+                
+                if (rdLocalConfetti) {
+                    rdLocalConfetti({
+                        particleCount: 120,
+                        spread: 80,
+                        origin: { y: 0.6 },
+                        colors: ['#6366f1', '#10b981', '#f43f5e', '#f59e0b', '#8b5cf6'],
+                        disableForReducedMotion: true
+                    });
+                }
+                
+                card.style.borderColor = '#10b981';
+                card.style.boxShadow = '0 20px 60px -15px rgba(16, 185, 129, 0.2)';
+                
+                setTimeout(() => {
+                    card.classList.replace('scale-100', 'scale-[0.92]');
+                    card.style.opacity = '0';
+                    overlay.classList.replace('opacity-100', 'opacity-0');
+                    overlay.classList.add('pointer-events-none');
+                }, 1800);
+            }, 300);
+        }, 400);
+    } else {
+        card.classList.replace('scale-100', 'scale-[0.92]');
+        overlay.classList.replace('opacity-100', 'opacity-0');
+        overlay.classList.add('pointer-events-none');
+    }
+}
