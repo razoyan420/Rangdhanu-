@@ -13209,7 +13209,31 @@ f.reset();
       }
       list.innerHTML = html;
       if (window.lucide) lucide.createIcons();
+      rdPollRevealCards(list);
       rdPollScheduleRefresh();
+    }
+
+    /* Scroll-reveal for poll cards: mirrors observeAlumniCards. Each .rd-pollc
+       fades/rises in once it enters the viewport, staggered by index. If
+       IntersectionObserver is missing, every card is shown immediately. */
+    function rdPollRevealCards(root) {
+      var cards = (root || document).querySelectorAll('.rd-pollc');
+      if (!cards.length) return;
+      if (!('IntersectionObserver' in window)) {
+        cards.forEach(function (c) { c.classList.add('is-visible'); });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries, obs) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          e.target.classList.add('is-visible');
+          obs.unobserve(e.target);
+        });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+      cards.forEach(function (c, i) {
+        c.style.setProperty('--rd-poll-delay', (i * 60) + 'ms');
+        io.observe(c);
+      });
     }
 
     /* A poll is "past" (archived) once it is closed, or its deadline has

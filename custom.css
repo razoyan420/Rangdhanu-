@@ -2911,12 +2911,13 @@ body.rd-member-restoring #page-my-profile > * {
    (Bengali, where installed locally) with Noto Sans Bengali as the loaded
    Bengali fallback, via per-glyph fallback. */
 
-/* whole polls page — mint canvas + scoped font stack */
-#page-polls { background: #f0faf6; }
+/* whole polls page — ONE continuous mint canvas (hero + stage share it, so
+   there is no boxed seam at the top); soft teal bloom fades in from the top */
+#page-polls { background: radial-gradient(125% 58% at 50% -8%, rgba(45,212,191,.28), transparent 60%), linear-gradient(180deg, #e7f7f0 0%, #eef9f4 26%, #f0faf6 60%); }
 #page-polls, #page-polls * { font-family: 'Poppins','Kalpurush','Noto Sans Bengali',sans-serif; }
 
-/* ---- hero ---- */
-.rd-poll-hero { position: relative; overflow: hidden; background-color: #f0faf6; background-image: radial-gradient(52% 62% at 50% 34%, rgba(255,255,255,.72), transparent 62%), radial-gradient(60% 70% at 50% -12%, rgba(45,212,191,.34), transparent 60%), linear-gradient(180deg, #e6f8f1 0%, #f2fbf7 62%, #f0faf6 100%); }
+/* ---- hero ---- (transparent: it floats over the page canvas, no box) */
+.rd-poll-hero { position: relative; overflow: hidden; }
 .rd-poll-hero::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(13,148,136,.05) 0 1px, transparent 1px 32px); -webkit-mask-image: radial-gradient(70% 80% at 50% 32%, transparent 30%, #000 78%); mask-image: radial-gradient(70% 80% at 50% 32%, transparent 30%, #000 78%); pointer-events: none; }
 .rd-poll-hero-inner { position: relative; z-index: 1; }
 .rd-poll-orb { position: absolute; z-index: 0; display: inline-flex; align-items: center; justify-content: center; width: 3rem; height: 3rem; border-radius: 9999px; background: #fff; box-shadow: 0 12px 32px -10px rgba(13,148,136,.4); color: #0d9488; }
@@ -2932,15 +2933,17 @@ body.rd-member-restoring #page-my-profile > * {
 .rd-poll-hero-accent { color: #0d9488; }
 .rd-poll-hero-sub { max-width: 34rem; margin: 0 auto; color: #475569; font-size: clamp(.95rem, 2vw, 1.1rem); line-height: 1.65; }
 
-/* soft tinted stage behind the cards so the glass has something to blur */
+/* the cards blur against the page canvas directly — no separate tinted band */
 .rd-poll-stage { position: relative; }
-.rd-poll-stage::before { content: ""; position: absolute; inset: -1.5rem 0 auto 0; height: 26rem; pointer-events: none; z-index: 0; background: radial-gradient(55% 60% at 10% 0%, rgba(45,212,191,.24), transparent 68%), radial-gradient(50% 55% at 92% 6%, rgba(16,185,129,.2), transparent 70%); }
 .rd-poll-stage > * { position: relative; z-index: 1; }
 
 /* ---- glass card ---- */
 .rd-pollc { position: relative; border-radius: 24px; overflow: hidden; background: linear-gradient(155deg, rgba(255,255,255,.62), rgba(255,255,255,.38)); backdrop-filter: blur(26px) saturate(180%); -webkit-backdrop-filter: blur(26px) saturate(180%); border: 1px solid rgba(255,255,255,.72); box-shadow: 0 24px 60px -24px rgba(13,80,72,.34), inset 0 1px 0 rgba(255,255,255,.8); }
 .rd-pollc::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: linear-gradient(150deg, rgba(255,255,255,.4) 0%, transparent 42%); }
 .rd-pollc-ended { background: linear-gradient(155deg, rgba(248,252,250,.62), rgba(240,250,246,.42)); }
+/* scroll reveal — only when JS is present (html.rd-js), so a no-JS page still shows every card */
+html.rd-js .rd-pollc { opacity: 0; transform: translateY(20px); transition: opacity .55s ease, transform .55s cubic-bezier(.22,1,.36,1); transition-delay: var(--rd-poll-delay, 0ms); will-change: opacity, transform; }
+html.rd-js .rd-pollc.is-visible { opacity: 1; transform: none; }
 .rd-pollc-head { position: relative; z-index: 1; padding: 1.25rem 1.5rem 1rem; border-bottom: 1px solid rgba(203,225,220,.7); }
 .rd-pollc-body { position: relative; z-index: 1; padding: 1.25rem 1.5rem 1.5rem; }
 .rd-pollc-title { font-size: 1.125rem; font-weight: 600; color: #0f172a; line-height: 1.4; letter-spacing: -.005em; }
@@ -2979,15 +2982,15 @@ body.rd-member-restoring #page-my-profile > * {
 /* ---- result bars (single teal hue) ---- */
 .rd-poll-bar + .rd-poll-bar { margin-top: .625rem; }
 .poll-bar-track { position: relative; display: flex; align-items: center; gap: .75rem; min-height: 52px; padding: 0 1rem; border-radius: 16px; background: #eef4f2; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(148,163,184,.18); }
-.poll-bar-fill { position: absolute; top: 0; bottom: 0; left: 0; height: 100%; min-width: 0; border-radius: 16px 6px 6px 16px; background: linear-gradient(120deg, rgba(45,212,191,.42) 0%, rgba(20,184,166,.5) 55%, rgba(13,148,136,.56) 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.45), inset 0 -6px 12px -6px rgba(13,80,72,.25), 0 0 18px -4px rgba(20,184,166,.5); transition: width .6s cubic-bezier(.22,1,.36,1); }
-.poll-bar-fill::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,.3) 0%, transparent 45%); pointer-events: none; }
-.rd-poll-bar-lead .poll-bar-fill { background: linear-gradient(120deg, rgba(20,184,166,.5) 0%, rgba(13,148,136,.6) 55%, rgba(15,118,110,.68) 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -6px 12px -6px rgba(13,80,72,.35), 0 0 22px -3px rgba(13,148,136,.55); }
+.poll-bar-fill { position: absolute; top: 0; bottom: 0; left: 0; height: 100%; min-width: 0; border-radius: 16px 6px 6px 16px; background: linear-gradient(120deg, rgba(45,212,191,.22) 0%, rgba(20,184,166,.28) 55%, rgba(13,148,136,.32) 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -6px 12px -8px rgba(13,80,72,.18); transition: width .6s cubic-bezier(.22,1,.36,1); }
+.poll-bar-fill::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,.28) 0%, transparent 45%); pointer-events: none; }
+.rd-poll-bar-lead .poll-bar-fill { background: linear-gradient(120deg, rgba(20,184,166,.3) 0%, rgba(13,148,136,.38) 55%, rgba(15,118,110,.44) 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -6px 12px -8px rgba(13,80,72,.22); }
 .rd-poll-bar.is-mine .poll-bar-track { box-shadow: inset 0 0 0 1.5px #5eead4; }
-.rd-ropt-label { position: relative; z-index: 1; flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: .5rem; font-size: .9rem; font-weight: 700; color: #134e4a; }
-.rd-ropt-num { position: relative; z-index: 1; flex-shrink: 0; font-size: .8125rem; font-weight: 800; color: #0f766e; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rd-ropt-label { position: relative; z-index: 1; flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: .5rem; font-size: .9rem; font-weight: 700; color: #0f3d38; text-shadow: 0 1px 0 rgba(255,255,255,.55); }
+.rd-ropt-num { position: relative; z-index: 1; flex-shrink: 0; font-size: .8125rem; font-weight: 800; color: #0b5e57; font-variant-numeric: tabular-nums; white-space: nowrap; text-shadow: 0 1px 0 rgba(255,255,255,.55); }
 .rd-ropt-mark { position: relative; z-index: 1; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 9999px; background: #10b981; color: #fff; }
 .rd-ropt-mark svg { width: .8125rem; height: .8125rem; }
-.rd-poll-lead-badge { display: inline-flex; align-items: center; gap: .25rem; padding: .125rem .5rem; border-radius: 9999px; background: rgba(13,148,136,.14); color: #0f766e; font-size: .625rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.rd-poll-lead-badge { display: inline-flex; align-items: center; gap: .25rem; padding: .125rem .5rem; border-radius: 9999px; background: #0d9488; color: #fff; box-shadow: 0 1px 2px rgba(13,80,72,.25); font-size: .625rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
 .rd-poll-lead-badge svg { width: .75rem; height: .75rem; }
 /* card footer / archive toggle / section label */
 .rd-poll-foot { margin-top: 1.125rem; padding-top: .875rem; border-top: 1px solid rgba(203,225,220,.8); display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
@@ -3000,4 +3003,5 @@ body.rd-member-restoring #page-my-profile > * {
   .poll-bar-fill { transition: none; }
   .rd-poll-pill-live .rd-poll-dot { animation: none; }
   .rd-poll-hero-badge .rd-poll-dot { animation: none; }
+  html.rd-js .rd-pollc { opacity: 1; transform: none; transition: none; }
 }
