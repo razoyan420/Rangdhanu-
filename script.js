@@ -13119,7 +13119,7 @@ f.reset();
        horizontal bars (dataviz skill): single hue, 4px rounded data-ends,
        direct count+percent labels, the leading option marked by text (never by
        colour alone), and a native hover tooltip on each bar. */
-    let RD_POLL = { loading: false, error: '', polls: [], loaded: false, voting: '' };
+    let RD_POLL = { loading: false, error: '', polls: [], loaded: false, voting: '', showArchive: false };
 
     function rdPollOpen() {
       rdPollSigninHint();
@@ -13180,22 +13180,53 @@ f.reset();
         return;
       }
       if (!RD_POLL.polls.length) {
-        list.innerHTML = '<div class="rounded-3xl border border-slate-200 bg-white px-5 py-14 text-center">' +
+        list.innerHTML = '<div class="rd-pollc px-5 py-14 text-center">' +
           '<div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-100 mb-4"><i data-lucide="inbox" class="w-7 h-7 text-slate-400"></i></div>' +
           '<p class="text-slate-500 font-medium">No polls yet. Check back soon.</p></div>';
         if (window.lucide) lucide.createIcons();
         return;
       }
-      list.innerHTML = '<div class="space-y-5">' + RD_POLL.polls.map(rdPollCard).join('') + '</div>';
+      const active = RD_POLL.polls.filter(function (p) { return !rdPollIsPast(p); });
+      const past = RD_POLL.polls.filter(rdPollIsPast);
+      let html = '';
+      if (active.length) {
+        html += '<div class="space-y-5">' + active.map(rdPollCard).join('') + '</div>';
+      } else {
+        html += '<div class="rd-pollc px-5 py-10 text-center">' +
+          '<div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-100 mb-3"><i data-lucide="calendar-off" class="w-6 h-6 text-slate-400"></i></div>' +
+          '<p class="text-slate-500 font-medium">No active polls right now. See the archive below.</p></div>';
+      }
+      if (past.length) {
+        html += '<div class="mt-6 space-y-4">' +
+          '<button type="button" class="rd-poll-archive-btn" onclick="rdPollToggleArchive()">' +
+            '<i data-lucide="' + (RD_POLL.showArchive ? 'chevron-up' : 'archive') + '"></i>' +
+            (RD_POLL.showArchive ? 'Hide past polls' : 'Past polls (' + past.length + ')') + '</button>';
+        if (RD_POLL.showArchive) {
+          html += '<div class="rd-poll-section-label">Archive</div>' +
+            '<div class="space-y-5">' + past.map(rdPollCard).join('') + '</div>';
+        }
+        html += '</div>';
+      }
+      list.innerHTML = html;
       if (window.lucide) lucide.createIcons();
       rdPollScheduleRefresh();
     }
 
+    /* A poll is "past" (archived) once it is closed, or its deadline has
+       passed (backend clears p.live). Drafts stay out of the archive. */
+    function rdPollIsPast(p) {
+      return p.status === 'closed' || (!p.live && p.status !== 'draft');
+    }
+    function rdPollToggleArchive() {
+      RD_POLL.showArchive = !RD_POLL.showArchive;
+      rdPollRenderList();
+    }
+
     function rdPollStatusPill(p) {
-      if (p.status === 'closed') return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold"><i data-lucide="lock" class="w-3 h-3"></i>Closed</span>';
-      if (p.status === 'draft') return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold"><i data-lucide="pencil" class="w-3 h-3"></i>Draft</span>';
-      if (p.live) return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold"><i data-lucide="radio" class="w-3 h-3"></i>Live</span>';
-      return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold"><i data-lucide="clock" class="w-3 h-3"></i>Ended</span>';
+      if (p.status === 'closed') return '<span class="rd-poll-pill rd-poll-pill-closed"><i data-lucide="lock"></i>Closed</span>';
+      if (p.status === 'draft') return '<span class="rd-poll-pill rd-poll-pill-draft"><i data-lucide="pencil"></i>Draft</span>';
+      if (p.live) return '<span class="rd-poll-pill rd-poll-pill-live"><span class="rd-poll-dot"></span>Live</span>';
+      return '<span class="rd-poll-pill rd-poll-pill-ended"><i data-lucide="clock"></i>Ended</span>';
     }
 
     function rdPollDeadline(p) {
@@ -13205,7 +13236,7 @@ f.reset();
       const txt = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) +
         ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
       const verb = (p.status === 'closed' || !p.live) ? 'Ended' : 'Closes';
-      return '<span class="inline-flex items-center gap-1 text-xs text-slate-500"><i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>' + verb + ' ' + escapeHtml(txt) + '</span>';
+      return '<span class="rd-poll-chip rd-poll-chip-muted"><i data-lucide="calendar-clock"></i>' + verb + ' ' + escapeHtml(txt) + '</span>';
     }
     function rdPollCard(p) {
       const opts = Array.isArray(p.options) ? p.options : [];
@@ -13214,6 +13245,7 @@ f.reset();
       const typeLabel = p.type === 'multiple'
         ? ('Choose up to ' + (p.maxPick || opts.length))
         : 'Choose one';
+      const typeIcon = p.type === 'multiple' ? 'list-checks' : 'circle-dot';
       let body;
       if (canVote) {
         body = rdPollVoteForm(p, opts);
@@ -13223,20 +13255,21 @@ f.reset();
         body = rdPollResultNote(p, opts, signedIn);
       }
       const votedTag = p.hasVoted
-        ? '<span class="inline-flex items-center gap-1 text-xs text-emerald-600 font-semibold"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>You voted</span>'
+        ? '<span class="rd-poll-chip rd-poll-chip-you"><i data-lucide="check-circle-2"></i>You voted</span>'
         : '';
-      return '<article class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">' +
-        '<div class="px-5 sm:px-6 pt-5 pb-4 border-b border-slate-100">' +
-          '<div class="flex items-start justify-between gap-3 mb-2">' +
-            '<h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-snug flex-1">' + escapeHtml(p.question) + '</h2>' +
+      const past = rdPollIsPast(p);
+      return '<article class="rd-pollc' + (past ? ' rd-pollc-ended' : '') + '">' +
+        '<div class="rd-pollc-head">' +
+          '<div class="flex items-start justify-between gap-3">' +
+            '<h2 class="rd-pollc-title flex-1">' + escapeHtml(p.question) + '</h2>' +
             rdPollStatusPill(p) +
           '</div>' +
-          '<div class="flex flex-wrap items-center gap-x-4 gap-y-1.5">' +
-            '<span class="inline-flex items-center gap-1 text-xs text-slate-500"><i data-lucide="list-checks" class="w-3.5 h-3.5"></i>' + typeLabel + '</span>' +
+          '<div class="rd-poll-meta">' +
+            '<span class="rd-poll-chip"><i data-lucide="' + typeIcon + '"></i>' + typeLabel + '</span>' +
             rdPollDeadline(p) + votedTag +
           '</div>' +
         '</div>' +
-        '<div class="px-5 sm:px-6 py-5">' + body + '</div>' +
+        '<div class="rd-pollc-body">' + body + '</div>' +
       '</article>';
     }
 
@@ -13244,14 +13277,15 @@ f.reset();
       const multi = p.type === 'multiple';
       const inType = multi ? 'checkbox' : 'radio';
       const rows = opts.map(function (o) {
-        return '<label class="flex items-center gap-3 px-4 py-3 rounded-2xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 cursor-pointer transition">' +
-          '<input type="' + inType + '" name="poll-opt-' + escapeHtml(p.id) + '" value="' + escapeHtml(o.id) + '" class="w-4 h-4 accent-indigo-600 shrink-0">' +
-          '<span class="text-sm text-slate-700 font-medium">' + escapeHtml(o.text) + '</span></label>';
+        return '<label class="rd-vopt">' +
+          '<span class="rd-vopt-label">' + escapeHtml(o.text) + '</span>' +
+          '<input type="' + inType + '" name="poll-opt-' + escapeHtml(p.id) + '" value="' + escapeHtml(o.id) + '" class="rd-vopt-input">' +
+          '<span class="rd-vopt-ring" aria-hidden="true"></span></label>';
       }).join('');
       const busy = RD_POLL.voting === p.id;
       return '<div class="space-y-2.5 mb-4">' + rows + '</div>' +
         '<button onclick="rdPollVote(\'' + escapeHtml(p.id) + '\')" ' + (busy ? 'disabled' : '') +
-          ' class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:opacity-60 transition">' +
+          ' class="rd-poll-submit disabled:opacity-60">' +
           '<i data-lucide="' + (busy ? 'loader-2' : 'send') + '" class="w-4 h-4 ' + (busy ? 'animate-spin' : '') + '"></i>' +
           (busy ? 'Submitting...' : 'Submit vote') + '</button>';
     }
@@ -13265,12 +13299,12 @@ f.reset();
       else note = 'Results are not available.';
       const list = opts.map(function (o) {
         const mine = p.hasVoted && Array.isArray(p.myChoice) && p.myChoice.indexOf(o.id) !== -1;
-        return '<div class="flex items-center gap-2 px-4 py-3 rounded-2xl border ' + (mine ? 'border-emerald-300 bg-emerald-50/50' : 'border-slate-200') + '">' +
-          (mine ? '<i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i>' : '<span class="w-4 shrink-0"></span>') +
-          '<span class="text-sm text-slate-700 font-medium">' + escapeHtml(o.text) + '</span></div>';
+        return '<div class="rd-poll-opt' + (mine ? ' is-mine' : '') + '" style="cursor:default">' +
+          (mine ? '<i data-lucide="check" class="text-emerald-600"></i>' : '<span style="width:1.05rem;flex-shrink:0"></span>') +
+          '<span>' + escapeHtml(o.text) + '</span></div>';
       }).join('');
       return '<div class="space-y-2.5 mb-4">' + list + '</div>' +
-        '<p class="text-xs text-slate-500 flex items-center gap-1.5"><i data-lucide="info" class="w-3.5 h-3.5"></i>' + note + '</p>';
+        '<div class="rd-poll-note"><i data-lucide="info"></i>' + note + '</div>';
     }
     /* -- Poll results: single-hue horizontal bars, direct count+percent
           labels, leading option marked by text, native hover tooltip. -- */
@@ -13287,21 +13321,20 @@ f.reset();
         const pct = total ? Math.round((c / total) * 1000) / 10 : 0;
         const w = maxCount ? Math.max((c / maxCount) * 100, c > 0 ? 4 : 0) : 0;
         const mine = p.hasVoted && Array.isArray(p.myChoice) && p.myChoice.indexOf(o.id) !== -1;
-        const lead = o.id === soleLeader
-          ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[11px] font-bold"><i data-lucide="trophy" class="w-3 h-3"></i>Leading</span>' : '';
-        const youTag = mine ? '<span class="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-semibold"><i data-lucide="check" class="w-3 h-3"></i>Your pick</span>' : '';
-        return '<div class="poll-bar-row">' +
-          '<div class="flex items-center justify-between gap-2 mb-1">' +
-            '<span class="text-sm text-slate-700 font-medium flex items-center gap-2">' + escapeHtml(o.text) + lead + youTag + '</span>' +
-            '<span class="text-sm text-slate-500 font-semibold tabular-nums shrink-0">' + c + ' &middot; ' + pct + '%</span>' +
-          '</div>' +
+        const isLead = o.id === soleLeader;
+        const lead = isLead
+          ? '<span class="rd-poll-lead-badge"><i data-lucide="trophy"></i>Leading</span>' : '';
+        const mark = mine ? '<span class="rd-ropt-mark"><i data-lucide="check"></i></span>' : '';
+        return '<div class="rd-poll-bar poll-bar-row' + (isLead ? ' rd-poll-bar-lead' : '') + (mine ? ' is-mine' : '') + '">' +
           '<div class="poll-bar-track" title="' + escapeHtml(o.text) + ': ' + c + ' vote' + (c === 1 ? '' : 's') + ' (' + pct + '%)">' +
             '<div class="poll-bar-fill" style="width:' + w + '%"></div>' +
+            '<span class="rd-ropt-label">' + escapeHtml(o.text) + lead + '</span>' +
+            '<span class="rd-ropt-num">' + c + ' &middot; ' + pct + '%</span>' + mark +
           '</div></div>';
       }).join('');
-      let foot = '<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">' +
-        '<span class="text-xs text-slate-500 flex items-center gap-1.5"><i data-lucide="users" class="w-3.5 h-3.5"></i>' + total + ' vote' + (total === 1 ? '' : 's') + ' total</span>';
-      if (p.status !== 'closed' && p.live) foot += '<span class="text-xs text-slate-400 flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3"></i>Live</span>';
+      let foot = '<div class="rd-poll-foot">' +
+        '<span class="rd-poll-chip rd-poll-chip-muted"><i data-lucide="users"></i>' + total + ' vote' + (total === 1 ? '' : 's') + ' total</span>';
+      if (p.status !== 'closed' && p.live) foot += '<span class="rd-poll-chip"><i data-lucide="radio"></i>Live &middot; updates every 20s</span>';
       foot += '</div>';
       let voters = '';
       if (Array.isArray(r.voters) && r.voters.length) {
@@ -13317,7 +13350,7 @@ f.reset();
               '<span class="text-slate-500">' + (names.length ? names.map(escapeHtml).join(', ') : '&mdash;') + '</span></div>';
           }).join('') + '</div></details>';
       }
-      return '<div class="space-y-4">' + bars + '</div>' + foot + voters;
+      return '<div>' + bars + '</div>' + foot + voters;
     }
 
     async function rdPollVote(pollId) {
