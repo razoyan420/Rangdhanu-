@@ -126,7 +126,10 @@
          fetches its own feed, so a reload lands here instead of bouncing the
          visitor out to the member directory. */
       'family-faculty': { parent: 'alumni', needsData: false },
-      'bloodbank':       { parent: 'bloodbank', needsData: false }
+      'bloodbank':       { parent: 'bloodbank', needsData: false },
+      /* Its own section; the page fetches its own poll feed, so a reload lands
+         here instead of bouncing out. */
+      'polls':           { parent: 'polls', needsData: false }
     };
     const rdSubReturn = {};
     const rdSubFrom = {};
@@ -247,6 +250,7 @@
         }
         if (pageId === 'family-faculty') loadFaculty();
         if (pageId === 'bloodbank') loadBloodBank();
+        if (pageId === 'polls') rdPollOpen();
         if (pageId === 'pdacc-updates') loadPdacc();
         if (pageId === 'pdacc-admission') rdAdInit();
         if (pageId === 'admin') adminEnterPage();
@@ -9309,6 +9313,7 @@ f.reset();
       { key: 'unclaimed-matches', label: 'Possible Matches',      icon: 'git-compare-arrows', action: 'adminunclaimedmatches', custom: true },
       { key: 'unclaimed-audits', label: 'Merge Audit',             icon: 'file-check-2', action: 'adminunclaimedaudits', custom: true },
       { key: 'email',         label: 'Email Members',           icon: 'mail',         action: '',                    custom: true },
+      { key: 'polls',         label: 'Polls',                   icon: 'vote',         action: '',                    custom: true },
       { key: 'summary',       label: 'Members Summary',         icon: 'bar-chart-3',  action: '',                    custom: true }
     ];
     const RD_ADMIN_STATUSES = ['PENDING', 'DUPLICATE', 'APPROVED', 'REJECTED', 'UPCOMING', 'ALL'];
@@ -9329,7 +9334,8 @@ f.reset();
                      pdKind: 'LINE', pdEdit: '', role: 'ALL',
                      facEdit: '', facMissing: [],
                      askWhat: '', askId: '', backfillPreview: null, backfillChoices: {},
-                     queueErrors: {}, selected: {}, emMode: 'group', emPick: '', emSel: {} };
+                     queueErrors: {}, selected: {}, emMode: 'group', emPick: '', emSel: {},
+                     plNew: false, plBusy: '', plView: {}, plType: 'single', plVis: 'voters', plOpts: ['', ''] };
 
     function adminTabMeta(key) {
       return RD_ADMIN_TABS.find(t => t.key === key) || RD_ADMIN_TABS[0];
@@ -10345,6 +10351,14 @@ f.reset();
         return [{ id: 'email' }];
       }
 
+      if (tab === 'polls') {
+        /* Admin sees every poll including drafts; the backend returns those to
+           an admin token. Ids come straight from the poll object. */
+        const res = await apiGet('polls', {});
+        const rows = Array.isArray(res.polls) ? res.polls : [];
+        return rows.map(function (r) { return Object.assign({}, r, { id: r.id }); }).filter(function (r) { return r.id; });
+      }
+
       if (tab === 'summary') {
         /* The member count is the approved directory, which the public feed
            already carries -- no extra admin call for something visitors can
@@ -10385,6 +10399,7 @@ f.reset();
 
     function adminCustomHtml(tab) {
       if (tab === 'email') return adminMailHtml();
+      if (tab === 'polls') return adminPollsHtml();
       if (tab === 'notices') return adminNoticesHtml();
       if (tab === 'social') return adminSocialHtml();
       if (tab === 'slides') return adminSlidesHtml();
@@ -13094,3 +13109,425 @@ f.reset();
         timerEl.textContent = parts.join(" : ");
       });
     }, 1000);
+
+    /* ================= WEBSITE POLLS (member voting + live results) ======
+       One page, no modal. Everyone can read a poll; only a signed-in approved
+       member of an eligible series can vote, and only once. The member's
+       identity is proved on the server from memberToken -- the option ids sent
+       from here are never trusted as "who voted". Results are drawn as plain
+       horizontal bars (dataviz skill): single hue, 4px rounded data-ends,
+       direct count+percent labels, the leading option marked by text (never by
+       colour alone), and a native hover tooltip on each bar. */
+    let RD_POLL = { loading: false, error: '', polls: [], loaded: false, voting: '' };
+
+    function rdPollOpen() {
+      rdPollSigninHint();
+      rdPollLoadList();
+    }
+
+    function rdPollSigninHint() {
+      const box = document.getElementById('poll-signin-hint');
+      if (!box) return;
+      if (RD_MEMBER && RD_MEMBER.token) { box.innerHTML = ''; return; }
+      box.innerHTML = '<div class="mb-5 rounded-2xl border border-indigo-200 bg-indigo-50/70 px-4 py-3.5 flex items-center gap-3">' +
+        '<i data-lucide="log-in" class="w-5 h-5 text-indigo-600 shrink-0"></i>' +
+        '<p class="text-sm text-slate-700 flex-1"><span class="font-bold">Sign in</span> to cast your vote. You can read every poll without signing in.</p>' +
+        '<button onclick="openMemberSignIn(\'polls\')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition shrink-0"><i data-lucide="log-in" class="w-4 h-4"></i> Sign In</button></div>';
+      if (window.lucide) lucide.createIcons();
+    }
+
+    async function rdPollLoadList() {
+      const list = document.getElementById('poll-list');
+      if (!list) return;
+      RD_POLL.loading = true; RD_POLL.error = '';
+      try {
+        const res = await apiGet('polls', {});
+        RD_POLL.polls = Array.isArray(res.polls) ? res.polls : [];
+        RD_POLL.loaded = true;
+      } catch (err) {
+        RD_POLL.error = friendlyError(err).msg;
+      } finally {
+        RD_POLL.loading = false;
+        rdPollRenderList();
+      }
+    }
+    function rdPollRenderList() {
+      const list = document.getElementById('poll-list');
+      if (!list) return;
+      if (RD_POLL.loading && !RD_POLL.loaded) {
+        list.innerHTML = '<div class="space-y-4"><div class="h-40 rounded-3xl bg-slate-100 animate-pulse"></div><div class="h-40 rounded-3xl bg-slate-100 animate-pulse"></div></div>';
+        return;
+      }
+      if (RD_POLL.error) {
+        list.innerHTML = '<div class="rounded-3xl border border-rose-200 bg-rose-50 px-5 py-8 text-center">' +
+          '<i data-lucide="alert-circle" class="w-8 h-8 text-rose-500 mx-auto mb-3"></i>' +
+          '<p class="text-slate-700 font-semibold mb-3">' + escapeHtml(RD_POLL.error) + '</p>' +
+          '<button onclick="rdPollLoadList()" class="px-4 py-2 rounded-xl bg-slate-800 text-white text-sm font-bold hover:bg-slate-900 transition">Try again</button></div>';
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+      if (!RD_POLL.polls.length) {
+        list.innerHTML = '<div class="rounded-3xl border border-slate-200 bg-white px-5 py-14 text-center">' +
+          '<div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-100 mb-4"><i data-lucide="inbox" class="w-7 h-7 text-slate-400"></i></div>' +
+          '<p class="text-slate-500 font-medium">No polls yet. Check back soon.</p></div>';
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+      list.innerHTML = '<div class="space-y-5">' + RD_POLL.polls.map(rdPollCard).join('') + '</div>';
+      if (window.lucide) lucide.createIcons();
+      rdPollScheduleRefresh();
+    }
+
+    function rdPollStatusPill(p) {
+      if (p.status === 'closed') return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold"><i data-lucide="lock" class="w-3 h-3"></i>Closed</span>';
+      if (p.status === 'draft') return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold"><i data-lucide="pencil" class="w-3 h-3"></i>Draft</span>';
+      if (p.live) return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold"><i data-lucide="radio" class="w-3 h-3"></i>Live</span>';
+      return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold"><i data-lucide="clock" class="w-3 h-3"></i>Ended</span>';
+    }
+
+    function rdPollDeadline(p) {
+      if (!p.endAt) return '';
+      const d = new Date(p.endAt);
+      if (isNaN(d.getTime())) return '';
+      const txt = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) +
+        ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      const verb = (p.status === 'closed' || !p.live) ? 'Ended' : 'Closes';
+      return '<span class="inline-flex items-center gap-1 text-xs text-slate-500"><i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>' + verb + ' ' + escapeHtml(txt) + '</span>';
+    }
+    function rdPollCard(p) {
+      const opts = Array.isArray(p.options) ? p.options : [];
+      const signedIn = !!(RD_MEMBER && RD_MEMBER.token);
+      const canVote = signedIn && p.live && p.eligible && !p.hasVoted;
+      const typeLabel = p.type === 'multiple'
+        ? ('Choose up to ' + (p.maxPick || opts.length))
+        : 'Choose one';
+      let body;
+      if (canVote) {
+        body = rdPollVoteForm(p, opts);
+      } else if (p.results && p.results.visible) {
+        body = rdPollBars(p, opts);
+      } else {
+        body = rdPollResultNote(p, opts, signedIn);
+      }
+      const votedTag = p.hasVoted
+        ? '<span class="inline-flex items-center gap-1 text-xs text-emerald-600 font-semibold"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>You voted</span>'
+        : '';
+      return '<article class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">' +
+        '<div class="px-5 sm:px-6 pt-5 pb-4 border-b border-slate-100">' +
+          '<div class="flex items-start justify-between gap-3 mb-2">' +
+            '<h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-snug flex-1">' + escapeHtml(p.question) + '</h2>' +
+            rdPollStatusPill(p) +
+          '</div>' +
+          '<div class="flex flex-wrap items-center gap-x-4 gap-y-1.5">' +
+            '<span class="inline-flex items-center gap-1 text-xs text-slate-500"><i data-lucide="list-checks" class="w-3.5 h-3.5"></i>' + typeLabel + '</span>' +
+            rdPollDeadline(p) + votedTag +
+          '</div>' +
+        '</div>' +
+        '<div class="px-5 sm:px-6 py-5">' + body + '</div>' +
+      '</article>';
+    }
+
+    function rdPollVoteForm(p, opts) {
+      const multi = p.type === 'multiple';
+      const inType = multi ? 'checkbox' : 'radio';
+      const rows = opts.map(function (o) {
+        return '<label class="flex items-center gap-3 px-4 py-3 rounded-2xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 cursor-pointer transition">' +
+          '<input type="' + inType + '" name="poll-opt-' + escapeHtml(p.id) + '" value="' + escapeHtml(o.id) + '" class="w-4 h-4 accent-indigo-600 shrink-0">' +
+          '<span class="text-sm text-slate-700 font-medium">' + escapeHtml(o.text) + '</span></label>';
+      }).join('');
+      const busy = RD_POLL.voting === p.id;
+      return '<div class="space-y-2.5 mb-4">' + rows + '</div>' +
+        '<button onclick="rdPollVote(\'' + escapeHtml(p.id) + '\')" ' + (busy ? 'disabled' : '') +
+          ' class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:opacity-60 transition">' +
+          '<i data-lucide="' + (busy ? 'loader-2' : 'send') + '" class="w-4 h-4 ' + (busy ? 'animate-spin' : '') + '"></i>' +
+          (busy ? 'Submitting...' : 'Submit vote') + '</button>';
+    }
+
+    function rdPollResultNote(p, opts, signedIn) {
+      let note;
+      if (!signedIn && p.live) note = 'Sign in to cast your vote.';
+      else if (signedIn && !p.eligible) note = 'This poll is open to selected series only — you are not eligible to vote.';
+      else if (p.resultVisibility === 'secret') note = 'Results are kept private by the admin.';
+      else if (p.resultVisibility === 'voters' && !p.hasVoted && p.live) note = 'Vote to see the live results.';
+      else note = 'Results are not available.';
+      const list = opts.map(function (o) {
+        const mine = p.hasVoted && Array.isArray(p.myChoice) && p.myChoice.indexOf(o.id) !== -1;
+        return '<div class="flex items-center gap-2 px-4 py-3 rounded-2xl border ' + (mine ? 'border-emerald-300 bg-emerald-50/50' : 'border-slate-200') + '">' +
+          (mine ? '<i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i>' : '<span class="w-4 shrink-0"></span>') +
+          '<span class="text-sm text-slate-700 font-medium">' + escapeHtml(o.text) + '</span></div>';
+      }).join('');
+      return '<div class="space-y-2.5 mb-4">' + list + '</div>' +
+        '<p class="text-xs text-slate-500 flex items-center gap-1.5"><i data-lucide="info" class="w-3.5 h-3.5"></i>' + note + '</p>';
+    }
+    /* -- Poll results: single-hue horizontal bars, direct count+percent
+          labels, leading option marked by text, native hover tooltip. -- */
+    function rdPollBars(p, opts) {
+      const r = p.results || {};
+      const counts = r.counts || {};
+      const total = r.total || 0;
+      let maxCount = 0;
+      opts.forEach(function (o) { const c = counts[o.id] || 0; if (c > maxCount) maxCount = c; });
+      const leaders = maxCount > 0 ? opts.filter(function (o) { return (counts[o.id] || 0) === maxCount; }) : [];
+      const soleLeader = leaders.length === 1 ? leaders[0].id : '';
+      const bars = opts.map(function (o) {
+        const c = counts[o.id] || 0;
+        const pct = total ? Math.round((c / total) * 1000) / 10 : 0;
+        const w = maxCount ? Math.max((c / maxCount) * 100, c > 0 ? 4 : 0) : 0;
+        const mine = p.hasVoted && Array.isArray(p.myChoice) && p.myChoice.indexOf(o.id) !== -1;
+        const lead = o.id === soleLeader
+          ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[11px] font-bold"><i data-lucide="trophy" class="w-3 h-3"></i>Leading</span>' : '';
+        const youTag = mine ? '<span class="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-semibold"><i data-lucide="check" class="w-3 h-3"></i>Your pick</span>' : '';
+        return '<div class="poll-bar-row">' +
+          '<div class="flex items-center justify-between gap-2 mb-1">' +
+            '<span class="text-sm text-slate-700 font-medium flex items-center gap-2">' + escapeHtml(o.text) + lead + youTag + '</span>' +
+            '<span class="text-sm text-slate-500 font-semibold tabular-nums shrink-0">' + c + ' &middot; ' + pct + '%</span>' +
+          '</div>' +
+          '<div class="poll-bar-track" title="' + escapeHtml(o.text) + ': ' + c + ' vote' + (c === 1 ? '' : 's') + ' (' + pct + '%)">' +
+            '<div class="poll-bar-fill" style="width:' + w + '%"></div>' +
+          '</div></div>';
+      }).join('');
+      let foot = '<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">' +
+        '<span class="text-xs text-slate-500 flex items-center gap-1.5"><i data-lucide="users" class="w-3.5 h-3.5"></i>' + total + ' vote' + (total === 1 ? '' : 's') + ' total</span>';
+      if (p.status !== 'closed' && p.live) foot += '<span class="text-xs text-slate-400 flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3"></i>Live</span>';
+      foot += '</div>';
+      let voters = '';
+      if (Array.isArray(r.voters) && r.voters.length) {
+        const byOpt = {};
+        opts.forEach(function (o) { byOpt[o.id] = []; });
+        r.voters.forEach(function (v) {
+          (v.choice || []).forEach(function (cid) { if (byOpt[cid]) byOpt[cid].push(v.name || 'Member'); });
+        });
+        voters = '<details class="mt-3 group"><summary class="cursor-pointer text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5"></i>Who voted what</summary>' +
+          '<div class="mt-2 space-y-2">' + opts.map(function (o) {
+            const names = byOpt[o.id] || [];
+            return '<div class="text-xs"><span class="font-semibold text-slate-700">' + escapeHtml(o.text) + ':</span> ' +
+              '<span class="text-slate-500">' + (names.length ? names.map(escapeHtml).join(', ') : '&mdash;') + '</span></div>';
+          }).join('') + '</div></details>';
+      }
+      return '<div class="space-y-4">' + bars + '</div>' + foot + voters;
+    }
+
+    async function rdPollVote(pollId) {
+      if (!(RD_MEMBER && RD_MEMBER.token)) { openMemberSignIn('polls'); return; }
+      const boxes = document.querySelectorAll('input[name="poll-opt-' + (window.CSS && CSS.escape ? CSS.escape(pollId) : pollId) + '"]:checked');
+      const choice = Array.prototype.map.call(boxes, function (b) { return b.value; });
+      if (!choice.length) { showToast('Please pick an option first.', 'info'); return; }
+      RD_POLL.voting = pollId; rdPollRenderList();
+      try {
+        const res = await apiPost('pollvote', { data: { pollId: pollId, choice: choice } });
+        const idx = RD_POLL.polls.findIndex(function (x) { return x.id === pollId; });
+        if (idx !== -1 && res.poll) RD_POLL.polls[idx] = res.poll;
+        showToast('Your vote has been recorded.', 'success', 'Thank you');
+      } catch (err) {
+        reportError(err);
+      } finally {
+        RD_POLL.voting = '';
+        rdPollRenderList();
+      }
+    }
+
+    function rdPollScheduleRefresh() {
+      if (RD_POLL._timer) clearTimeout(RD_POLL._timer);
+      const onPage = document.getElementById('page-polls') && document.getElementById('page-polls').classList.contains('active');
+      const hasLive = RD_POLL.polls.some(function (p) { return p.live && (!p.results || p.results.visible); });
+      if (!onPage || !hasLive) return;
+      RD_POLL._timer = setTimeout(function () {
+        const still = document.getElementById('page-polls') && document.getElementById('page-polls').classList.contains('active');
+        if (!still || RD_POLL.voting) { rdPollScheduleRefresh(); return; }
+        rdPollLoadList();
+      }, 20000);
+    }
+
+    /* ================= ADMIN: POLLS ================= */
+    function adminPollsHtml() {
+      const rows = RD_ADMIN.rows.polls || [];
+      const head = '<div class="flex items-center justify-between gap-3 mb-5">' +
+        '<div><h3 class="text-lg font-bold text-slate-900">Polls</h3>' +
+        '<p class="text-sm text-slate-500">Create a poll, choose who may vote and who may see the results.</p></div>' +
+        '<button onclick="adminPollNewToggle()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl ' +
+        (RD_ADMIN.plNew ? 'bg-slate-100 text-slate-700' : 'bg-indigo-600 text-white hover:bg-indigo-700') +
+        ' text-sm font-bold transition shrink-0"><i data-lucide="' + (RD_ADMIN.plNew ? 'x' : 'plus') + '" class="w-4 h-4"></i>' +
+        (RD_ADMIN.plNew ? 'Cancel' : 'New poll') + '</button></div>';
+      const form = RD_ADMIN.plNew ? adminPollForm() : '';
+      const list = rows.length
+        ? '<div class="space-y-4">' + rows.map(adminPollAdminCard).join('') + '</div>'
+        : (RD_ADMIN.plNew ? '' : '<div class="rounded-2xl border border-slate-200 bg-white px-5 py-12 text-center text-slate-500">No polls yet. Press <span class="font-semibold">New poll</span> to create one.</div>');
+      return head + form + list;
+    }
+
+    function adminPollForm() {
+      const opts = RD_ADMIN.plOpts.length ? RD_ADMIN.plOpts : ['', ''];
+      const optRows = opts.map(function (v, i) {
+        return '<div class="flex items-center gap-2">' +
+          '<input class="adpoll-opt flex-1 px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="Option ' + (i + 1) + '" value="' + escapeHtml(v) + '">' +
+          (opts.length > 2 ? '<button onclick="adminPollRemoveOpt(' + i + ')" class="p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="Remove"><i data-lucide="trash-2" class="w-4 h-4"></i></button>' : '') +
+          '</div>';
+      }).join('');
+      const seriesBoxes = rdSeriesList().slice().reverse().map(function (s) {
+        return '<label class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs cursor-pointer hover:bg-slate-50">' +
+          '<input type="checkbox" class="adpoll-series w-3.5 h-3.5 accent-indigo-600" value="' + s + '">' + s + '</label>';
+      }).join('');
+      const rd = function (name, val, cur, label) {
+        return '<label class="inline-flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="' + name + '" value="' + val + '" class="accent-indigo-600"' + (val === cur ? ' checked' : '') + '>' + label + '</label>';
+      };
+      return '<div class="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-5 mb-6 space-y-4">' +
+        '<div><label class="block text-xs font-bold text-slate-600 mb-1.5">Question</label>' +
+          '<input id="adpoll-q" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" placeholder="What is your question?"></div>' +
+        '<div class="flex flex-wrap gap-5"><div><label class="block text-xs font-bold text-slate-600 mb-1.5">Type</label>' +
+          '<div class="flex gap-4">' + rd('adpoll-type', 'single', RD_ADMIN.plType, 'Single choice') + rd('adpoll-type', 'multiple', RD_ADMIN.plType, 'Multiple choice') + '</div></div>' +
+          '<div><label class="block text-xs font-bold text-slate-600 mb-1.5">Max picks (multiple)</label>' +
+          '<input id="adpoll-maxpick" type="number" min="1" value="' + opts.length + '" class="w-24 px-3 py-2 rounded-xl border border-slate-300 text-sm"></div></div>' +
+        '<div><label class="block text-xs font-bold text-slate-600 mb-1.5">Options</label>' +
+          '<div class="space-y-2">' + optRows + '</div>' +
+          '<button onclick="adminPollAddOpt()" class="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700"><i data-lucide="plus" class="w-4 h-4"></i>Add option</button></div>' +
+        '<div><label class="block text-xs font-bold text-slate-600 mb-1.5">Who may vote (series) &mdash; leave all unchecked for everyone</label>' +
+          '<div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1">' + seriesBoxes + '</div></div>' +
+        '<div class="flex flex-wrap gap-6"><div><label class="block text-xs font-bold text-slate-600 mb-1.5">Deadline (optional)</label>' +
+          '<input id="adpoll-end" type="datetime-local" class="px-3 py-2 rounded-xl border border-slate-300 text-sm"></div>' +
+          '<div><label class="block text-xs font-bold text-slate-600 mb-1.5">Start as</label>' +
+          '<div class="flex gap-4 pt-2">' + rd('adpoll-status', 'open', 'open', 'Open now') + rd('adpoll-status', 'draft', 'open', 'Draft') + '</div></div></div>' +
+        '<div><label class="block text-xs font-bold text-slate-600 mb-1.5">Who may see results</label>' +
+          '<div class="flex flex-col gap-1.5">' +
+            rd('adpoll-vis', 'secret', RD_ADMIN.plVis, 'Admins only') +
+            rd('adpoll-vis', 'voters', RD_ADMIN.plVis, 'People who voted (and everyone once closed)') +
+            rd('adpoll-vis', 'public', RD_ADMIN.plVis, 'Everyone, including who voted for what') +
+          '</div></div>' +
+        '<div class="flex gap-2 pt-1"><button onclick="adminPollCreate()"' + (RD_ADMIN.plBusy === 'new' ? ' disabled' : '') +
+          ' class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:opacity-60"><i data-lucide="check" class="w-4 h-4"></i>Create poll</button></div>' +
+      '</div>';
+    }
+
+    function adminPollAdminCard(p) {
+      const opts = Array.isArray(p.options) ? p.options : [];
+      const busy = RD_ADMIN.plBusy === p.id;
+      const open = !!RD_ADMIN.plView[p.id];
+      let ctl = '';
+      if (p.status === 'draft') ctl += adminPollBtn(p.id, 'open', 'play', 'Open', 'bg-emerald-600 hover:bg-emerald-700 text-white', busy);
+      if (p.status === 'open') ctl += adminPollBtn(p.id, 'closed', 'lock', 'Close', 'bg-slate-700 hover:bg-slate-800 text-white', busy);
+      if (p.status === 'closed') ctl += adminPollBtn(p.id, 'open', 'unlock', 'Reopen', 'bg-emerald-600 hover:bg-emerald-700 text-white', busy);
+      ctl += '<button onclick="adminPollToggleView(\'' + escapeHtml(p.id) + '\')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50"><i data-lucide="' + (open ? 'chevron-up' : 'bar-chart-3') + '" class="w-3.5 h-3.5"></i>' + (open ? 'Hide results' : 'Results') + '</button>';
+      ctl += '<button onclick="adminPollDelete(\'' + escapeHtml(p.id) + '\')"' + (busy ? ' disabled' : '') + ' class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-rose-200 text-rose-600 text-xs font-bold hover:bg-rose-50 disabled:opacity-60"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>Delete</button>';
+      const visLabel = { secret: 'Admins only', voters: 'Voters', public: 'Public' }[p.resultVisibility] || p.resultVisibility;
+      const meta = '<div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs text-slate-500">' +
+        '<span>' + (p.type === 'multiple' ? 'Multiple (max ' + (p.maxPick || opts.length) + ')' : 'Single choice') + '</span>' +
+        '<span class="inline-flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5"></i>' + visLabel + '</span>' +
+        '<span class="inline-flex items-center gap-1"><i data-lucide="users" class="w-3.5 h-3.5"></i>' + (p.results && p.results.total || 0) + ' votes</span>' +
+        ((Array.isArray(p.eligibleSeries) && p.eligibleSeries.length) ? '<span>Series: ' + p.eligibleSeries.map(escapeHtml).join(', ') + '</span>' : '<span>All series</span>') +
+        rdPollDeadline(p) + '</div>';
+      const body = open ? '<div class="mt-4 pt-4 border-t border-slate-100">' + (p.results && p.results.visible ? rdPollBars(p, opts) : '<p class="text-sm text-slate-500">No results to show.</p>') + '</div>' : '';
+      return '<article class="rounded-2xl border border-slate-200 bg-white p-5">' +
+        '<div class="flex items-start justify-between gap-3">' +
+          '<div class="flex-1"><div class="flex items-center gap-2 mb-1">' + rdPollStatusPill(p) + '</div>' +
+          '<h4 class="text-base font-bold text-slate-900 leading-snug">' + escapeHtml(p.question) + '</h4>' + meta + '</div></div>' +
+        '<div class="flex flex-wrap gap-2 mt-4">' + ctl + '</div>' + body + '</article>';
+    }
+
+    function adminPollBtn(id, status, icon, label, cls, busy) {
+      return '<button onclick="adminPollStatus(\'' + escapeHtml(id) + '\',\'' + status + '\')"' + (busy ? ' disabled' : '') +
+        ' class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg ' + cls + ' text-xs font-bold disabled:opacity-60"><i data-lucide="' + icon + '" class="w-3.5 h-3.5"></i>' + label + '</button>';
+    }
+
+    function adminPollToggleView(id) {
+      RD_ADMIN.plView[id] = !RD_ADMIN.plView[id];
+      renderAdmin();
+    }
+
+    function adminPollCaptureForm() {
+      RD_ADMIN.plOpts = Array.prototype.map.call(document.querySelectorAll('.adpoll-opt'), function (i) { return i.value; });
+      const t = document.querySelector('input[name="adpoll-type"]:checked');
+      if (t) RD_ADMIN.plType = t.value;
+      const v = document.querySelector('input[name="adpoll-vis"]:checked');
+      if (v) RD_ADMIN.plVis = v.value;
+    }
+
+    function adminPollNewToggle() {
+      RD_ADMIN.plNew = !RD_ADMIN.plNew;
+      if (RD_ADMIN.plNew) { RD_ADMIN.plOpts = ['', '']; RD_ADMIN.plType = 'single'; RD_ADMIN.plVis = 'voters'; }
+      renderAdmin();
+    }
+
+    function adminPollAddOpt() {
+      adminPollCaptureForm();
+      RD_ADMIN.plOpts.push('');
+      renderAdmin();
+    }
+
+    function adminPollRemoveOpt(i) {
+      adminPollCaptureForm();
+      RD_ADMIN.plOpts.splice(i, 1);
+      if (RD_ADMIN.plOpts.length < 2) RD_ADMIN.plOpts.push('');
+      renderAdmin();
+    }
+
+    async function adminPollCreate() {
+      adminPollCaptureForm();
+      const q = (document.getElementById('adpoll-q') || {}).value || '';
+      const options = RD_ADMIN.plOpts.map(function (s) { return String(s || '').trim(); }).filter(Boolean);
+      if (!q.trim()) { showToast('Please write the poll question.', 'info'); return; }
+      if (options.length < 2) { showToast('Please add at least two options.', 'info'); return; }
+      const series = Array.prototype.map.call(document.querySelectorAll('.adpoll-series:checked'), function (b) { return b.value; });
+      const statusEl = document.querySelector('input[name="adpoll-status"]:checked');
+      const endEl = document.getElementById('adpoll-end');
+      const maxEl = document.getElementById('adpoll-maxpick');
+      const payload = {
+        question: q.trim(),
+        type: RD_ADMIN.plType,
+        maxPick: RD_ADMIN.plType === 'multiple' ? Number(maxEl && maxEl.value) || options.length : 1,
+        options: options,
+        eligibleSeries: series,
+        endAt: endEl && endEl.value ? new Date(endEl.value).toISOString() : '',
+        status: statusEl ? statusEl.value : 'open',
+        resultVisibility: RD_ADMIN.plVis
+      };
+      RD_ADMIN.plBusy = 'new'; renderAdmin();
+      try {
+        await apiPost('pollcreate', { data: payload });
+        RD_ADMIN.plNew = false; RD_ADMIN.plOpts = ['', ''];
+        showToast('Poll created.', 'success');
+        RD_ADMIN.plBusy = '';
+        await loadAdminDashboard(true);
+      } catch (err) {
+        RD_ADMIN.plBusy = ''; reportError(err); renderAdmin();
+      }
+    }
+
+    async function adminPollStatus(id, status) {
+      RD_ADMIN.plBusy = id; renderAdmin();
+      try {
+        await apiPost('pollstatus', { data: { pollId: id, status: status } });
+        showToast('Poll updated.', 'success');
+        RD_ADMIN.plBusy = '';
+        await loadAdminDashboard(true);
+      } catch (err) {
+        RD_ADMIN.plBusy = ''; reportError(err); renderAdmin();
+      }
+    }
+
+    async function adminPollDelete(id) {
+      const poll = (RD_ADMIN.rows.polls || []).find(function (p) { return p.id === id; });
+      const votes = poll && poll.results ? (poll.results.total || 0) : 0;
+      if (!rdConfirmInline('adpoll-del-' + id)) {
+        showToast('Press Delete again within a few seconds to confirm removing this poll' + (votes ? ' and its ' + votes + ' vote(s)' : '') + '.', 'info', 'Confirm delete');
+        return;
+      }
+      RD_ADMIN.plBusy = id; renderAdmin();
+      try {
+        await apiPost('polldelete', { data: { pollId: id } });
+        showToast('Poll deleted.', 'success');
+        RD_ADMIN.plBusy = '';
+        await loadAdminDashboard(true);
+      } catch (err) {
+        RD_ADMIN.plBusy = ''; reportError(err); renderAdmin();
+      }
+    }
+
+    /* Two-press confirm without a popup (rule 2): the first press arms a short
+       timer, the second within the window goes through. */
+    let RD_PL_CONFIRM = {};
+    function rdConfirmInline(key) {
+      const now = Date.now();
+      if (RD_PL_CONFIRM[key] && now - RD_PL_CONFIRM[key] < 6000) { delete RD_PL_CONFIRM[key]; return true; }
+      RD_PL_CONFIRM[key] = now;
+      return false;
+    }
+

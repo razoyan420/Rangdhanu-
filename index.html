@@ -277,6 +277,7 @@
         <button type="button" class="rd-more-btn nav-btn" id="rd-more-btn-desktop" onclick="rdMoreToggle('desktop')" aria-haspopup="true" aria-expanded="false"><span>More</span><i data-lucide="chevron-down"></i></button>
         <div class="rd-more-panel" id="rd-more-panel-desktop" role="menu">
           <button onclick="switchPage('bloodbank'); rdMoreClose('desktop')"><i data-lucide="droplets" class="w-4 h-4 text-rose-400"></i>Blood Bank</button>
+          <button onclick="switchPage('polls'); rdMoreClose('desktop')"><i data-lucide="vote" class="w-4 h-4 text-indigo-400"></i>Polls</button>
           <button onclick="switchPage('noticeboard'); rdMoreClose('desktop')"><i data-lucide="bell" class="w-4 h-4 text-slate-400"></i>Notice</button>
           <button onclick="switchPage('cgpa'); rdMoreClose('desktop')"><i data-lucide="calculator" class="w-4 h-4 text-slate-400"></i>CGPA Calculator</button>
           <button id="rd-more-logout-desktop" style="display:none" onclick="memberSignOut(); rdMoreClose('desktop')"><i data-lucide="log-out" class="w-4 h-4 text-slate-400"></i>Log out</button>
@@ -299,6 +300,7 @@
     <button class="mobile-nav-item" data-page="events" onclick="switchPage('events')">Events</button>
     <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')">Committee</button>
     <button class="mobile-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')">Notice Board</button>
+    <button class="mobile-nav-item" data-page="polls" onclick="switchPage('polls')"><i data-lucide="vote" class="w-4 h-4"></i> Polls</button>
     <button class="mobile-nav-item" data-page="bloodbank" onclick="switchPage('bloodbank')">🩸 Blood Bank</button>
     <button class="mobile-nav-item" data-page="cgpa" onclick="switchPage('cgpa')">CGPA Calculator</button>
     <div id="mobile-member-menu" class="rd-mobile-profile-menu">
@@ -2571,6 +2573,29 @@
         <button onclick="openMemberSignIn('bloodbank')" class="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition">
           <i data-lucide="log-in" class="w-4 h-4"></i> Sign In
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE: POLLS ================= -->
+  <div class="page-view" id="page-polls">
+    <div class="relative overflow-hidden" style="background:linear-gradient(135deg,#312e81 0%,#4338ca 50%,#4f46e5 100%)">
+      <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(circle at 20% 50%,#fff 1px,transparent 1px),radial-gradient(circle at 80% 20%,#fff 1px,transparent 1px);background-size:40px 40px"></div>
+      <div class="relative max-w-4xl mx-auto px-4 py-14 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/15 backdrop-blur mb-5">
+          <i data-lucide="vote" class="w-8 h-8 text-white"></i>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-3 font-display">Polls</h1>
+        <p class="text-indigo-100 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">Have your say. Members vote once on each poll and see the live results here.</p>
+      </div>
+    </div>
+    <div class="max-w-3xl mx-auto px-4 py-8">
+      <div id="poll-signin-hint"></div>
+      <div id="poll-list" aria-live="polite">
+        <div class="space-y-4">
+          <div class="h-40 rounded-3xl bg-slate-100 animate-pulse"></div>
+          <div class="h-40 rounded-3xl bg-slate-100 animate-pulse"></div>
+        </div>
       </div>
     </div>
   </div>

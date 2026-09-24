@@ -2903,3 +2903,20 @@ body.rd-member-restoring #page-my-profile > * {
 }
 .bb-contact-num a { color: #1d4ed8; text-decoration: none; }
 .bb-contact-num a:hover { text-decoration: underline; }
+
+/* ---------------------------------------------------- website polls */
+/* Results bars: one indigo hue, 4px rounded data-ends anchored to the
+   baseline, recessive slate track, a soft grow on first paint. */
+.poll-bar-track {
+  height: 12px; border-radius: 9999px; background: #f1f5f9;
+  overflow: hidden;
+}
+.poll-bar-fill {
+  height: 100%; border-radius: 9999px; min-width: 0;
+  background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
+  transition: width .5s cubic-bezier(.22,1,.36,1);
+}
+.poll-bar-row + .poll-bar-row { margin-top: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .poll-bar-fill { transition: none; }
+}
