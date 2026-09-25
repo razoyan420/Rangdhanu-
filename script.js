@@ -13815,8 +13815,8 @@ function failGlobalLoader(title, msg, onClose = null) {
     rdLoaderCloseCb = onClose;
 }
 
-// Confirm mode: the same overlay asks a yes/no question (no window.confirm, no
-// separate page). Pressing "Confirm" flips it straight into the loading state
+// Confirm mode: the same overlay asks a yes/no question (no native browser
+// dialog, no separate page). Pressing "Confirm" flips it into the loading state
 // and runs onConfirm() — which then calls hideGlobalLoader / failGlobalLoader.
 // opts: { confirmText, danger, workingTitle, workingSub }. When the overlay is
 // absent (test VM / no DOM) onConfirm runs synchronously so nothing sticks.

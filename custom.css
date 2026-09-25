@@ -3107,8 +3107,8 @@ html.rd-js .rd-pollc.is-visible { opacity: 1; transform: none; }
 .rd-gl.show-close.is-success .rd-gl-close:hover { background: #047857; }
 
 /* Confirm mode: the same overlay asks a yes/no question first, then flips into
-   the loader when the user presses Confirm (owner-authorised; no window.confirm
-   and no separate page — Rule #2 is waived for this overlay only). */
+   the loader when the user presses Confirm (owner-authorised; no native browser
+   dialog and no separate page — Rule #2 is waived for this overlay only). */
 .rd-gl-badge-confirm { background: #6366f1; box-shadow: 0 10px 25px -5px rgba(99,102,241,.4); }
 .rd-gl.is-danger .rd-gl-badge-confirm { background: #f43f5e; box-shadow: 0 10px 25px -5px rgba(244,63,94,.4); }
 .rd-gl.is-confirm .rd-gl-ring, .rd-gl.is-confirm .rd-gl-wave, .rd-gl.is-confirm .rd-gl-hub { opacity: 0; }
