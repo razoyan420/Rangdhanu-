@@ -3195,7 +3195,57 @@ html.rd-js .rd-pollc.is-visible { opacity: 1; transform: none; }
   background:transparent;
   box-shadow:none;
 }
-.nav-pill .rd-more-btn i{width:.9rem;height:.9rem;}
+.nav-pill .rd-more-btn i{width:.9rem;height:.9rem;transition:transform .28s ease;}
+.nav-pill .rd-more-btn.open i{transform:rotate(180deg);}
+
+/* More / Directory dropdown -- frosted glass panel (icons removed, text only) */
+.rd-more-panel{
+  position:absolute;
+  top:calc(100% + .55rem);
+  left:50%;
+  transform:translateX(-50%) translateY(-6px);
+  min-width:13rem;
+  padding:.4rem;
+  border-radius:1.1rem;
+  background:rgba(255,255,255,.6);
+  border:1px solid rgba(14,165,233,.2);
+  -webkit-backdrop-filter:blur(22px) saturate(180%);
+  backdrop-filter:blur(22px) saturate(180%);
+  box-shadow:0 24px 46px -22px rgba(14,165,233,.55), inset 0 1px 0 rgba(255,255,255,.9);
+  display:flex;
+  flex-direction:column;
+  gap:.1rem;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .26s ease, transform .26s cubic-bezier(.22,1,.36,1);
+  z-index:60;
+}
+.rd-more-panel.open{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  transform:translateX(-50%) translateY(0);
+}
+.rd-more-panel button{
+  display:flex;
+  align-items:center;
+  width:100%;
+  padding:.55rem .85rem;
+  border:0;
+  background:transparent;
+  border-radius:.75rem;
+  color:#0369a1;
+  font-weight:700;
+  font-size:.9rem;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:background .2s ease, color .2s ease;
+}
+.rd-more-panel button:hover{
+  background:rgba(224,242,254,.8);
+  color:#0c4a6e;
+}
 
 /* Frosted glass logo chip */
 .brand-logo{

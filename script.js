@@ -512,7 +512,6 @@
         if (url !== img.getAttribute('src')) img.setAttribute('src', url);
       });
       renderCoverSlides();
-      renderReunionTrailer();
       applyStaticEventCovers();
       /* the album is 31 images; re-render so it picks the Drive copies up */
       if (typeof renderReunionPhotos === 'function') renderReunionPhotos();
@@ -559,131 +558,6 @@
     function applyStaticEventCovers() {
       if (document.getElementById('public-events-grid')) rdEventsPaint(RD_EV_DYNAMIC);
     }
-
-    /* ================= REUNION TRAILER (Google Drive) ===================
-       Two states, one card.  At rest it is a thumbnail beside a short
-       description -- about 240 px tall instead of the 650 px a full-width 16:9
-       stage used to take for a video most visitors never start.  Pressing play
-       turns the same card into that big stage; "smaller" brings it back.
-
-       The whole block stays hidden unless Drive_Images.gs reports a video, and
-       the Drive player is still only inserted after a click, so the reunion
-       page never pays for an iframe nobody asked for. */
-    let RD_TRAILER_OPEN = false;
-
-    /* The words beside the thumbnail.  Apps Script can override any of them
-       (t.title / t.subtitle / t.description); these are what shows otherwise,
-       so the space freed up by shrinking the video is never left blank. */
-    const RD_TRAILER_TEXT = {
-      title: 'পুনর্মিলনী ২০২৪ — ট্রেলার',
-      meta: '০১ মার্চ ২০২৪ • ডুয়েট ক্যাম্পাস',
-      desc: 'উদ্বোধনী র‍্যালি থেকে মঞ্চের শেষ মুহূর্ত — পুনর্মিলনীর পুরো দিনটা এক ঝলকে। ক্যাম্পাসের আড্ডা, অডিটোরিয়ামের সংবর্ধনা আর পুরো Rangdhanu Family-র একসাথে দাঁড়ানোর মুহূর্তগুলো রয়েছে এই ছোট ভিডিওতে।'
-    };
-
-    function renderReunionTrailer(expanded) {
-      const box = document.getElementById('reunion-trailer');
-      if (!box) return;
-      const t = RD_DRIVE.trailer;
-      if (!t || !t.ready || !t.fileId) {
-        RD_TRAILER_OPEN = false;
-        box.classList.add('hidden');
-        box.innerHTML = '';
-        return;
-      }
-      /* Called with no argument by the Drive loader: keep whatever state the
-         visitor is already in, so a background refresh cannot stop the video. */
-      if (expanded === undefined) expanded = RD_TRAILER_OPEN;
-      RD_TRAILER_OPEN = !!expanded;
-
-      const title = t.title || RD_TRAILER_TEXT.title;
-      const sub = t.subtitle || RD_TRAILER_TEXT.meta;
-      const desc = t.description || RD_TRAILER_TEXT.desc;
-      box.classList.remove('hidden');
-      box.innerHTML = RD_TRAILER_OPEN
-        ? rdTrailerBig(t, title, sub)
-        : rdTrailerCard(t, title, sub, desc);
-      box.innerHTML = rdTrailerCard(t, title, sub, desc);
-      if (RD_TRAILER_OPEN) {
-        const thumb = document.getElementById('drive-trailer-thumb');
-        const videoBox = document.getElementById('drive-trailer-video');
-        const stage = document.getElementById('trailer-stage');
-        if (thumb && videoBox && stage) {
-          thumb.classList.add('hidden');
-          videoBox.classList.remove('hidden');
-          stage.innerHTML = `<iframe src="${escapeHtml(t.embedUrl)}" title="${escapeHtml(t.title || 'Reunion trailer')}"
-            class="absolute inset-0 w-full h-full" frameborder="0" allow="autoplay; encrypted-media; fullscreen"
-            allowfullscreen loading="lazy"></iframe>`;
-        }
-      }
-      if (window.lucide) lucide.createIcons();
-    }
-
-    /* Resting state: picture on the left, words on the right. On a phone the
-       grid collapses, so the thumbnail sits above the description. */
-    function rdTrailerCard(t, title, sub, desc) {
-      return `
-        <div class="bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
-          <div class="grid md:grid-cols-2">
-            <div class="relative bg-slate-950 aspect-[16/10] sm:aspect-video w-full">
-              <button type="button" id="drive-trailer-thumb" onclick="rdPlayTrailer()" aria-label="Play Trailer"
-                class="absolute inset-0 w-full h-full group overflow-hidden block z-10">
-                <img src="reunion-cover.jpg" alt="${escapeHtml(title)}" loading="lazy" decoding="async"
-                  onerror="rdPhotoFallback(this)"
-                  class="absolute inset-0 w-full h-full object-cover opacity-75 transition-transform duration-700 group-hover:scale-105">
-                <span class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-slate-950/10"></span>
-                <span class="absolute inset-0 flex items-center justify-center">
-                  <span class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-xl transition-transform duration-300 group-hover:scale-110">
-                    <i class="w-7 h-7" data-lucide="play"></i>
-                  </span>
-                </span>
-                <span class="absolute left-3 bottom-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/70 border border-white/15 text-white text-[11px] font-bold tracking-wide">
-                  <i class="w-3 h-3" data-lucide="clapperboard"></i> Trailer
-                </span>
-              </button>
-              <div id="drive-trailer-video" class="hidden absolute inset-0 w-full h-full bg-black z-20">
-                <div id="trailer-stage" class="w-full h-full"></div>
-              </div>
-            </div>
-            <div class="p-6 sm:p-8 flex flex-col gap-4 min-w-0 justify-center">
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="p-2.5 rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white shadow-md shrink-0"><i class="w-5 h-5" data-lucide="clapperboard"></i></div>
-                <div class="min-w-0">
-                  <h3 class="text-lg sm:text-xl font-bold text-slate-900 truncate">${escapeHtml(title)}</h3>
-                  <span class="text-sm text-slate-500 font-medium">${escapeHtml(sub)}</span>
-                </div>
-              </div>
-              <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">${escapeHtml(desc)}</p>
-              <div class="mt-2 flex flex-wrap items-center gap-2.5">
-                <button type="button" onclick="rdPlayTrailer()"
-                  class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors shadow-sm">
-                  <i class="w-4 h-4" data-lucide="play"></i> Play Trailer
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>`;
-    }
-
-    /* Watching state: no longer switches to rdTrailerBig, everything plays in the card above */
-    function rdTrailerBig(t, title, sub) {
-      return '';
-    }
-
-    function rdPlayTrailer() {
-      const t = RD_DRIVE.trailer;
-      if (!t || !t.ready) return;
-      RD_TRAILER_OPEN = true;
-      const thumb = document.getElementById('drive-trailer-thumb');
-      const videoBox = document.getElementById('drive-trailer-video');
-      const stage = document.getElementById('trailer-stage');
-      if (thumb && videoBox && stage) {
-        thumb.classList.add('hidden');
-        videoBox.classList.remove('hidden');
-        stage.innerHTML = `<iframe src="https://drive.google.com/file/d/1TBB6aN6FbqwksBowMCj1thsvqpXvb2Ic/preview" title="Reunion trailer" class="absolute inset-0 w-full h-full" frameborder="0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>`;
-      }
-    }
-
-    function rdCloseTrailer() { renderReunionTrailer(false); }
 
     /* ================= COVER SLIDESHOW ==================================
        Was completely broken: the arrows and the dots called setCoverSlide(),

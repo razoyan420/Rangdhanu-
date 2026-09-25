@@ -250,10 +250,10 @@
         <div class="rd-more-wrap" id="rd-more-wrap-directory">
           <button type="button" class="rd-more-btn nav-btn premium-nav-item" data-page="alumni" id="rd-more-btn-directory" onclick="switchPage('alumni'); rdMoreToggle('directory')" aria-haspopup="true" aria-expanded="false"><span>Directory</span><i data-lucide="chevron-down"></i></button>
           <div class="rd-more-panel" id="rd-more-panel-directory" role="menu">
-            <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('ALL');},50); rdMoreClose('directory')"><i data-lucide="users" class="w-4 h-4 text-slate-400"></i>Everyone</button>
-            <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('Alumni');},50); rdMoreClose('directory')"><i data-lucide="graduation-cap" class="w-4 h-4 text-slate-400"></i>Alumni</button>
-            <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('Running Member');},50); rdMoreClose('directory')"><i data-lucide="backpack" class="w-4 h-4 text-slate-400"></i>Running Member</button>
-            <button onclick="switchPage('alumni'); setTimeout(function(){openSubPage('family-faculty','alumni');},50); rdMoreClose('directory')"><i data-lucide="users-round" class="w-4 h-4 text-slate-400"></i>Teachers &amp; Officers</button>
+            <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('ALL');},50); rdMoreClose('directory')">Everyone</button>
+            <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('Alumni');},50); rdMoreClose('directory')">Alumni</button>
+            <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('Running Member');},50); rdMoreClose('directory')">Running Member</button>
+            <button onclick="switchPage('alumni'); setTimeout(function(){openSubPage('family-faculty','alumni');},50); rdMoreClose('directory')">Teachers &amp; Officers</button>
           </div>
         </div>
         <button class="nav-btn premium-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')"><span>PDACC</span></button>
@@ -262,11 +262,11 @@
         <div class="rd-more-wrap" id="rd-more-wrap-desktop">
           <button type="button" class="rd-more-btn nav-btn premium-nav-item" id="rd-more-btn-desktop" onclick="rdMoreToggle('desktop')" aria-haspopup="true" aria-expanded="false"><span>More</span><i data-lucide="chevron-down"></i></button>
           <div class="rd-more-panel" id="rd-more-panel-desktop" role="menu">
-            <button onclick="switchPage('bloodbank'); rdMoreClose('desktop')"><i data-lucide="droplets" class="w-4 h-4 text-rose-400"></i>Blood Bank</button>
-            <button onclick="switchPage('polls'); rdMoreClose('desktop')"><i data-lucide="vote" class="w-4 h-4 text-indigo-400"></i>Polls</button>
-            <button onclick="switchPage('noticeboard'); rdMoreClose('desktop')"><i data-lucide="bell" class="w-4 h-4 text-slate-400"></i>Notice</button>
-            <button onclick="switchPage('cgpa'); rdMoreClose('desktop')"><i data-lucide="calculator" class="w-4 h-4 text-slate-400"></i>CGPA Calculator</button>
-            <button id="rd-more-logout-desktop" style="display:none" onclick="memberSignOut(); rdMoreClose('desktop')"><i data-lucide="log-out" class="w-4 h-4 text-slate-400"></i>Log out</button>
+            <button onclick="switchPage('bloodbank'); rdMoreClose('desktop')">Blood Bank</button>
+            <button onclick="switchPage('polls'); rdMoreClose('desktop')">Polls</button>
+            <button onclick="switchPage('noticeboard'); rdMoreClose('desktop')">Notice</button>
+            <button onclick="switchPage('cgpa'); rdMoreClose('desktop')">CGPA Calculator</button>
+            <button id="rd-more-logout-desktop" style="display:none" onclick="memberSignOut(); rdMoreClose('desktop')">Log out</button>
           </div>
         </div>
       </nav>
@@ -300,15 +300,15 @@
     <button class="mobile-nav-item" data-page="events" onclick="switchPage('events')">Events</button>
     <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')">Committee</button>
     <button class="mobile-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')">Notice Board</button>
-    <button class="mobile-nav-item" data-page="polls" onclick="switchPage('polls')"><i data-lucide="vote" class="w-4 h-4"></i> Polls</button>
-    <button class="mobile-nav-item" data-page="bloodbank" onclick="switchPage('bloodbank')">🩸 Blood Bank</button>
+    <button class="mobile-nav-item" data-page="polls" onclick="switchPage('polls')">Polls</button>
+    <button class="mobile-nav-item" data-page="bloodbank" onclick="switchPage('bloodbank')">Blood Bank</button>
     <button class="mobile-nav-item" data-page="cgpa" onclick="switchPage('cgpa')">CGPA Calculator</button>
     <div id="mobile-member-menu" class="rd-mobile-profile-menu">
       <button id="mobile-member-item" type="button" class="mobile-nav-item rd-mobile-profile-trigger" data-page="my-profile" onclick="rdMemberNavClick()">Restoring...</button>
     </div>
-    <button id="rd-more-logout-mobile" class="mobile-nav-item" style="display:none" onclick="memberSignOut()"><i data-lucide="log-out" class="w-4 h-4"></i> Log out</button>
+    <button id="rd-more-logout-mobile" class="mobile-nav-item" style="display:none" onclick="memberSignOut()">Log out</button>
     <div id="mobile-admin-menu" class="hidden border-t border-slate-100 mt-2 pt-2">
-      <button type="button" class="mobile-nav-item flex items-center gap-2" onclick="switchPage('admin')"><i data-lucide="shield-check" class="w-4 h-4"></i> Admin Dashboard <span id="mobile-admin-badge" class="hidden"></span></button>
+      <button type="button" class="mobile-nav-item flex items-center gap-2" onclick="switchPage('admin')">Admin Dashboard <span id="mobile-admin-badge" class="hidden"></span></button>
     </div>
     <button id="mobile-membership-cta" class="nav-cta w-full mt-3 justify-center" onclick="switchPage('register')">Membership Application</button>
   </div>
@@ -547,10 +547,75 @@
           </div>
         </div>
 
-        <!-- Reunion trailer. Rendered by renderReunionTrailer() from the Drive
-             manifest, so it stays completely hidden until a video is actually
-             shared in Drive. Nothing here needs editing to publish it. -->
-        <div id="reunion-trailer" class="hidden max-w-5xl mx-auto mb-8"></div>
+        <!-- Reunion 2024 official trailer (YouTube) -- click to load the embed -->
+        <div class="max-w-5xl mx-auto mb-10 bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
+          <div class="grid md:grid-cols-2">
+            <div class="relative bg-slate-950 aspect-[16/10] sm:aspect-video w-full">
+              <button type="button" id="yt-trailer-thumb" onclick="document.getElementById('yt-trailer-thumb').classList.add('hidden'); document.getElementById('yt-trailer-video').classList.remove('hidden'); document.getElementById('yt-trailer-stage').innerHTML = '<iframe src=\'https://www.youtube.com/embed/vO0NuCo5vfs?autoplay=1\' class=\'w-full h-full\' style=\'border:none\' allowfullscreen=\'true\' allow=\'autoplay; encrypted-media\'></iframe>';" class="absolute inset-0 w-full h-full group overflow-hidden cursor-pointer z-10 block">
+                <img src="https://img.youtube.com/vi/vO0NuCo5vfs/maxresdefault.jpg" onerror="this.onerror=null;this.src='https://img.youtube.com/vi/vO0NuCo5vfs/hqdefault.jpg'" alt="Rangdhanu Reunion 2024 official trailer" class="absolute inset-0 w-full h-full object-cover opacity-85 transition-transform duration-700 group-hover:scale-105">
+                <span class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-slate-950/10"></span>
+                <span class="absolute inset-0 flex items-center justify-center">
+                  <span class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-xl transition-transform duration-300 group-hover:scale-110">
+                    <i class="w-7 h-7" data-lucide="play"></i>
+                  </span>
+                </span>
+                <span class="absolute left-3 bottom-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-600/90 border border-white/15 text-white text-[11px] font-bold tracking-wide shadow-sm">
+                  <i class="w-3 h-3" data-lucide="youtube"></i> Trailer
+                </span>
+              </button>
+              <div id="yt-trailer-video" class="hidden absolute inset-0 w-full h-full bg-black z-20">
+                <div id="yt-trailer-stage" class="w-full h-full flex justify-center items-center"></div>
+              </div>
+            </div>
+            <div class="p-6 sm:p-8 flex flex-col gap-4 min-w-0 justify-center">
+              <div class="min-w-0">
+                <h3 class="text-lg sm:text-xl font-bold text-slate-900">রংধনু পুনর্মিলনী ২০২৪ অফিশিয়াল ট্রেইলার</h3>
+                <span class="text-sm text-slate-500 font-medium">এক ঝলকে পুরো আয়োজন</span>
+              </div>
+              <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">রংধনু পুনর্মিলনী ২০২৪-এর আবেগ, উচ্ছ্বাস আর প্রাণের মিলনমেলার বাছাই করা মুহূর্ত নিয়ে সাজানো অফিশিয়াল ট্রেইলার।</p>
+              <div class="mt-2 flex flex-wrap items-center gap-2.5">
+                <button type="button" onclick="document.getElementById('yt-trailer-thumb').classList.add('hidden'); document.getElementById('yt-trailer-video').classList.remove('hidden'); document.getElementById('yt-trailer-stage').innerHTML = '<iframe src=\'https://www.youtube.com/embed/vO0NuCo5vfs?autoplay=1\' class=\'w-full h-full\' style=\'border:none\' allowfullscreen=\'true\' allow=\'autoplay; encrypted-media\'></iframe>';" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors shadow-sm">
+                  <i class="w-4 h-4" data-lucide="play"></i> Play Video
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Reunion 2024 full program (YouTube) -- click to load the embed -->
+        <div class="max-w-5xl mx-auto mb-10 bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
+          <div class="grid md:grid-cols-2">
+            <div class="relative bg-slate-950 aspect-[16/10] sm:aspect-video w-full">
+              <button type="button" id="yt-full-thumb" onclick="document.getElementById('yt-full-thumb').classList.add('hidden'); document.getElementById('yt-full-video').classList.remove('hidden'); document.getElementById('yt-full-stage').innerHTML = '<iframe src=\'https://www.youtube.com/embed/7p69XOM1zM4?autoplay=1\' class=\'w-full h-full\' style=\'border:none\' allowfullscreen=\'true\' allow=\'autoplay; encrypted-media\'></iframe>';" class="absolute inset-0 w-full h-full group overflow-hidden cursor-pointer z-10 block">
+                <img src="https://img.youtube.com/vi/7p69XOM1zM4/maxresdefault.jpg" onerror="this.onerror=null;this.src='https://img.youtube.com/vi/7p69XOM1zM4/hqdefault.jpg'" alt="Rangdhanu Reunion 2024 full program video" class="absolute inset-0 w-full h-full object-cover opacity-85 transition-transform duration-700 group-hover:scale-105">
+                <span class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-slate-950/10"></span>
+                <span class="absolute inset-0 flex items-center justify-center">
+                  <span class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-xl transition-transform duration-300 group-hover:scale-110">
+                    <i class="w-7 h-7" data-lucide="play"></i>
+                  </span>
+                </span>
+                <span class="absolute left-3 bottom-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-600/90 border border-white/15 text-white text-[11px] font-bold tracking-wide shadow-sm">
+                  <i class="w-3 h-3" data-lucide="youtube"></i> Full Event
+                </span>
+              </button>
+              <div id="yt-full-video" class="hidden absolute inset-0 w-full h-full bg-black z-20">
+                <div id="yt-full-stage" class="w-full h-full flex justify-center items-center"></div>
+              </div>
+            </div>
+            <div class="p-6 sm:p-8 flex flex-col gap-4 min-w-0 justify-center">
+              <div class="min-w-0">
+                <h3 class="text-lg sm:text-xl font-bold text-slate-900">সম্পূর্ণ অনুষ্ঠানের পূর্ণাঙ্গ ভিডিও</h3>
+                <span class="text-sm text-slate-500 font-medium">সকাল থেকে সন্ধ্যা, পুরো আয়োজন এক ভিডিওতে</span>
+              </div>
+              <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">সকালের নিবন্ধন ও উদ্বোধনী পর্ব থেকে শুরু করে দিনভর নানা আয়োজন আর সন্ধ্যার সাংস্কৃতিক পর্ব পর্যন্ত রংধনু পুনর্মিলনী ২০২৪-এর সম্পূর্ণ অনুষ্ঠান একসাথে দেখুন।</p>
+              <div class="mt-2 flex flex-wrap items-center gap-2.5">
+                <button type="button" onclick="document.getElementById('yt-full-thumb').classList.add('hidden'); document.getElementById('yt-full-video').classList.remove('hidden'); document.getElementById('yt-full-stage').innerHTML = '<iframe src=\'https://www.youtube.com/embed/7p69XOM1zM4?autoplay=1\' class=\'w-full h-full\' style=\'border:none\' allowfullscreen=\'true\' allow=\'autoplay; encrypted-media\'></iframe>';" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors shadow-sm">
+                  <i class="w-4 h-4" data-lucide="play"></i> Play Video
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
 
         <!-- Facebook Cultural Night Trailer (Resting & Playing in same card) -->
         <div class="max-w-5xl mx-auto mb-10 bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
@@ -581,7 +646,6 @@
             <!-- Description Column -->
             <div class="p-6 sm:p-8 flex flex-col gap-4 min-w-0 justify-center">
               <div class="flex items-center gap-3 min-w-0">
-                <div class="p-2.5 rounded-2xl bg-gradient-to-tr from-indigo-500 to-fuchsia-500 text-white shadow-md shrink-0"><i class="w-5 h-5" data-lucide="music"></i></div>
                 <div class="min-w-0">
                   <h3 class="text-lg sm:text-xl font-bold text-slate-900 truncate">ধামাকা কালচারাল নাইট</h3>
                   <span class="text-sm text-slate-500 font-medium">রংধনু পুনর্মিলনী ২০২৪ - হাইলাইট</span>
