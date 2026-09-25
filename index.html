@@ -1878,7 +1878,8 @@
           <h2 class="family-intro-title" role="button" tabindex="0" onclick="familyTitleDance(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();familyTitleDance(this)}"><span class="family-title-word">RANGDHANU</span> <b class="family-title-word">FAMILY</b></h2>
           <p class="family-intro-copy">Current students and alumni of the Association, and the teachers and officers of greater Rangpur at DUET.</p>
         </div>
-        
+        <div id="alumni-member-bar" class="flex items-center justify-center flex-wrap gap-2 text-sm -mt-4 mb-10"></div>
+
         <div class="family-toolbar max-w-6xl mx-auto mb-10">
           <div class="family-filter-fields">
             <div class="relative">
@@ -2421,6 +2422,21 @@
 
           <div class="mt-5 flex justify-center" id="member-gsi-btn"></div>
           <p id="member-signin-msg" class="text-sm font-bold mt-3 hidden"></p>
+        </div>
+
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 mb-4 hidden" id="member-link-box">
+          <h3 class="text-base font-extrabold text-slate-900">Sign in with an email code</h3>
+          <p class="text-sm text-slate-600 mt-1 leading-relaxed">Google not linked to your membership yet? Enter your Member ID and we email a code to the address on your application.</p>
+          <p id="member-link-step" class="text-xs font-bold mt-3 hidden"></p>
+          <div class="mt-4 space-y-3">
+            <input type="text" id="member-link-id" placeholder="RDA-0001" class="w-full form-input text-sm" aria-label="Member ID">
+            <button id="member-link-send" type="button" onclick="memberLinkStart()" class="w-full px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition">Send code</button>
+            <div id="member-code-box" class="hidden space-y-3 pt-3 border-t border-slate-100">
+              <input type="text" id="member-link-code" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" class="w-full form-input text-sm tracking-widest text-center" aria-label="Email code">
+              <button type="button" onclick="memberLinkVerify()" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition">Verify</button>
+            </div>
+            <p id="member-link-msg" class="text-sm font-bold hidden"></p>
+          </div>
         </div>
 
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 mb-4">

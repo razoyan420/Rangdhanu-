@@ -5069,8 +5069,8 @@
     function rdMemberLandedSignedIn() {
       document.body.classList.remove('rd-member-restoring');
       rdMemberNavPaint();
-      if (rdCurrentPageId === 'committee-new') ecPrepareSubmissionForm();
       if (rdCurrentPageId === 'my-profile') openMyProfile('home');
+      if (rdCurrentPageId === 'committee-new') ecPrepareSubmissionForm();
       if (rdCurrentPageId === 'polls') rdPollOpen();
     }
 
@@ -5154,7 +5154,7 @@
       const idCard = rdProfileSection('Rangdhanu Identity', rdMpService(mp));
       const work = rdProfileSection('Work', rdMpWork(mp) + rdMpEdu(mp) + rdMpResearch(mp));
       const contact = rdProfileSection('Contact', rdMemberPrivateRows(a));
-      const social = rdProfileSection('Social Media', (c && c['Social Links']) ? rdSocialChips(c['Social Links']) : (canView && a.social ? rdSocialChips(a.social) : ''));
+      const social = rdProfileSection('Social Media', c ? rdSocialChips(c['Social Links']) : '');
 
       mc.innerHTML = head + idCard + work + contact + social;
       openSubPage('profile', 'alumni');
@@ -5806,7 +5806,7 @@
        number. A number that looks Bangladeshi but is malformed (01 + wrong
        length/prefix) is still rejected, because that is a typo, not an expat. */
     function isValidBdMobile(value) {
-      const v = normalizeBdMobile(value);
+      const v = normalizeBdMobile(value).replace(/[\s\-().]/g, '');
       if (/^01[3-9]\d{8}$/.test(v)) return true;
       if (/^\+\d{8,15}$/.test(v)) return true;
       if (/^0?\d{7,14}$/.test(v) && !/^01/.test(v)) return true;
