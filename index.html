@@ -59,6 +59,8 @@
 (function () {
   try {
     var id = (location.hash || '').replace('#', '').trim();
+    var slash = id.indexOf('/');
+    if (slash >= 0) id = id.slice(0, slash);
     if (!id || id === 'home' || !/^[a-z0-9-]+$/.test(id)) return;
     var LANDS_ON = {"admin-module":"admin","notice":"home","event-detail":"events","profile":"alumni","photo":"home","notice-file":"noticeboard","ec-message":"committee","pdacc-updates":"prokoushali","pdacc-committee":"prokoushali"};
     var aliases = {family:'alumni', pdacc:'prokoushali', signin:'member-signin', notice:'noticeboard', status:'notice'};
@@ -197,7 +199,7 @@
      নতুন class যোগ করলে এই কমান্ড আবার চালাতে হবে — CDN আগে নিজে করত। -->
 <link rel="stylesheet" href="style.css?v=20260925-0300"/>
 <link rel="stylesheet" href="custom.css?v=20260926-0100"/>
-<link rel="stylesheet" href="redesign-overrides.css?v=20260926-0100"/>
+<link rel="stylesheet" href="redesign-overrides.css?v=20260926-3000"/>
 <script>
   /* style.css fallback: prebuilt sheet না এলে বা পুরনো হলে CDN ফিরিয়ে আনে।
      document.write এখানেই সঠিক — এই path শুধু তখনই চলে যখন পেজ ইতিমধ্যে
@@ -226,7 +228,7 @@
 
 <!-- এই CSS এখন custom.css-এ (style.css এর পরে লোড হয়) -->
   <!-- Google Identity Services: admin sign-in only. -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
 </head>
 <body class="bg-[#F8FAFC] text-slate-800 antialiased selection:bg-blue-600 selection:text-white min-h-screen flex flex-col justify-between">
 
@@ -262,18 +264,18 @@
             <button id="rd-more-logout-desktop" style="display:none" onclick="memberSignOut(); rdMoreClose('desktop')">Log out</button>
           </div>
         </div>
+        <div id="nav-member-menu" class="rd-nav-profile-menu">
+          <button id="nav-member-btn" type="button" class="nav-btn premium-nav-item rd-nav-profile-trigger" data-page="my-profile" onclick="rdMemberNavClick()"><span id="nav-member-text">Restoring...</span></button>
+        </div>
+        <div id="nav-admin-menu" class="hidden items-center gap-1">
+          <button type="button" class="nav-btn premium-nav-item flex items-center gap-1.5" onclick="switchPage('admin')"><i data-lucide="shield-check" class="w-4 h-4"></i><span>Admin Dashboard</span><span id="nav-admin-badge" class="hidden"></span></button>
+        </div>
       </nav>
     </div>
     <!-- Right: member / admin / CTA (xl) + mobile buttons -->
     <div class="flex items-center gap-2 xl:gap-3 shrink-0">
       <div class="hidden xl:block">
         <div class="flex items-center gap-2">
-          <div id="nav-member-menu" class="rd-nav-profile-menu">
-            <button id="nav-member-btn" type="button" class="nav-btn premium-nav-item rd-nav-profile-trigger" data-page="my-profile" onclick="rdMemberNavClick()"><span id="nav-member-text">Restoring...</span></button>
-          </div>
-          <div id="nav-admin-menu" class="hidden items-center gap-1">
-            <button type="button" class="nav-btn premium-nav-item flex items-center gap-1.5" onclick="switchPage('admin')"><i data-lucide="shield-check" class="w-4 h-4"></i><span>Admin Dashboard</span><span id="nav-admin-badge" class="hidden"></span></button>
-          </div>
           <button id="nav-membership-cta" class="nav-cta" onclick="switchPage('register')">Membership Application</button>
         </div>
       </div>
@@ -287,25 +289,55 @@
   </div>
   <!-- Mobile menu -->
   <div class="hidden xl:hidden absolute left-0 right-0 top-full w-full bg-white border-t border-slate-200 px-4 sm:px-6 lg:px-8 pt-3 pb-4 space-y-1 font-semibold text-base shadow-2xl" id="mobile-menu">
-    <button class="mobile-nav-item" data-page="home" onclick="switchPage('home')">Home</button>
-    <button class="mobile-nav-item" data-page="alumni" onclick="switchPage('alumni')">Directory</button>
-    <button class="mobile-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')">PDACC</button>
-    <button class="mobile-nav-item" data-page="events" onclick="switchPage('events')">Events</button>
-    <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')">Committee</button>
-    <button class="mobile-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')">Notice Board</button>
-    <button class="mobile-nav-item" data-page="polls" onclick="switchPage('polls')">Polls</button>
-    <button class="mobile-nav-item" data-page="bloodbank" onclick="switchPage('bloodbank')">Blood Bank</button>
-    <button class="mobile-nav-item" data-page="cgpa" onclick="switchPage('cgpa')">CGPA Calculator</button>
+    <button class="mobile-nav-item" data-page="home" onclick="switchPage('home')"><i data-lucide="home"></i><span>Home</span></button>
+    <button class="mobile-nav-item" data-page="alumni" onclick="switchPage('alumni')"><i data-lucide="users"></i><span>Directory</span></button>
+    <button class="mobile-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')"><i data-lucide="graduation-cap"></i><span>PDACC</span></button>
+    <button class="mobile-nav-item" data-page="events" onclick="switchPage('events')"><i data-lucide="calendar-days"></i><span>Events</span></button>
+    <button class="mobile-nav-item" data-page="committee" onclick="switchPage('committee')"><i data-lucide="landmark"></i><span>Committee</span></button>
+    <button class="mobile-nav-item" data-page="noticeboard" onclick="switchPage('noticeboard')"><i data-lucide="clipboard-list"></i><span>Notice Board</span></button>
+    <button class="mobile-nav-item" data-page="polls" onclick="switchPage('polls')"><i data-lucide="bar-chart-3"></i><span>Polls</span></button>
+    <button class="mobile-nav-item" data-page="bloodbank" onclick="switchPage('bloodbank')"><i data-lucide="droplet"></i><span>Blood Bank</span></button>
+    <button class="mobile-nav-item" data-page="cgpa" onclick="switchPage('cgpa')"><i data-lucide="calculator"></i><span>CGPA Calculator</span></button>
     <div id="mobile-member-menu" class="rd-mobile-profile-menu">
-      <button id="mobile-member-item" type="button" class="mobile-nav-item rd-mobile-profile-trigger" data-page="my-profile" onclick="rdMemberNavClick()">Restoring...</button>
+      <button id="mobile-member-item" type="button" class="mobile-nav-item rd-mobile-profile-trigger" data-page="my-profile" onclick="rdMemberNavClick()"><i id="mobile-member-tile-icon" data-lucide="circle-user-round"></i><span id="mobile-member-label">Restoring...</span></button>
     </div>
-    <button id="rd-more-logout-mobile" class="mobile-nav-item" style="display:none" onclick="memberSignOut()">Log out</button>
+    <button id="rd-more-logout-mobile" class="mobile-nav-item" style="display:none" onclick="memberSignOut()"><i data-lucide="log-out"></i><span>Log out</span></button>
     <div id="mobile-admin-menu" class="hidden border-t border-slate-100 mt-2 pt-2">
       <button type="button" class="mobile-nav-item flex items-center gap-2" onclick="switchPage('admin')">Admin Dashboard <span id="mobile-admin-badge" class="hidden"></span></button>
     </div>
     <button id="mobile-membership-cta" class="nav-cta w-full mt-3 justify-center" onclick="switchPage('register')">Membership Application</button>
   </div>
 </header>
+
+<!-- Mobile bottom tab-bar (xl:hidden). "More" reuses #mobile-menu as a bottom sheet. -->
+<nav id="rd-mnav" class="xl:hidden" aria-label="Primary">
+  <button class="rd-mtab" data-page="home" onclick="switchPage('home')"><i data-lucide="home"></i><span>Home</span></button>
+  <button class="rd-mtab" data-page="prokoushali" onclick="switchPage('prokoushali')"><i data-lucide="graduation-cap"></i><span>PDACC</span></button>
+  <button id="rd-mnav-cta" class="rd-mtab rd-mtab-cta" aria-label="Member sign in" onclick="rdMemberNavClick()">
+    <span class="rd-mnav-bubble"><i id="rd-mnav-cta-icon" data-lucide="log-in"></i></span>
+    <span id="rd-mnav-cta-label">Sign In</span>
+  </button>
+  <button class="rd-mtab" data-page="alumni" onclick="switchPage('alumni')"><i data-lucide="users"></i><span>Directory</span></button>
+  <button class="rd-mtab rd-mtab-more" aria-controls="mobile-menu" onclick="toggleMobileMenu(event)"><i data-lucide="layout-grid"></i><span>More</span></button>
+</nav>
+
+<!-- PDACC-only fixed top tab-bar (mobile). Shown by JS via body.rd-on-pdacc;
+     every tab reuses the existing PDACC routing, no new navigation logic.
+     Desktop keeps the .rd-pd-side sidebar, so this is display:none there. -->
+<nav id="rd-pd-topnav" aria-label="PDACC sections">
+  <button type="button" class="rd-pdt-tab" data-page="prokoushali" onclick="switchPage('prokoushali')"><i data-lucide="home"></i><span>Home</span></button>
+  <button type="button" class="rd-pdt-tab" data-page="pdacc-admission" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i><span>Admission</span></button>
+  <button type="button" class="rd-pdt-tab" data-page="pdacc-updates" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i><span>Notice</span></button>
+  <button type="button" class="rd-pdt-tab" data-page="pdacc-committee" onclick="openSubPage('pdacc-committee','prokoushali')"><i data-lucide="users-round"></i><span>Committee</span></button>
+  <button type="button" class="rd-pdt-tab rd-pdt-more" aria-controls="rd-pd-topsheet" onclick="rdPdMoreToggle(event)"><i data-lucide="grid-3x3"></i><span>More</span></button>
+</nav>
+<div id="rd-pd-topsheet" class="hidden" aria-label="More PDACC sections">
+  <button type="button" class="rd-pdmore-item" onclick="rdPdMoreClose();rdPdGoto('pdacc-about')"><i data-lucide="info"></i><span>About PDACC</span></button>
+  <button type="button" class="rd-pdmore-item" onclick="rdPdMoreClose();rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i><span>Director's Message</span></button>
+  <button type="button" class="rd-pdmore-item" onclick="rdPdMoreClose();rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i><span>Records &amp; Stats</span></button>
+  <button type="button" class="rd-pdmore-item rd-pdmore-soon" onclick="rdPdMoreClose();rdPdSoon()"><i data-lucide="users"></i><span>Faculty <b>Soon</b></span></button>
+  <a class="rd-pdmore-item rd-pd-navseat" href="tel:" hidden onclick="rdPdMoreClose()"><i data-lucide="ticket"></i><span>Seat Booking</span></a>
+</div>
 
 <!-- One line, no backdrop, nothing to close. Sign in used to send the
      member to the whole notice page for this. -->
@@ -349,7 +381,6 @@
           <p class="text-white/80 text-[9px] sm:text-[11px] font-extrabold uppercase" style="letter-spacing:.34em">Welcome to</p>
           <h2 class="text-white font-extrabold tracking-tight leading-[1.08] mt-2 text-[1.45rem] sm:text-4xl md:text-5xl">RANGDHANU FAMILY</h2>
           <p class="text-white/90 font-semibold mt-2.5 max-w-2xl leading-snug text-[10px] sm:text-sm md:text-base">Students Welfare Association of Greater Rangpur</p>
-          <button type="button" onclick="goHomeSection('about-rangdhanu')" class="pointer-events-auto mt-3 sm:mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/95 hover:bg-white text-slate-900 text-[10px] sm:text-xs font-extrabold shadow-lg">About RANGDHANU <i class="w-3.5 h-3.5" data-lucide="arrow-down"></i></button>
         </div>
         <button aria-label="Previous slide" class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 hover:bg-white text-slate-800 hover:text-slate-950 shadow-lg flex items-center justify-center z-20" onclick="prevCoverSlide()"><i class="w-5 h-5" data-lucide="chevron-left"></i></button>
         <button aria-label="Next slide" class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 hover:bg-white text-slate-800 hover:text-slate-950 shadow-lg flex items-center justify-center z-20" onclick="nextCoverSlide()"><i class="w-5 h-5" data-lucide="chevron-right"></i></button>
@@ -745,10 +776,6 @@
             <h2 class="text-white font-extrabold tracking-tight leading-[1.08] mt-2 text-[1.35rem] sm:text-4xl md:text-5xl">PDACC</h2>
             <p class="text-white/90 font-semibold mt-2.5 max-w-2xl leading-snug text-[10px] sm:text-sm md:text-base">Prokoushali DUET Admission Coaching Centre</p>
             <p class="text-white/70 font-bold mt-1.5 max-w-2xl leading-snug text-[10px] sm:text-xs md:text-sm">প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার</p>
-            <div class="mt-3 sm:mt-4 flex flex-wrap items-center gap-2">
-              <button type="button" onclick="pdaccForAdmission()" class="pointer-events-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/95 hover:bg-white text-slate-900 text-[10px] sm:text-xs font-extrabold shadow-lg">For admission <i class="w-3.5 h-3.5" data-lucide="arrow-right"></i></button>
-              <button type="button" onclick="pdaccAbout()" class="pointer-events-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/25 backdrop-blur-md text-white text-[10px] sm:text-xs font-extrabold">About <i class="w-3.5 h-3.5" data-lucide="arrow-down"></i></button>
-            </div>
           </div>
           <button aria-label="Previous PDACC slide" class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 hover:bg-white text-slate-800 hover:text-slate-950 shadow-lg flex items-center justify-center z-20" onclick="prevPdaccSlide()"><i class="w-5 h-5" data-lucide="chevron-left"></i></button>
           <button aria-label="Next PDACC slide" class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 hover:bg-white text-slate-800 hover:text-slate-950 shadow-lg flex items-center justify-center z-20" onclick="nextPdaccSlide()"><i class="w-5 h-5" data-lucide="chevron-right"></i></button>
@@ -879,8 +906,6 @@
           </section>
 
           <section class="rd-pd-card" id="pd-chance-dept" hidden>
-            <h3 class="rd-pd-h">সর্বশেষ সিরিজে কোন বিভাগে কতজন</h3>
-            <p class="rd-pd-sub" id="pd-chance-sum">সর্বশেষ ফলাফলের বিভাগভিত্তিক হিসাব।</p>
             <div class="rd-pd-rows" id="pd-chance-rows"></div>
           </section>
 
@@ -2633,13 +2658,43 @@
     <section class="py-8 sm:py-12 bg-slate-50 min-h-[70vh]">
       <div class="max-w-md mx-auto px-4 space-y-4">
 
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 text-center">
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 rd-si-card">
           <div class="w-14 h-14 mx-auto rounded-full bg-blue-100 text-blue-700 flex items-center justify-center"><i data-lucide="shield-check" class="w-7 h-7"></i></div>
-          <h2 class="text-xl font-extrabold text-slate-900 mt-4">Member Sign In</h2>
-          <p class="text-sm text-slate-600 mt-2 leading-relaxed">Mobile, WhatsApp, email and addresses are shown to members only.</p>
+          <h2 class="text-xl font-extrabold text-slate-900 mt-4 text-center">Member Sign In</h2>
+          <p class="text-sm text-slate-500 mt-1.5 text-center">Sign in to your member account.</p>
 
-          <div class="mt-5 flex justify-center" id="member-gsi-btn"></div>
-          <p id="member-signin-msg" class="text-sm font-bold mt-3 hidden"></p>
+          <div id="rd-si-form" class="mt-6 space-y-3 text-left">
+            <div>
+              <label for="rd-si-email" class="block text-sm font-bold text-slate-700 mb-1.5">Email</label>
+              <input id="rd-si-email" type="email" autocomplete="email" placeholder="Enter your email" class="w-full form-input text-sm">
+            </div>
+            <div>
+              <label for="rd-si-id" class="block text-sm font-bold text-slate-700 mb-1.5">Member ID</label>
+              <input id="rd-si-id" type="text" placeholder="RDA-0001" class="w-full form-input text-sm">
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center gap-2 text-sm text-slate-600 select-none cursor-pointer"><input id="rd-si-keep" type="checkbox" checked class="w-4 h-4 accent-blue-600"> Keep me signed in</label>
+              <button type="button" onclick="rdSiForgot()" class="text-sm font-bold text-blue-600 hover:underline">Forgot email</button>
+            </div>
+            <button id="rd-si-signin" type="button" onclick="memberEmailStart()" class="w-full px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition">Sign in</button>
+          </div>
+
+          <div id="rd-si-code-box" class="hidden mt-5 space-y-3 text-left">
+            <p id="rd-si-sent" class="rd-si-sent"></p>
+            <div>
+              <label for="rd-si-code" class="block text-sm font-bold text-slate-700 mb-1.5">Verification code</label>
+              <input id="rd-si-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter 6-digit code" class="w-full form-input text-sm text-center font-bold rd-si-code">
+            </div>
+            <button id="rd-si-verify" type="button" onclick="memberEmailVerify()" class="w-full px-4 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition">Verify and sign in</button>
+            <p class="text-center text-sm text-slate-500"><button type="button" onclick="memberEmailStart()" class="font-bold text-blue-600 hover:underline">Resend</button> &middot; <button type="button" onclick="rdSiReset()" class="font-bold text-blue-600 hover:underline">Change email</button></p>
+          </div>
+
+          <div class="rd-si-or my-5"><span>or</span></div>
+
+          <div class="flex justify-center" id="member-gsi-btn"></div>
+          <p id="member-signin-msg" class="text-sm font-bold mt-3 hidden text-center"></p>
+          <p id="rd-si-msg" class="text-sm font-bold mt-3 hidden text-center"></p>
+          <p class="text-center text-sm text-slate-600 mt-5 pt-5 border-t border-slate-100" id="rd-si-join">Not a member? <button type="button" onclick="switchPage('register')" class="font-bold text-blue-600 hover:underline">Membership Application</button></p>
         </div>
 
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 mb-4 hidden" id="member-link-box">
@@ -2657,33 +2712,37 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 mb-4">
-          <p class="text-sm text-slate-600 leading-relaxed">Approved and pending members can sign in. Use the Google account for the email you gave on your application.</p>
-        </div>
-
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 mb-4" id="forgot-email-box">
-          <button type="button" onclick="document.getElementById('forgot-email-form').classList.toggle('hidden')" class="text-sm font-extrabold text-slate-900 hover:text-blue-600 transition-colors flex items-center gap-1.5 w-full text-left">
-            Forgot Email?
-          </button>
-          <div id="forgot-email-form" class="hidden mt-3 pt-3 border-t border-slate-100">
-            <p class="text-xs text-slate-500 leading-relaxed">Enter your Member ID to get a hint of your registered email address.</p>
-            <div class="mt-3 flex gap-2">
-              <input type="text" id="forgot-email-id" placeholder="e.g. RDA-0001" class="flex-1 form-input text-sm">
-              <button type="button" onclick="rdShowEmailHint()" class="shrink-0 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-bold transition-colors">Get Hint</button>
-            </div>
-            <p id="forgot-email-hint" class="text-sm font-bold mt-3 hidden"></p>
-          </div>
-        </div>
-
-        <div class="bg-blue-50 rounded-3xl border border-blue-100 p-5 text-center">
-          <p class="text-sm text-slate-700">Not a member yet?</p>
-          <button type="button" onclick="switchPage('register')" class="mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition"><i data-lucide="user-plus" class="w-4 h-4"></i> Membership Application</button>
-        </div>
-
       </div>
     </section>
   </div>
 
+  <!-- ================= SUB-PAGE: FORGOT EMAIL ================= -->
+  <div class="page-view" id="page-forgot-email">
+    <div class="subpage-bar">
+      <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+        <button type="button" onclick="goBackFromSubPage('forgot-email')" class="subpage-back"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+        <span class="text-sm font-bold text-slate-500 truncate min-w-0">Forgot Email</span>
+      </div>
+    </div>
+    <section class="py-8 sm:py-12 bg-slate-50 min-h-[70vh]">
+      <div class="max-w-md mx-auto px-4">
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 rd-si-card">
+          <div class="w-14 h-14 mx-auto rounded-full bg-slate-100 text-slate-600 flex items-center justify-center"><i data-lucide="search" class="w-7 h-7"></i></div>
+          <h2 class="text-xl font-extrabold text-slate-900 mt-4 text-center">Forgot email</h2>
+          <p class="text-sm text-slate-500 mt-1.5 text-center">Enter your Member ID to see a hint of your registered email.</p>
+          <div class="mt-6 space-y-3 text-left">
+            <div>
+              <label for="forgot-email-id" class="block text-sm font-bold text-slate-700 mb-1.5">Member ID</label>
+              <input type="text" id="forgot-email-id" placeholder="RDA-0001" class="w-full form-input text-sm">
+            </div>
+            <button type="button" onclick="rdShowEmailHint()" class="w-full px-4 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition">Show hint</button>
+            <p id="forgot-email-hint" class="text-sm font-bold mt-1 hidden text-center"></p>
+          </div>
+          <p class="text-center mt-5"><button type="button" onclick="goBackFromSubPage('forgot-email')" class="text-sm font-bold text-blue-600 hover:underline">Back to sign in</button></p>
+        </div>
+      </div>
+    </section>
+  </div>
   <!-- ================= SUB-PAGE: MY PROFILE ================= -->
   <div class="page-view" id="page-my-profile">
     <div class="subpage-bar">
@@ -2969,14 +3028,13 @@ Do not modify social links or structure without permission.
       <a href="https://www.facebook.com/rangdhanu.duet.gazipur" target="_blank" class="hover:text-white border border-slate-700 rounded-full px-5 py-2 transition font-medium">Facebook Page</a>
       <a href="https://www.linkedin.com/company/rangdhanuduet/" target="_blank" class="hover:text-white border border-slate-700 rounded-full px-5 py-2 transition font-medium">LinkedIn</a>
       <a href="https://www.facebook.com/groups/1620129331581734" target="_blank" class="hover:text-white border border-slate-700 rounded-full px-5 py-2 transition font-medium">Facebook Group</a>
-      <button onclick="switchPage('admin')" class="hover:text-white text-slate-500 font-medium px-2 py-2 transition cursor-pointer">Admin</button>
     </div>
   </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
 <!-- JAVASCRIPT LOGIC -->
-<script src="script.js?v=20260926-0100" defer></script>
+<script src="script.js?v=20260926-3000" defer></script>
 
   <!-- PREMIUM GLOBAL LOADER (owner-authorised overlay; all styles in custom.css .rd-gl*) -->
   <div id="demo-loader" class="rd-gl" aria-hidden="true">

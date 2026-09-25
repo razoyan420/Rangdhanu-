@@ -111,6 +111,7 @@
       'my-info':      { parent: 'alumni', needsData: false },
       'profile':      { parent: 'alumni', needsData: true  },
       'member-signin': { parent: 'alumni', needsData: false },
+      'forgot-email': { parent: 'member-signin', needsData: false },
       /* Its own section, and needsData is false on purpose: the row comes
          from the server on the page's own request, so a reload lands here
          instead of bouncing the member out to the directory. */
@@ -191,23 +192,25 @@
         var word = lock.querySelector('.brand-word');
         var duetWord = lock.querySelector('.brand-title-duet');
         if (logo && crest && word && duetWord) {
-          var lockRect = lock.getBoundingClientRect();
-          var centre = lockRect.left + lockRect.width / 2;
-          var midOf = function (el) { var r = el.getBoundingClientRect(); return r.left + r.width / 2; };
           var wordRect = word.getBoundingClientRect();
           var duetRect = duetWord.getBoundingClientRect();
+          var logoRect = logo.getBoundingClientRect();
           var crestW = crest.offsetWidth || 48;
           var crestH = crest.offsetHeight || 48;
           // park the crest centred over the DUET word — its animation "home"
           crest.style.left = (duetRect.left - wordRect.left + duetRect.width / 2 - crestW / 2) + 'px';
           crest.style.top = (duetRect.top - wordRect.top + duetRect.height / 2 - crestH / 2) + 'px';
-          // travel-to-centre distances for the two chips
-          lock.style.setProperty('--rang', (centre - midOf(logo)) + 'px');
-          lock.style.setProperty('--cx', (centre - (duetRect.left + duetRect.width / 2)) + 'px');
+          // the DUET crest flies from its home to the RANGDHANU brand logo and
+          // back; the brand logo itself stays put. Travel = brand-logo centre
+          // minus the crest's home (DUET word) centre, in screen space.
+          var homeCX = duetRect.left + duetRect.width / 2;
+          var homeCY = duetRect.top + duetRect.height / 2;
+          lock.style.setProperty('--duetx', (logoRect.left + logoRect.width / 2 - homeCX) + 'px');
+          lock.style.setProperty('--duety', (logoRect.top + logoRect.height / 2 - homeCY) + 'px');
           lock.classList.remove('bond');
           void lock.offsetWidth;
           lock.classList.add('bond');
-          window.setTimeout(function () { lock.classList.remove('bond'); }, 4050);
+          window.setTimeout(function () { lock.classList.remove('bond'); }, 3850);
         }
       }
       switchPage('home');
@@ -235,6 +238,17 @@
       rdCurrentPageId = pageId;
       const navId = (RD_SUBPAGES[pageId] || {}).parent || pageId;
       document.querySelectorAll('.nav-btn, .mobile-nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === navId));
+      document.querySelectorAll('#rd-mnav .rd-mtab').forEach(b => b.classList.toggle('active', b.dataset.page === navId));
+      /* The PDACC page carries its own fixed top tab-bar on mobile. This class
+         is the single switch the CSS reads to show that bar, hide the global
+         branding header, and arm the bottom-bar auto-hide (see the scroll
+         helper). The top tabs track the exact PDACC sub-page, not the family,
+         so a sub-page like Admission or Notice highlights its own tab. */
+      const onPdacc = navId === 'prokoushali';
+      document.body.classList.toggle('rd-on-pdacc', onPdacc);
+      document.querySelectorAll('#rd-pd-topnav .rd-pdt-tab[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === pageId));
+      const rdPdSheet = document.getElementById('rd-pd-topsheet');
+      if (rdPdSheet) rdPdSheet.classList.add('hidden');
       rdNavGlareSync();
       const menu = document.getElementById('mobile-menu');
       if (menu && !menu.classList.contains('hidden')) { menu.classList.add('hidden'); syncMobileMenuButton(); }
@@ -270,11 +284,21 @@
           if (typeof renderPdaccSeatNav === 'function') renderPdaccSeatNav();
         }
         if (pageId === 'admin') adminEnterPage();
+        if (pageId === 'member-signin') {
+          if (!rdDrawMemberGsiButton()) setTimeout(rdDrawMemberGsiButton, 700);
+        }
       } catch (err) { console.error('page loader failed:', err); }
+      /* Arm scroll-reveal for whatever static content this page already holds;
+         async feeds re-arm themselves through the global mutation watcher. */
+      if (typeof rdRevealArm === 'function' && tgt) rdRevealArm(tgt);
     }
 
     function getPageFromLocation(allowSubPages = true) {
-      const rawPage = window.location.hash.replace('#','').trim();
+      let rawPage = window.location.hash.replace('#','').trim();
+      /* A shared profile link is #profile/<memberId>. It resolves to the public
+         profile sub-page (parent: the directory) so a cold load of the link
+         lands on the alumni list and then opens the card. */
+      if (/^profile\/.+/.test(rawPage)) rawPage = 'profile';
       const aliases = { family: 'alumni', pdacc: 'prokoushali', signin: 'member-signin', notice: 'noticeboard', status: 'notice' };
       const page = aliases[rawPage] || rawPage;
       if (aliases[rawPage]) history.replaceState({page: page}, '', window.location.pathname + `#${pageUrlId(page)}`);
@@ -286,8 +310,36 @@
       }
       return page;
     }
-    window.addEventListener('popstate', () => switchPage(getPageFromLocation(), false));
-    window.addEventListener('hashchange', () => switchPage(getPageFromLocation(), false));
+
+    /* The member id carried by a #profile/<id> share link, or null. */
+    function rdSharedProfileId() {
+      const m = /^#profile\/(.+)$/.exec(window.location.hash || '');
+      return m ? decodeURIComponent(m[1].trim()) : null;
+    }
+
+    /* Open a member's public profile from a shared link. The directory is
+       loaded first (a cold link has no data yet), the row is matched by member
+       id, and the ordinary public card is shown -- contact rows stay gated to
+       signed-in members exactly as they are from the directory. The id is kept
+       in the URL so the link still works on a further reload. */
+    async function rdOpenSharedProfile(memberId) {
+      if (!memberId) return;
+      switchPage('alumni', false);
+      try { if (!alumniData.length) await loadPublicAlumni(); } catch (e) { /* show whatever we have */ }
+      const a = alumniData.find(function (r) { return String(r.memberId) === String(memberId); });
+      if (!a) return;   /* unknown id: leave the visitor on the directory */
+      openAlumniProfileModal(a);
+      history.replaceState({ page: 'profile' }, '',
+        window.location.pathname + '#profile/' + encodeURIComponent(memberId));
+    }
+
+    function rdRouteFromLocation() {
+      const shareId = rdSharedProfileId();
+      if (shareId) { rdOpenSharedProfile(shareId); return; }
+      switchPage(getPageFromLocation(), false);
+    }
+    window.addEventListener('popstate', rdRouteFromLocation);
+    window.addEventListener('hashchange', rdRouteFromLocation);
 
 
     /* ================= GOOGLE DRIVE IMAGE LAYER =========================
@@ -705,9 +757,7 @@
         '<h2 class="text-white font-extrabold tracking-tight leading-[1.08] mt-2 text-[1.45rem] sm:text-4xl md:text-5xl">' +
           escapeHtml(v.title) + '</h2>' +
         '<p class="text-white/90 font-semibold mt-2.5 max-w-2xl leading-snug text-[10px] sm:text-sm md:text-base">' +
-          escapeHtml(v.sub) + '</p>' +
-        '<button type="button" onclick="goHomeSection(\'about-rangdhanu\')" class="pointer-events-auto mt-3 sm:mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/95 hover:bg-white text-slate-900 text-[10px] sm:text-xs font-extrabold shadow-lg">' +
-          escapeHtml(v.cta) + ' <i class="w-3.5 h-3.5" data-lucide="arrow-down"></i></button>';
+          escapeHtml(v.sub) + '</p>';
       box.classList.add('rd-hero-anim');
       if (window.lucide) lucide.createIcons();
     }
@@ -1007,13 +1057,7 @@
         '<p class="text-white/90 font-semibold mt-2.5 max-w-2xl leading-snug text-[10px] sm:text-sm md:text-base">' +
           escapeHtml(v.sub) + '</p>' +
         '<p class="text-white/70 font-bold mt-1.5 max-w-2xl leading-snug text-[10px] sm:text-xs md:text-sm">' +
-          escapeHtml(v.sub2) + '</p>' +
-        '<div class="mt-3 sm:mt-4 flex flex-wrap items-center gap-2">' +
-          '<button type="button" onclick="pdaccForAdmission()" class="pointer-events-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/95 hover:bg-white text-slate-900 text-[10px] sm:text-xs font-extrabold shadow-lg">' +
-            'For admission <i class="w-3.5 h-3.5" data-lucide="arrow-right"></i></button>' +
-          '<button type="button" onclick="pdaccAbout()" class="pointer-events-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/25 backdrop-blur-md text-white text-[10px] sm:text-xs font-extrabold">' +
-            'About <i class="w-3.5 h-3.5" data-lucide="arrow-down"></i></button>' +
-        '</div>';
+          escapeHtml(v.sub2) + '</p>';
       box.classList.add('rd-pd-anim');
       if (window.lucide) lucide.createIcons();
     }
@@ -1104,24 +1148,83 @@
       const dsec = document.getElementById('pd-chance-dept');
       if (dsec) dsec.hidden = !depts.length;
       if (rows && depts.length) {
+        const PDCC_PAL = ['#0ea5e9', '#f43f5e', '#f59e0b', '#8b5cf6', '#10b981',
+          '#ec4899', '#14b8a6', '#6366f1', '#f97316', '#0891b2'];
         const dn = depts.map(x => rdPdToNum(x.count));
         const dtop = Math.max.apply(null, dn.concat([1]));
-        rows.innerHTML = depts.map(function (x, i) {
-          const w = Math.max(6, Math.round(100 * dn[i] / dtop));
-          return '<div class="rd-pd-row"><div class="rd-pd-row-n">' +
-            escapeHtml(String(x.label)) + '<small>' + escapeHtml(String(x.sub || '')) +
-            '</small></div><div class="rd-pd-track"><div class="rd-pd-fill" style="--w:' +
-            w + '%;--d:' + (0.05 + i * 0.07).toFixed(2) + 's"></div></div>' +
-            '<div class="rd-pd-row-v">' +
-            (dn[i] ? rdPdBn(dn[i]) : escapeHtml(String(x.count || ''))) + '</div></div>';
-        }).join('');
-        const sum = document.getElementById('pd-chance-sum');
         const total = dn.reduce((a, b) => a + b, 0);
+        const C = 2 * Math.PI * 80;
+        let acc = 0;
+        const segs = depts.map(function (x, i) {
+          const frac = total > 0 ? dn[i] / total : 0;
+          const arc = (frac * C).toFixed(2);
+          const rot = ((total ? acc / total : 0) * 360).toFixed(2);
+          acc += dn[i];
+          return '<circle class="rd-donut-seg" data-i="' + i + '" cx="100" cy="100" r="80"' +
+            ' fill="none" stroke-width="26" stroke="' + PDCC_PAL[i % PDCC_PAL.length] + '"' +
+            ' stroke-dasharray="' + arc + ' 999"' +
+            ' style="transform:rotate(' + rot + 'deg);transform-origin:100px 100px"></circle>';
+        }).join('');
+        const cards = depts.map(function (x, i) {
+          const w = Math.max(6, Math.round(100 * dn[i] / dtop));
+          const col = PDCC_PAL[i % PDCC_PAL.length];
+          return '<button type="button" class="rd-cc" data-i="' + i +
+            '" style="--c:' + col + ';--w:' + w + '%">' +
+            '<span class="rd-cc-dot"></span>' +
+            '<span class="rd-cc-n">' + escapeHtml(String(x.label)) +
+            '<small>' + escapeHtml(String(x.sub || '')) + '</small></span>' +
+            '<span class="rd-cc-v">' +
+            (dn[i] ? rdPdBn(dn[i]) : escapeHtml(String(x.count || ''))) +
+            '</span></button>';
+        }).join('');
+        rows.innerHTML =
+          '<div class="rd-combo">' +
+            '<div class="rd-donut">' +
+              '<svg viewBox="0 0 200 200" aria-hidden="true">' + segs + '</svg>' +
+              '<div class="rd-donut-core"><span class="n">' + rdPdBn(total) +
+              '</span><span class="l">জন চান্স</span></div>' +
+            '</div>' +
+            '<div class="rd-combo-head">' +
+              '<span class="rd-combo-kicker">চান্সপ্রাপ্তি · সর্বশেষ সিরিজ</span>' +
+              '<h4 class="rd-combo-title">সর্বশেষ সিরিজে কোন বিভাগে কতজন</h4>' +
+              '<p class="rd-pd-sub" id="pd-chance-sum">সর্বশেষ ফলাফলের বিভাগভিত্তিক হিসাব।</p>' +
+            '</div>' +
+          '</div>' +
+          '<div class="rd-combo-cards">' + cards + '</div>';
+        const sum = document.getElementById('pd-chance-sum');
         if (sum && total > 0) {
           sum.textContent = 'সর্বশেষ ফলাফলের বিভাগভিত্তিক হিসাব। যোগফল ' +
             rdPdBn(total) + '।';
         }
+        rdPdComboLink(rows);
       }
+    }
+
+    /* Cross-highlight the donut segment and its card. Built for the dynamic
+       dept list, so it binds to whatever renderPdaccChance() just wrote. */
+    function rdPdComboLink(root) {
+      if (!root) return;
+      const segs = root.querySelectorAll('.rd-donut-seg');
+      const cards = root.querySelectorAll('.rd-cc');
+      function hi(i, on) {
+        segs.forEach(function (el) {
+          const m = el.getAttribute('data-i') === i;
+          el.classList.toggle('hot', on && m);
+          el.classList.toggle('dim', on && !m);
+        });
+        cards.forEach(function (el) {
+          el.classList.toggle('hot', on && el.getAttribute('data-i') === i);
+        });
+      }
+      function bind(el) {
+        const i = el.getAttribute('data-i');
+        el.addEventListener('mouseenter', function () { hi(i, true); });
+        el.addEventListener('mouseleave', function () { hi(i, false); });
+        el.addEventListener('focus', function () { hi(i, true); });
+        el.addEventListener('blur', function () { hi(i, false); });
+      }
+      cards.forEach(bind);
+      segs.forEach(bind);
     }
 
 
@@ -1186,12 +1289,59 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
+      /* The header carries a backdrop-filter, which makes it the containing block
+         for any position:fixed descendant. #mobile-menu (reused as the mobile
+         bottom sheet) therefore anchored to the header, not the viewport. Move it
+         to <body> so the bottom-sheet positioning in redesign-overrides.css works. */
+      (function () {
+        var mm = document.getElementById('mobile-menu');
+        if (mm && mm.parentNode !== document.body) document.body.appendChild(mm);
+      })();
       window.addEventListener('wheel', closeMobileMenuOnUserScroll, { passive: true });
       document.addEventListener('touchmove', closeMobileMenuOnUserScroll, { passive: true });
+      /* Mobile only: the bottom bar carries navigation now, so the top branding
+         header can slide away on scroll-down and return on scroll-up, freeing
+         screen height. Desktop keeps the sticky header untouched.
+         On the PDACC page a fixed PDACC top bar replaces the branding header
+         (kept hidden there) and the bottom bar (#rd-mnav) auto-hides on
+         scroll-down / returns on scroll-up so the two bars never crowd the
+         screen together; the PDACC top bar itself stays fixed. */
+      (function () {
+        var hdr = document.querySelector('header.glass-nav');
+        var mnav = document.getElementById('rd-mnav');
+        if (!hdr && !mnav) return;
+        var lastY = window.scrollY || 0, ticking = false;
+        function apply() {
+          ticking = false;
+          var y = window.scrollY || 0;
+          if (window.innerWidth > 1279) {
+            if (hdr) hdr.classList.remove('rd-nav-hidden');
+            if (mnav) mnav.classList.remove('rd-nav-hidden');
+            lastY = y; return;
+          }
+          var onPd = document.body.classList.contains('rd-on-pdacc');
+          var down = y > lastY && y > 90;
+          var up = y < lastY - 4 || y <= 90;
+          if (hdr) {
+            if (onPd || down) hdr.classList.add('rd-nav-hidden');
+            else if (up) hdr.classList.remove('rd-nav-hidden');
+          }
+          if (mnav) {
+            if (onPd && down) mnav.classList.add('rd-nav-hidden');
+            else if (up || !onPd) mnav.classList.remove('rd-nav-hidden');
+          }
+          lastY = y;
+        }
+        window.addEventListener('scroll', function () {
+          if (!ticking) { ticking = true; window.requestAnimationFrame(apply); }
+        }, { passive: true });
+      })();
       document.body.classList.add('rd-member-restoring');
-      const startPage = getPageFromLocation(false);
+      const bootShareId = rdSharedProfileId();
+      const startPage = bootShareId ? 'alumni' : getPageFromLocation(false);
       history.replaceState({page: startPage}, '', window.location.pathname + (startPage==='home'?'':`#${pageUrlId(startPage)}`));
       switchPage(startPage, false);
+      if (bootShareId) rdOpenSharedProfile(bootShareId);
       /* The head script's stop-gap rule has done its job; drop it so it cannot
          override an ordinary page change later on. */
       var boot = document.getElementById('rd-boot-page');
@@ -1224,6 +1374,8 @@
           loadPublicAlumni();
         }
       }, 300);
+      /* Arm the site-wide scroll-reveal once the first page has painted. */
+      if (typeof rdRevealInit === 'function') rdRevealInit();
     });
 
     /* The album model: Drive sub-folders win, the built-in list is the
@@ -1680,13 +1832,38 @@
              escapeHtml(rdMpInitials(mp.name)) + '</div>';
     }
 
-    /* A broken Drive link leaves an empty circle, so the monogram takes over. */
+    /* A broken Drive link leaves an empty circle, so the monogram takes over.
+       But a Drive thumbnail miss is often transient, so retry once on the
+       thumbnail host before giving up on the photo. */
     function rdMpFaceFail(img) {
+      if (img && !img.dataset.rdTried) {
+        img.dataset.rdTried = '1';
+        const m = /(?:lh3\.googleusercontent\.com\/d\/|[?&]id=|\/d\/)([A-Za-z0-9_-]{20,})/.exec(img.src || '');
+        if (m) { img.src = 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w1200'; return; }
+      }
       const box = img.parentElement;
       if (!box) { img.remove(); return; }
       const name = img.getAttribute('alt') || '';
       img.outerHTML = '<div class="rd-mp-mono" style="--mp-h:' + rdMpHue(name) +
         '" aria-hidden="true">' + escapeHtml(rdMpInitials(name)) + '</div>';
+    }
+
+    /* An uploaded cover that 404s on first hit used to leave a blank gap, since
+       the cover img had no error path at all. Retry once on the Drive thumbnail
+       host, then fall back to the bundled default cover so the band is never
+       empty. Dropping rd-mp-cover-photo lets the default styling take over. */
+    function rdMpCoverFail(img) {
+      if (!img) return;
+      const cover = img.closest ? img.closest('.rd-mp-cover') : img.parentElement;
+      if (!img.dataset.rdTried) {
+        img.dataset.rdTried = '1';
+        const m = /(?:lh3\.googleusercontent\.com\/d\/|[?&]id=|\/d\/)([A-Za-z0-9_-]{20,})/.exec(img.src || '');
+        if (m) { img.src = 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w1200'; return; }
+      }
+      if (img.dataset.rdFell) return;
+      img.dataset.rdFell = '1';
+      if (cover) cover.classList.remove('rd-mp-cover-photo');
+      img.src = RD_MP_COVER_DEFAULT;
     }
 
     /* "Assistant Engineer, LGED" on one line, instead of a Designation row and
@@ -1743,7 +1920,7 @@
                (st.pos ? ' tabindex="0" aria-label="Cover photo. Use the arrow keys' +
                          ' to move it, Enter to save, Escape to cancel."' : '') +
                ' style="--rd-cover-pos:' + st.x + '% ' + st.y + '%">' +
-               '<img src="' + escapeHtml(csrc) + '" alt="' + alt + '" decoding="async" draggable="false">' +
+               '<img src="' + escapeHtml(csrc) + '" alt="' + alt + '" decoding="async" draggable="false" onerror="rdMpCoverFail(this)">' +
                btns +
              '</div>' + bar;
     }
@@ -1783,18 +1960,13 @@
         (rdMpHas(mp.email)
           ? '<a class="rd-mp-act rd-mp-act-mail" href="mailto:' + escapeHtml(mp.email) +
             '"><i data-lucide="mail"></i> Email</a>' : '');
-      /* On your own page the extras are Edit and Share; on somebody else's,
-         Save contact and Share. Saving your own number into your own phone
-         book is the kind of button that makes a page feel unread. */
-      const more = (st.own
-            ? '<button type="button" class="rd-mp-act2" onclick="memberSignOut()">' +
-              '<i data-lucide="log-out"></i> Log out</button>'
-          : '<button type="button" class="rd-mp-act2" onclick="rdMpVcard()">' +
-              '<i data-lucide="user-round-plus"></i> Save contact</button>') +
-        '<button type="button" class="rd-mp-act2" onclick="rdMpShare(this)">' +
+      /* Call/WhatsApp/Email and Share profile sit together in one tidy grid,
+         on your own page and on anybody else's alike -- four calm buttons, no
+         stranded second row. Save contact was dropped: the owner did not want
+         it on a member profile. Log out lives in the More menu now. */
+      const share = '<button type="button" class="rd-mp-act rd-mp-act-share" onclick="rdMpShare(this)">' +
           '<i data-lucide="share-2"></i> Share profile</button>';
-      return (main ? '<div class="rd-mp-acts">' + main + '</div>' : '') +
-             '<div class="rd-mp-acts2">' + more + '</div>';
+      return '<div class="rd-mp-acts">' + main + share + '</div>';
     }
 
     /* ---- the credential ------------------------------------------------ */
@@ -3109,7 +3281,12 @@
        is not. No popup either way, so this never becomes the site's first one. */
     function rdMpShare(btn) {
       const mp = RD_MP_SHOWN;
-      const url = location.href;
+      /* Share a real public deep-link to this member's profile, not the private
+         address bar. #profile/<memberId> reopens the public card for anyone,
+         while the contact rows inside it stay gated to signed-in members. */
+      const url = (mp && mp.memberId)
+        ? location.origin + location.pathname + '#profile/' + encodeURIComponent(mp.memberId)
+        : location.href;
       const title = (mp && mp.name ? mp.name + ' - ' : '') + RD_MP_ORG;
       if (navigator.share) {
         navigator.share({ title: title, url: url })
@@ -3600,7 +3777,7 @@
         });
         google.accounts.id.renderButton(box, {
           theme: 'outline', size: 'large', shape: 'pill',
-          text: 'signin_with', width: 260
+          text: 'signin_with', width: 260, locale: 'en'
         });
         rdGsiOwner = 'member';
         rdGsiDrawn = false;
@@ -3611,12 +3788,92 @@
       }
     }
 
-    function memberGoogleCredential(resp) {
+    /* One Google button for everyone. The server decides the role: if this
+       Google account is on the admin list (adminrole answers success) the admin
+       panel opens; otherwise the same token signs the person in as a member.
+       No second login system, no separate admin button -- adminrole just asks.
+       The token is only remembered as an admin AFTER the server confirms it. */
+    async function memberGoogleCredential(resp) {
       const token = (resp && resp.credential) || '';
       if (!token) { dismissGlobalLoader();
       rdMemberMsg('member-signin-msg', 'Google sign in did not finish.'); return; }
+      showGlobalLoader('Signing In...', 'Verifying your account.');
+      try {
+        const who = await apiGet('adminrole', { adminToken: token });
+        if (who && who.success) {
+          rdAdminRemember(token);
+          switchPage('admin');
+          adminGateVerify();
+          return;
+        }
+      } catch (err) {
+        /* Not an admin -- adminrole answers success:false and apiGet throws.
+           That is the expected member case, so it falls straight through. */
+      }
       rdMemberRemember(token);
       memberVerify(false);
+    }
+
+    /* ---------- Email + Member ID -> six-digit code -> session ------------
+       The standalone path, no Google needed. The server checks the typed email
+       against the row for that Member ID, mails a code, and on a match mints its
+       own signed session token (rds.) that every member action already accepts
+       through rdMemEmail_. Two states in one card; the card says which. */
+    function rdSiForgot() {
+      /* Forgot email is its own page now (mockup col-forgot), not an inline box
+         on the sign-in card. */
+      openSubPage('forgot-email', 'member-signin');
+    }
+
+    function rdSiReset() {
+      const codeBox = document.getElementById('rd-si-code-box');
+      if (codeBox) codeBox.classList.add('hidden');
+      const form = document.getElementById('rd-si-form');
+      if (form) form.classList.remove('hidden');
+      const code = document.getElementById('rd-si-code');
+      if (code) code.value = '';
+      rdMemberMsg('rd-si-msg', '');
+    }
+
+    async function memberEmailStart() {
+      const email = String((document.getElementById('rd-si-email') || {}).value || '').trim();
+      const id = String((document.getElementById('rd-si-id') || {}).value || '').trim();
+      if (!email || email.indexOf('@') < 1) { rdMemberMsg('rd-si-msg', 'Please enter a valid email address.'); return; }
+      if (!id) { rdMemberMsg('rd-si-msg', 'Please enter your Member ID.'); return; }
+      rdMemberMsg('rd-si-msg', '');
+      showGlobalLoader('Sending code...', 'Emailing your sign in code.');
+      try {
+        const r = await apiPost('memberemailstart', { memberId: id, email: email });
+        dismissGlobalLoader();
+        const sent = document.getElementById('rd-si-sent');
+        if (sent) sent.textContent = 'Code sent to ' + (r.sentTo || 'your email') + '.';
+        const form = document.getElementById('rd-si-form');
+        if (form) form.classList.add('hidden');
+        const codeBox = document.getElementById('rd-si-code-box');
+        if (codeBox) codeBox.classList.remove('hidden');
+        const code = document.getElementById('rd-si-code');
+        if (code) { code.value = ''; code.focus(); }
+      } catch (err) {
+        dismissGlobalLoader();
+        rdMemberMsg('rd-si-msg', friendlyError(err).msg);
+      }
+    }
+
+    async function memberEmailVerify() {
+      const id = String((document.getElementById('rd-si-id') || {}).value || '').trim();
+      const code = String((document.getElementById('rd-si-code') || {}).value || '').trim();
+      const keep = !!(document.getElementById('rd-si-keep') || {}).checked;
+      if (!code) { rdMemberMsg('rd-si-msg', 'Enter the code from your email.'); return; }
+      showGlobalLoader('Signing In...', 'Checking your code.');
+      try {
+        const r = await apiPost('memberemailverify', { memberId: id, code: code, keep: keep });
+        rdMemberRemember(r.memberToken || '');
+        await memberSignedIn(r, false);
+        rdSiReset();
+      } catch (err) {
+        dismissGlobalLoader();
+        rdMemberMsg('rd-si-msg', friendlyError(err).msg);
+      }
     }
 
     async function memberVerify(quiet) {
@@ -3735,7 +3992,13 @@
       if (!box) return;
 
       if (rdMemberSignedIn()) { box.classList.add('hidden'); return; }
-      box.classList.remove('hidden');
+      /* The main sign-in card now does Email + Member ID -> code natively, so
+         this secondary link box is redundant clutter on the page. Keep the
+         element (and its handlers) for the edge Google-linking path, but never
+         surface it: the login page stays the single minimal card of the mockup. */
+      box.classList.add('hidden');
+      return;
+      // eslint-disable-next-line no-unreachable
 
       const ready = !!RD_MEMBER.token;
       const send = document.getElementById('member-link-send');
@@ -3829,11 +4092,24 @@
     function rdMemberNavPaint() {
       const restoring = document.body.classList.contains('rd-member-restoring');
       const on = rdMemberSignedIn();
-      const applicationVisible = !restoring && !on;
+      /* A signed-in admin is routed to the Dashboard, so the member Sign In
+         prompt and the Membership Application CTA both step aside -- an admin
+         is never asked to sign in or apply again. */
+      const adminOn = typeof rdAdminGateOpen === 'function' && rdAdminGateOpen();
+      const memberEntryVisible = !(adminOn && !on);
+      ['nav-member-menu', 'mobile-member-menu'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = memberEntryVisible ? '' : 'none';
+      });
+      const mobileMemberBtn = document.getElementById('mobile-member-btn');
+      if (mobileMemberBtn) mobileMemberBtn.style.display = memberEntryVisible ? '' : 'none';
+      const applicationVisible = !restoring && !on && !adminOn;
       const t = document.getElementById('nav-member-text');
       if (t) t.textContent = restoring ? 'Restoring...' : (on ? 'My Profile' : 'Sign In');
-      const item = document.getElementById('mobile-member-item');
-      if (item) item.textContent = restoring ? 'Restoring...' : (on ? 'My Profile' : 'Sign In');
+      const memberLabel = document.getElementById('mobile-member-label');
+      if (memberLabel) memberLabel.textContent = restoring ? 'Restoring...' : (on ? 'My Profile' : 'Sign In');
+      const memberTileIcon = document.getElementById('mobile-member-tile-icon');
+      if (memberTileIcon) memberTileIcon.outerHTML = '<i id="mobile-member-tile-icon" data-lucide="' + (on ? 'circle-user-round' : 'log-in') + '"></i>';
       document.querySelectorAll('.rd-nav-profile-dropdown').forEach(function (menu) {
         if (!on) menu.classList.add('hidden');
       });
@@ -3861,6 +4137,17 @@
       if (icon) {
         icon.outerHTML = '<i id="mobile-member-icon" class="w-6 h-6" data-lucide="' +
                          (on ? 'circle-user-round' : 'log-in') + '"></i>';
+      }
+      /* Bottom tab-bar center CTA mirrors the same state: guest -> Sign In,
+         signed in -> Profile (the raised bubble becomes the profile entry). */
+      const mnavLabel = document.getElementById('rd-mnav-cta-label');
+      if (mnavLabel) mnavLabel.textContent = restoring ? '...' : (on ? 'Profile' : 'Sign In');
+      const mnavCta = document.getElementById('rd-mnav-cta');
+      if (mnavCta) mnavCta.setAttribute('aria-label', on ? 'My Profile' : 'Member sign in');
+      const mnavIcon = document.getElementById('rd-mnav-cta-icon');
+      if (mnavIcon) {
+        mnavIcon.outerHTML = '<i id="rd-mnav-cta-icon" data-lucide="' +
+                             (on ? 'circle-user-round' : 'log-in') + '"></i>';
       }
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
     }
@@ -4854,6 +5141,10 @@
 
     function rdMemberPaintSignInLinks(restoring) {
       rdMemberNavPaint();
+      /* A signed-in admin is routed to the panel and never needs the member
+         Membership Application CTA, so it steps aside while the gate is open. */
+      const join = document.getElementById('rd-si-join');
+      if (join) join.classList.toggle('hidden', rdAdminGateOpen());
       const box = document.getElementById('alumni-member-bar');
       if (!box) return;
       if (restoring && !rdMemberSignedIn()) {
@@ -9295,6 +9586,25 @@ f.reset();
       document.querySelectorAll('.rd-pd-mswitch.open')
         .forEach(function (s) { s.classList.remove('open'); });
     }
+    /* The mobile PDACC top bar's "More" opens a top-anchored grid sheet
+       (#rd-pd-topsheet). Toggle/close it here; each grid item calls
+       rdPdMoreClose() before its own existing nav fn, and switchPage also
+       force-closes it on any page change. */
+    function rdPdMoreToggle(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const sheet = document.getElementById('rd-pd-topsheet');
+      const more = document.querySelector('#rd-pd-topnav .rd-pdt-more');
+      if (!sheet) return;
+      const open = sheet.classList.toggle('hidden') === false;
+      if (more) more.classList.toggle('active', open);
+      if (open && window.lucide) lucide.createIcons();
+    }
+    function rdPdMoreClose() {
+      const sheet = document.getElementById('rd-pd-topsheet');
+      if (sheet) sheet.classList.add('hidden');
+      const more = document.querySelector('#rd-pd-topnav .rd-pdt-more');
+      if (more) more.classList.remove('active');
+    }
     // Scroll to a section on the PDACC Home page from any PDACC sidebar,
     // switching to Home first when the click came from a sub-page.
     function rdPdGoto(id) {
@@ -9647,6 +9957,9 @@ f.reset();
         badge.classList.toggle('font-black', on && !!pending);
       });
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      /* Recompute the member-side prompts against the new admin gate so an
+         admin who just signed in stops seeing Sign In / Membership Application. */
+      if (typeof rdMemberNavPaint === 'function') rdMemberNavPaint();
     }
 
     function rdGsiReady() {
@@ -9674,7 +9987,7 @@ f.reset();
         });
         google.accounts.id.renderButton(box, {
           theme: 'outline', size: 'large', shape: 'pill',
-          text: 'signin_with', width: 260
+          text: 'signin_with', width: 260, locale: 'en'
         });
         rdGsiDrawn = true;
         rdGsiOwner = 'admin';
@@ -13405,6 +13718,91 @@ f.reset();
         c.style.setProperty('--rd-poll-delay', (i * 60) + 'ms');
         io.observe(c);
       });
+    }
+
+    /* Site-wide scroll-reveal (2026 redesign). Generalises the alumni/poll
+       reveal convention into one shared system: cards + section headings fade
+       and rise as they enter the viewport, staggered by index, once each. All
+       the visual language lives in redesign-overrides.css behind .rd-reveal /
+       .rd-reveal-head and the html.rd-reveal-on gate, so with JS off nothing
+       hides and prefers-reduced-motion shows everything at once. Native scroll
+       only, no momentum library. Works the same on mobile and PC. */
+    var RD_REVEAL_CARDS = '.rd-dc, .rd-news-card, .rd-tile, .rd-pd-card, .bb-card, #home-initiatives button, #activities .grid > div, .rd-ad-card, .rd-pd-step, .rd-pd-fact, .rd-pd-fbcard, .rd-tile-dark, .rd-pd-guide, .rd-pd27, .rd-cc';
+
+    function rdRevealTag(root) {
+      root = root || document;
+      var cards = root.querySelectorAll(RD_REVEAL_CARDS), i = 0;
+      cards.forEach(function (c) {
+        /* .rd-scroll-card and .rd-pollc carry their own observers already. */
+        if (c.classList.contains('rd-scroll-card') || c.classList.contains('rd-pollc')) return;
+        if (!c.classList.contains('rd-reveal')) {
+          c.classList.add('rd-reveal');
+          c.style.setProperty('--rd-reveal-delay', ((i % 8) * 55) + 'ms');
+          i++;
+        }
+      });
+      root.querySelectorAll('section h2, section > header h2').forEach(function (h) {
+        if (!h.classList.contains('rd-reveal-head')) h.classList.add('rd-reveal-head');
+      });
+    }
+
+    function rdRevealScan(root) {
+      root = root || document;
+      var els = root.querySelectorAll('.rd-reveal:not(.is-visible), .rd-reveal-head:not(.is-visible)');
+      if (!els.length) return;
+      if (!('IntersectionObserver' in window)) {
+        els.forEach(function (e) { e.classList.add('is-visible'); });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries, obs) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          e.target.classList.add('is-visible');
+          obs.unobserve(e.target);
+        });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+      /* Anything already on screen is revealed synchronously so above-the-fold
+         content can never get stuck invisible if the observer's first callback
+         is missed; only off-screen elements wait for the scroll animation. */
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      els.forEach(function (e) {
+        var r = e.getBoundingClientRect();
+        if (r.top < vh && r.bottom > 0) { e.classList.add('is-visible'); return; }
+        io.observe(e);
+      });
+    }
+
+    function rdRevealArm(root) {
+      rdRevealTag(root);
+      rdRevealScan(root);
+    }
+
+    /* Async feeds inject cards long after switchPage runs, so instead of hooking
+       every renderer we watch the DOM once: any node insertion re-arms the
+       active page (debounced to one frame). Tagging/scanning only touch
+       attributes, never add nodes, so this never loops. */
+    var rdRevealPending = false;
+    function rdRevealScheduleGlobal() {
+      if (rdRevealPending) return;
+      rdRevealPending = true;
+      var raf = window.requestAnimationFrame || function (f) { return setTimeout(f, 16); };
+      raf(function () {
+        rdRevealPending = false;
+        rdRevealArm(document.querySelector('.page-view.active') || document);
+      });
+    }
+
+    function rdRevealInit() {
+      if (rdRevealInit.done) return;
+      rdRevealInit.done = true;
+      /* The gate class turns the hidden-then-revealed CSS on only once JS is
+         live, so a no-JS page still shows every card. Own class (not the
+         admin-guide's rd-js) so this feature is self-contained. */
+      document.documentElement.classList.add('rd-reveal-on');
+      rdRevealScheduleGlobal();
+      if ('MutationObserver' in window && document.body) {
+        new MutationObserver(rdRevealScheduleGlobal).observe(document.body, { childList: true, subtree: true });
+      }
     }
 
     /* A poll is "past" (archived) once it is closed, or its deadline has

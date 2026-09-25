@@ -11,7 +11,15 @@
   --rd-line:rgba(16,43,82,.14);
 }
 html{scroll-behavior:auto!important}
-body{background:#f5f9ff;color:var(--rd-ink)}
+body{
+  background:#e4f1ea !important;
+  background-image:
+    radial-gradient(1150px 640px at 12% -10%, rgba(52,211,153,.20), transparent 58%),
+    radial-gradient(1050px 760px at 104% 2%, rgba(16,185,129,.14), transparent 56%),
+    linear-gradient(180deg, #e8f4ee 0%, #eef7f1 48%, #e6f2ec 100%) !important;
+  background-attachment:fixed !important;
+  color:var(--rd-ink)
+}
 ::selection{background:var(--rd-blue-700);color:#fff}
 .glass-nav{background:rgba(245,249,255,.93)!important;border-bottom-color:var(--rd-line)!important;box-shadow:0 12px 36px -28px rgba(7,31,73,.45)!important}
 .nav-accent{left:auto!important;right:-9%!important;width:39%!important;background:linear-gradient(110deg,rgba(219,234,254,.16),rgba(96,165,250,.34),rgba(30,64,175,.18))!important;box-shadow:0 10px 30px -18px rgba(37,99,235,.24);opacity:.62!important}
@@ -38,22 +46,20 @@ body{background:#f5f9ff;color:var(--rd-ink)}
 .brand-duet-crest{position:absolute!important;left:0;top:0;width:48px;height:48px;border-radius:14px!important;opacity:0;pointer-events:none;z-index:5}
 .brand-duet-crest:before{border-radius:15px}
 .brand-duet-crest:after{border-radius:13.5px}
-/* bonding click sequence — 4s: crest drops on DUET, chips converge hiding
-   RANGDHANU + underline, then DUET rises pushing the crest out */
-.brand-lockup.bond .brand-logo{animation:rdRangConverge 4s cubic-bezier(.5,0,.2,1)!important}
-.brand-lockup.bond .brand-duet-crest{animation:rdDuetSeq 4s cubic-bezier(.5,0,.2,1)!important}
-.brand-lockup.bond .brand-title-rangdhanu{animation:rdRangHide 4s cubic-bezier(.5,0,.2,1)!important}
-.brand-lockup.bond .brand-duet,.brand-lockup.bond .brand-title-duet{animation:rdDuetWordPush 4s cubic-bezier(.5,0,.2,1)!important}
-.brand-lockup.bond .brand-name:after{animation:rdBrandSweep 4.6s ease-in-out infinite, rdBondLine 4s ease!important}
-@keyframes rdRangConverge{0%,12%{transform:translateX(0) scale(1)}38%{transform:translateX(var(--rang)) scale(1.06)}56%{transform:translateX(var(--rang)) scale(1.06)}82%,100%{transform:translateX(0) scale(1)}}
-@keyframes rdDuetSeq{0%{transform:translate(0,-58px) scale(.6);opacity:0}12%{transform:translate(0,0) scale(1);opacity:1}38%{transform:translate(var(--cx),0) scale(1.06);opacity:1}56%{transform:translate(var(--cx),0) scale(1.06);opacity:1}82%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(0,-58px) scale(.6);opacity:0}}
-@keyframes rdRangHide{0%,12%{opacity:1;transform:scale(1)}30%{opacity:0;transform:scale(.9)}56%{opacity:0;transform:scale(.9)}78%,100%{opacity:1;transform:scale(1)}}
-@keyframes rdDuetWordPush{0%{transform:translateY(0);opacity:1}12%{transform:translateY(38px);opacity:0}82%{transform:translateY(38px);opacity:0}100%{transform:translateY(0);opacity:1}}
-@keyframes rdBondLine{0%,12%{opacity:1}30%,70%{opacity:0}84%,100%{opacity:1}}
+/* bonding click sequence — 2.6s: the DUET crest rises from its home over the
+   DUET word, flies to the RANGDHANU brand logo, nestles close, then returns
+   home and fades. The brand logo STAYS in place (a soft welcome pulse), the
+   DUET word steps aside so the crest has a clean home, RANGDHANU stays. */
+.brand-lockup.bond .brand-logo{animation:rdLogoWelcome 3.8s cubic-bezier(.5,0,.2,1)!important}
+.brand-lockup.bond .brand-duet-crest{animation:rdDuetVisit 3.8s cubic-bezier(.5,0,.2,1)!important}
+.brand-lockup.bond .brand-duet,.brand-lockup.bond .brand-title-duet{animation:rdDuetWordPush 3.8s cubic-bezier(.5,0,.2,1)!important}
+@keyframes rdDuetVisit{0%{transform:translate(0,0) scale(.6);opacity:0}14%{transform:translate(0,0) scale(1);opacity:1}46%{transform:translate(var(--duetx),var(--duety)) scale(.82);opacity:1}60%{transform:translate(var(--duetx),var(--duety)) scale(.82);opacity:1}88%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(0,0) scale(.6);opacity:0}}
+@keyframes rdLogoWelcome{0%,42%{transform:scale(1)}53%{transform:scale(1.12)}64%{transform:scale(1)}100%{transform:scale(1)}}
+@keyframes rdDuetWordPush{0%{transform:translateY(0);opacity:1}14%{transform:translateY(38px);opacity:0}86%{transform:translateY(38px);opacity:0}100%{transform:translateY(0);opacity:1}}
 @keyframes brandBandShine{0%,72%{transform:translateX(-120%)}88%,100%{transform:translateX(120%)}}
 @media(prefers-reduced-motion:reduce){
   .nav-accent:after,.brand-logo:before,.brand-duet-crest:before,.brand-name:after{animation:none!important}
-  .brand-lockup.bond .brand-logo,.brand-lockup.bond .brand-duet-crest,.brand-lockup.bond .brand-title-rangdhanu,.brand-lockup.bond .brand-duet,.brand-lockup.bond .brand-title-duet,.brand-lockup.bond .brand-name:after{animation:none!important}
+  .brand-lockup.bond .brand-logo,.brand-lockup.bond .brand-duet-crest,.brand-lockup.bond .brand-duet,.brand-lockup.bond .brand-title-duet{animation:none!important}
 }
 .nav-strip{border-top-color:var(--rd-line)!important;background:rgba(255,255,255,.74)!important}
 .premium-nav-item:hover,.premium-nav-item.is-active{color:var(--rd-blue-700)!important}
@@ -367,7 +373,11 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 #page-profile .rd-mp-face>img,#page-profile .rd-mp-mono,#page-my-profile .rd-mp-face>img,#page-my-profile .rd-mp-mono{border-color:#fff;box-shadow:0 0 0 4px rgba(220,238,255,.82),var(--mp-e2)}
 #page-profile .rd-mp-mono,#page-my-profile .rd-mp-mono{background:linear-gradient(140deg,var(--rd-blue-700),var(--rd-blue-950))}
 #page-profile .rd-mp-pill-ok,#page-my-profile .rd-mp-pill-ok{background:#eaf3ff;color:var(--rd-blue-800);border-color:#b9d7f5}
-#page-profile .rd-mp-act-call,#page-profile .rd-mp-act-wa,#page-my-profile .rd-mp-act-call,#page-my-profile .rd-mp-act-wa{background:linear-gradient(110deg,var(--rd-blue-800),var(--rd-blue-600));box-shadow:var(--mp-e2)}
+#page-profile .rd-mp-act-call,#page-my-profile .rd-mp-act-call{background:#eaf3ff;color:var(--rd-blue-800);box-shadow:var(--mp-e1);border:1px solid #c8ddf3}
+#page-profile .rd-mp-act-wa,#page-my-profile .rd-mp-act-wa{background:#e7f7ef;color:#047857;box-shadow:var(--mp-e1);border:1px solid #bfe6d3}
+#page-profile .rd-mp-act-mail,#page-my-profile .rd-mp-act-mail{background:#fdf1e3;color:#b45309;box-shadow:var(--mp-e1);border:1px solid #f3ddc2}
+#page-profile .rd-mp-act-share,#page-my-profile .rd-mp-act-share{background:#eef4ff;color:var(--rd-blue-800);box-shadow:var(--mp-e1);border:1px solid #cdddf5}
+#page-profile .rd-mp-act i,#page-my-profile .rd-mp-act i,#page-profile .rd-mp-act svg,#page-my-profile .rd-mp-act svg{color:inherit}
 #page-profile .rd-mp-act-lock,#page-my-profile .rd-mp-act-lock{background:#eaf3ff;color:var(--rd-blue-800);border-color:#c8ddf3}
 #page-profile .rd-mp-act2:hover,#page-my-profile .rd-mp-act2:hover{border-color:#8fc1ee;color:var(--rd-blue-800)}
 #page-profile .rd-mp-act2 i,#page-my-profile .rd-mp-act2 i{color:var(--rd-blue-700)}
@@ -386,6 +396,10 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 #page-profile .subpage-back,#page-my-profile .subpage-back{display:none!important}
 #page-family-faculty .subpage-back,#page-events .subpage-back,#page-committee-new .subpage-back,#page-ec-message .subpage-back,#page-notice-file .subpage-back,#page-pdacc-updates .subpage-back,#page-member-signin .subpage-back,#page-photo .subpage-back{display:none!important}
 #page-profile .subpage-bar,#page-my-profile .subpage-bar{display:none!important}
+/* My Profile on a phone: the subpage bar is hidden, so the section's top
+   padding left a grey band between the top bar and the "Proud Member" cover.
+   Drop it so the cover sits right under the header. */
+@media (max-width:639px){#page-my-profile>section{padding-top:0!important}}
 #page-family-faculty .subpage-bar,#page-events .subpage-bar,#page-committee-new .subpage-bar,#page-ec-message .subpage-bar,#page-notice-file .subpage-bar,#page-pdacc-updates .subpage-bar,#page-member-signin .subpage-bar,#page-photo .subpage-bar{display:none!important}
 #page-profile .rd-ed-save,#page-my-profile .rd-ed-save{background:linear-gradient(110deg,var(--rd-blue-800),var(--rd-blue-600));color:#fff}
 #page-profile .rd-ed-h,#page-my-profile .rd-ed-h{color:var(--rd-blue-800)}
@@ -1496,6 +1510,305 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   .rd-pd-dir-foot{margin-top:1rem!important;gap:8px!important}
 }
 
+/* ============================================================
+   PDACC · chance record combination (donut + colored cards).
+   Built by renderPdaccChance() into #pd-chance-rows from the feed.
+   Test-neutral: lives here, invisible to rd_source.js.
+   ============================================================ */
+#pd-chance-dept .rd-combo{display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+#pd-chance-dept .rd-donut{position:relative;width:190px;height:190px;flex:0 0 auto}
+#pd-chance-dept .rd-donut svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+#pd-chance-dept .rd-donut-seg{transition:stroke-dasharray .7s cubic-bezier(.4,0,.2,1),opacity .25s,stroke-width .2s;opacity:1}
+#pd-chance-dept .rd-donut-seg.dim{opacity:.28}
+#pd-chance-dept .rd-donut-seg.hot{stroke-width:30}
+#pd-chance-dept .rd-donut-core{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+#pd-chance-dept .rd-donut-core .n{font-size:2.5rem;font-weight:800;line-height:1;color:#0f172a}
+#pd-chance-dept .rd-donut-core .l{font-size:.72rem;font-weight:600;color:#64748b;margin-top:4px;letter-spacing:.04em}
+#pd-chance-dept .rd-combo-head{flex:1 1 240px;min-width:0}
+#pd-chance-dept .rd-combo-kicker{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#0d9488;background:#ccfbf1;border-radius:999px;padding:5px 12px;margin-bottom:10px}
+#pd-chance-dept .rd-combo-title{font-size:1.5rem;font-weight:800;line-height:1.25;color:#0f172a;margin:0 0 8px}
+#pd-chance-dept .rd-combo-cards{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+#pd-chance-dept .rd-cc{position:relative;display:flex;align-items:center;gap:10px;text-align:left;padding:14px 16px;border:1px solid #e2e8f0;border-radius:16px;background:#fff;cursor:default;overflow:hidden;font:inherit;transition:transform .2s,box-shadow .2s,border-color .2s}
+#pd-chance-dept .rd-cc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--w,0%);max-width:100%;background:color-mix(in srgb,var(--c) 12%,transparent);transition:width .7s cubic-bezier(.4,0,.2,1)}
+#pd-chance-dept .rd-cc>*{position:relative}
+#pd-chance-dept .rd-cc-dot{width:12px;height:12px;border-radius:50%;background:var(--c);flex:0 0 auto;box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 18%,transparent)}
+#pd-chance-dept .rd-cc-n{display:flex;flex-direction:column;line-height:1.2;font-size:.95rem;font-weight:700;color:#0f172a}
+#pd-chance-dept .rd-cc-n small{font-size:.66rem;font-weight:500;color:#94a3b8;margin-top:2px}
+#pd-chance-dept .rd-cc-v{margin-left:auto;font-size:1.35rem;font-weight:800;color:var(--c)}
+#pd-chance-dept .rd-cc.hot,#pd-chance-dept .rd-cc:hover{transform:translateY(-3px);box-shadow:0 10px 26px -12px color-mix(in srgb,var(--c) 55%,transparent);border-color:color-mix(in srgb,var(--c) 45%,transparent)}
+@media (max-width:640px){
+  #pd-chance-dept .rd-combo{flex-wrap:nowrap;align-items:center;gap:14px}
+  #pd-chance-dept .rd-donut{width:118px;height:118px}
+  #pd-chance-dept .rd-donut-core .n{font-size:1.7rem}
+  #pd-chance-dept .rd-donut-core .l{font-size:.6rem;margin-top:2px}
+  #pd-chance-dept .rd-combo-head{flex:1 1 auto}
+  #pd-chance-dept .rd-combo-kicker{font-size:.56rem;padding:4px 9px;margin-bottom:7px}
+  #pd-chance-dept .rd-combo-title{font-size:1.16rem;margin:0 0 6px}
+  #pd-chance-dept .rd-combo-cards{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+  #pd-chance-dept .rd-cc{padding:11px 12px;gap:8px}
+  #pd-chance-dept .rd-cc-v{font-size:1.15rem}
+}
+@media (prefers-reduced-motion:reduce){
+  #pd-chance-dept .rd-donut-seg,#pd-chance-dept .rd-cc,#pd-chance-dept .rd-cc::before{transition:none}
+}
 
+/* ============================================================
+   Mobile bottom tab-bar (xl:hidden). New #rd-mnav element; the
+   existing #mobile-menu dropdown is repositioned into a bottom
+   sheet and the old header hamburger + member buttons are hidden
+   on small screens. All test-neutral (this file is not scanned).
+   ============================================================ */
+#rd-mnav{display:none}
+@media (max-width:1279px){
+  #rd-mnav{
+    position:fixed;left:0;right:0;bottom:0;z-index:55;
+    display:grid;grid-template-columns:repeat(5,1fr);align-items:end;
+    padding:5px 6px calc(6px + env(safe-area-inset-bottom,0px));
+    background:rgba(255,255,255,.97);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+    border-top:1px solid #e2e8f0;box-shadow:0 -16px 34px -26px rgba(15,23,42,.4);
+  }
+  /* Old header entry points give way to the bottom bar on mobile. */
+  #mobile-member-btn,#mobile-menu-btn{display:none !important}
+  /* Reposition the reused dropdown as an opaque bottom sheet (no dim/blur). */
+  #mobile-menu{
+    position:fixed !important;top:auto !important;bottom:calc(58px + env(safe-area-inset-bottom,0px)) !important;
+    left:0 !important;right:0 !important;width:100% !important;
+    border-radius:22px 22px 0 0 !important;border-top:1px solid #e2e8f0 !important;
+    box-shadow:0 -30px 60px -30px rgba(15,23,42,.45) !important;
+    max-height:70vh !important;overflow-y:auto !important;overscroll-behavior:contain !important;
+    z-index:60 !important;
+  }
+  /* Open state: a 3-column icon grid (mockup style). */
+  #mobile-menu:not(.hidden){
+    display:grid !important;grid-template-columns:repeat(3,1fr);gap:9px;align-content:start;
+    padding:8px 14px calc(16px + env(safe-area-inset-bottom,0px)) !important;
+  }
+  /* Grip handle at the top, spanning the full width. */
+  #mobile-menu:not(.hidden)::before{
+    content:"";grid-column:1 / -1;width:42px;height:5px;border-radius:99px;
+    background:#cbd5e1;margin:2px auto 4px;
+  }
+  /* The 9 page shortcuts become icon tiles. */
+  #mobile-menu > .mobile-nav-item[data-page]{
+    display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+    padding:15px 6px !important;border:1px solid #e8eef6 !important;border-radius:14px !important;
+    background:#f8fafc !important;color:#334155 !important;font-size:12px !important;font-weight:700 !important;
+    text-align:center;line-height:1.15;transition:transform .16s ease,border-color .18s ease,background .18s ease;
+  }
+  #mobile-menu > .mobile-nav-item[data-page] i{width:22px;height:22px;color:#0284c7}
+  #mobile-menu > .mobile-nav-item[data-page] span{display:block}
+  #mobile-menu > .mobile-nav-item[data-page]:active{transform:scale(.96)}
+  #mobile-menu > .mobile-nav-item[data-page].active,
+  #mobile-menu > .mobile-nav-item[data-page]:hover{
+    border-color:#7dd3fc !important;background:#eff6ff !important;color:#0369a1 !important;
+  }
+  #mobile-menu > .mobile-nav-item[data-page].active i{color:#0369a1}
+  /* My Profile and Log out join the icon grid as tiles, like the shortcuts
+     above. The member wrapper is display:contents so its button is a direct
+     grid cell; the two get the same tile look by id. */
+  #mobile-menu > #mobile-member-menu{display:contents}
+  #mobile-menu #mobile-member-item,
+  #mobile-menu > #rd-more-logout-mobile{
+    display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+    width:auto !important;padding:15px 6px !important;border:1px solid #e8eef6 !important;
+    border-radius:14px !important;background:#f8fafc !important;color:#334155 !important;
+    font-size:12px !important;font-weight:700 !important;text-align:center;line-height:1.15;
+    transition:transform .16s ease,border-color .18s ease,background .18s ease;
+  }
+  #mobile-menu #mobile-member-item i,#mobile-menu #mobile-member-item svg,
+  #mobile-menu > #rd-more-logout-mobile i,#mobile-menu > #rd-more-logout-mobile svg{width:22px;height:22px;color:#0284c7}
+  #mobile-menu #mobile-member-item:active,
+  #mobile-menu > #rd-more-logout-mobile:active{transform:scale(.96)}
+  #mobile-menu #mobile-member-item:hover,
+  #mobile-menu > #rd-more-logout-mobile:hover{
+    border-color:#7dd3fc !important;background:#eff6ff !important;color:#0369a1 !important;
+  }
+  /* Admin dashboard and the CTA stay full-width rows. */
+  #mobile-menu > #mobile-admin-menu,
+  #mobile-menu > #mobile-membership-cta{grid-column:1 / -1}
+  #mobile-menu > #mobile-membership-cta{margin-top:2px !important}
+  /* Clearance so the fixed bar never covers page content. */
+  body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)) !important}
+  /* The top branding header slides away on scroll-down (JS toggles the class);
+     the bottom bar now carries navigation, so the header is free to hide. */
+  header.glass-nav{transition:transform .3s cubic-bezier(.22,1,.36,1),box-shadow .3s ease !important}
+  header.glass-nav.rd-nav-hidden{transform:translateY(-100%) !important;box-shadow:none !important}
+}
+.rd-mtab{
+  appearance:none;-webkit-appearance:none;border:0;background:transparent;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px 2px;
+  color:#64748b;font-size:10px;font-weight:700;transition:color .2s,transform .2s;
+}
+.rd-mtab i{width:20px;height:20px}
+.rd-mtab.active,.rd-mtab.active i{color:#0284c7}
+.rd-mtab:active{transform:translateY(1px)}
+.rd-mtab-cta{position:relative}
+/* Center CTA: a floating circular bubble with a crisp white ring and blue glow. */
+.rd-mnav-bubble{
+  width:46px;height:46px;margin-top:-24px;border-radius:50%;display:grid;place-items:center;color:#fff;
+  background:linear-gradient(145deg,#38bdf8 0%,#0284c7 55%,#075985 100%);
+  box-shadow:0 10px 22px -8px rgba(2,132,199,.85),0 0 0 4px #fff,0 0 0 5px rgba(2,132,199,.18);
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.rd-mtab-cta:active .rd-mnav-bubble{transform:scale(.94)}
+.rd-mnav-bubble i{width:23px;height:23px}
+#rd-mnav-cta-label{margin-top:4px;color:#0284c7;font-weight:800}
 
+/* ============================================================
+   Member Sign In redesign (Email + Member ID -> code, Google below).
+   Test-neutral: lives here, invisible to rd_source.js.
+   ============================================================ */
+#page-member-signin .rd-si-card{text-align:center}
+#page-member-signin .rd-si-or{display:flex;align-items:center;gap:12px;color:#94a3b8;font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+#page-member-signin .rd-si-or::before,#page-member-signin .rd-si-or::after{content:"";flex:1;height:1px;background:#e2e8f0}
+#page-member-signin .rd-si-sent{background:#eff6ff;border:1px solid #dbeafe;border-radius:12px;padding:11px 14px;font-size:.82rem;font-weight:600;color:#1e40af}
+#page-member-signin input.rd-si-code{letter-spacing:.4em;font-size:1.05rem}
+#page-member-signin #member-gsi-btn{min-height:44px}
 
+/* ============================================================
+   PDACC-only mobile top tab-bar (#rd-pd-topnav) + top-anchored
+   "More" grid sheet (#rd-pd-topsheet). Shown by JS via
+   body.rd-on-pdacc. Desktop (>=1280px) keeps the .rd-pd-side
+   sidebar, so both are display:none there. Test-neutral: this
+   file is never scanned by rd_source.js. Teal to match .rd-pd-teal.
+   ============================================================ */
+#rd-pd-topnav,#rd-pd-topsheet{display:none}
+@media (max-width:1279px){
+  /* The old tap-to-open accordion is replaced by this always-visible bar. */
+  .rd-pd-mswitch{display:none !important}
+
+  body.rd-on-pdacc #rd-pd-topnav{
+    display:grid;grid-template-columns:repeat(5,1fr);align-items:center;gap:2px;
+    position:fixed;top:0;left:0;right:0;z-index:58;
+    padding:calc(6px + env(safe-area-inset-top,0px)) 8px 6px;
+    background:rgba(255,255,255,.97);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+    border-bottom:1px solid #cfeae4;box-shadow:0 14px 30px -22px rgba(13,148,136,.5);
+  }
+  .rd-pdt-tab{
+    appearance:none;-webkit-appearance:none;border:0;background:transparent;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 1px;
+    color:#64748b;font-size:9.5px;font-weight:700;line-height:1;letter-spacing:-.01em;
+    border-radius:10px;transition:color .2s,background .2s,transform .15s;white-space:nowrap;
+  }
+  .rd-pdt-tab i{width:19px;height:19px}
+  .rd-pdt-tab:active{transform:translateY(1px)}
+  .rd-pdt-tab.active,.rd-pdt-tab.active i{color:#0d9488}
+  .rd-pdt-tab.active{background:#f0fdfa}
+  /* "More" grid sheet drops down from directly under the top bar. */
+  body.rd-on-pdacc #rd-pd-topsheet{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:9px;align-content:start;
+    position:fixed;left:0;right:0;z-index:57;
+    top:calc(52px + env(safe-area-inset-top,0px));
+    padding:14px 14px 16px;
+    background:rgba(255,255,255,.99);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+    border-bottom:1px solid #cfeae4;border-radius:0 0 22px 22px;
+    box-shadow:0 30px 60px -30px rgba(13,148,136,.5);
+    max-height:70vh;overflow-y:auto;overscroll-behavior:contain;
+    transform-origin:top center;animation:rdPdSheetIn .28s cubic-bezier(.22,1,.36,1) both;
+  }
+  body.rd-on-pdacc #rd-pd-topsheet.hidden{display:none}
+  .rd-pdmore-item{
+    display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+    padding:15px 6px;border:1px solid #cff0e9;border-radius:14px;text-decoration:none;
+    background:#f6fefb;color:#334155;font-size:12px;font-weight:700;
+    text-align:center;line-height:1.15;transition:transform .16s,border-color .18s,background .18s;
+  }
+  .rd-pdmore-item i{width:22px;height:22px;color:#0d9488}
+  .rd-pdmore-item[hidden]{display:none !important}
+  .rd-pdmore-item:active{transform:scale(.96)}
+  .rd-pdmore-item:hover{border-color:#5eead4;background:#ecfdf5;color:#0f766e}
+  .rd-pdmore-soon{opacity:.85}
+  .rd-pdmore-soon b{display:block;font-size:9px;font-weight:800;color:#0d9488;text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+
+  /* On the PDACC page the branding header is fully replaced by the top bar. */
+  body.rd-on-pdacc header.glass-nav{display:none !important}
+  /* Push page content clear of the fixed PDACC top bar. */
+  body.rd-on-pdacc{padding-top:calc(52px + env(safe-area-inset-top,0px)) !important}
+  /* Bottom bar auto-hide (JS toggles the class on scroll on the PDACC page). */
+  #rd-mnav{transition:transform .3s cubic-bezier(.22,1,.36,1),box-shadow .3s ease}
+  #rd-mnav.rd-nav-hidden{transform:translateY(100%) !important;box-shadow:none !important}
+}
+@keyframes rdPdSheetIn{from{opacity:0;transform:translateY(-10px) scaleY(.96)}to{opacity:1;transform:translateY(0) scaleY(1)}}
+
+/* ============================================================
+   Site-wide scroll-reveal (2026 redesign) — cards + section
+   headings fade + rise as they enter the viewport. Same visual
+   language as the alumni/poll card reveals. Mobile + PC alike
+   (no breakpoint). JS tags .rd-reveal / .rd-reveal-head and adds
+   .is-visible via IntersectionObserver; the html.rd-reveal-on gate
+   (set by rdRevealInit) keeps everything visible when JS is off.
+   See rdRevealScan in script.js.
+   ============================================================ */
+html.rd-reveal-on .rd-reveal,
+html.rd-reveal-on .rd-reveal-head{
+  opacity:0;
+  transition:opacity .6s ease,transform .6s cubic-bezier(.22,1,.36,1);
+  transition-delay:var(--rd-reveal-delay,0ms);
+  will-change:opacity,transform;
+}
+html.rd-reveal-on .rd-reveal{transform:translateY(22px)}
+html.rd-reveal-on .rd-reveal-head{transform:translateY(14px)}
+html.rd-reveal-on .rd-reveal.is-visible,
+html.rd-reveal-on .rd-reveal-head.is-visible{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:reduce){
+  html.rd-reveal-on .rd-reveal,
+  html.rd-reveal-on .rd-reveal-head{
+    opacity:1 !important;transform:none !important;transition:none !important;
+  }
+}
+
+/* ============================================================
+   "What We Do" (#activities) cards — smarter 2026 redesign.
+   Test-invisible (redesign-overrides.css). Cards also carry
+   .rd-reveal (tagged by rdRevealTag) so they fade + rise in.
+   id-specificity here beats .rd-reveal.is-visible{transform:none},
+   so the hover lift survives the reveal.
+   ============================================================ */
+#activities .grid > div{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(15,23,42,.06);
+  border-radius:1.75rem;
+  background:
+    radial-gradient(130% 130% at 100% 0%, rgba(37,99,235,.06), transparent 45%),
+    linear-gradient(180deg,#ffffff,#fbfdff);
+  box-shadow:0 1px 2px rgba(15,23,42,.04), 0 14px 34px -20px rgba(15,23,42,.28);
+  transition:transform .5s cubic-bezier(.22,1,.36,1), box-shadow .45s ease,
+             border-color .45s ease, opacity .5s ease;
+}
+/* animated tri-colour accent that sweeps in from the left on hover */
+#activities .grid > div::before{
+  content:"";position:absolute;left:0;top:0;height:3px;width:100%;
+  background:linear-gradient(90deg,#2563eb,#22c55e,#f59e0b,#e11d48);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .55s cubic-bezier(.22,1,.36,1);
+}
+#activities .grid > div:hover{
+  border-color:rgba(37,99,235,.22);
+  box-shadow:0 1px 2px rgba(15,23,42,.05), 0 30px 55px -26px rgba(37,99,235,.42);
+}
+#activities .grid > div:hover::before{transform:scaleX(1)}
+#activities .grid > div.is-visible:hover{transform:translateY(-7px)}
+
+/* icon badge: soft ring, colour-tinted depth + a glass sheen */
+#activities .grid > div > div:first-of-type{
+  position:relative;
+  border-radius:1.15rem;
+  box-shadow:inset 0 0 0 1px rgba(15,23,42,.05), 0 12px 24px -12px rgba(15,23,42,.4);
+}
+#activities .grid > div > div:first-of-type::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(140deg, rgba(255,255,255,.6), transparent 62%);
+}
+
+/* title picks up the brand blue on hover */
+#activities .grid > div h3{transition:color .35s ease}
+#activities .grid > div:hover h3{color:#1d4ed8}
+
+@media (prefers-reduced-motion:reduce){
+  #activities .grid > div,
+  #activities .grid > div::before,
+  #activities .grid > div h3{transition:none !important}
+  #activities .grid > div.is-visible:hover{transform:none !important}
+}
