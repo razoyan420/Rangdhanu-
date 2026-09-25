@@ -60,7 +60,7 @@
   try {
     var id = (location.hash || '').replace('#', '').trim();
     if (!id || id === 'home' || !/^[a-z0-9-]+$/.test(id)) return;
-    var LANDS_ON = {"notice":"home","event-detail":"events","profile":"alumni","photo":"home","notice-file":"noticeboard","ec-message":"committee","pdacc-updates":"prokoushali"};
+    var LANDS_ON = {"admin-module":"admin","notice":"home","event-detail":"events","profile":"alumni","photo":"home","notice-file":"noticeboard","ec-message":"committee","pdacc-updates":"prokoushali","pdacc-committee":"prokoushali"};
     var aliases = {family:'alumni', pdacc:'prokoushali', signin:'member-signin', notice:'noticeboard', status:'notice'};
     var target = LANDS_ON[id] || aliases[id] || id;
     if (target === 'home') return;
@@ -196,8 +196,8 @@
 <!-- Prebuilt Tailwind stylesheet.  npx tailwindcss -i src.css -o style.css --minify
      নতুন class যোগ করলে এই কমান্ড আবার চালাতে হবে — CDN আগে নিজে করত। -->
 <link rel="stylesheet" href="style.css?v=20260925-0300"/>
-<link rel="stylesheet" href="custom.css?v=20260925-1200"/>
-<link rel="stylesheet" href="redesign-overrides.css?v=20260918-1800"/>
+<link rel="stylesheet" href="custom.css?v=20260926-0100"/>
+<link rel="stylesheet" href="redesign-overrides.css?v=20260926-0100"/>
 <script>
   /* style.css fallback: prebuilt sheet না এলে বা পুরনো হলে CDN ফিরিয়ে আনে।
      document.write এখানেই সঠিক — এই path শুধু তখনই চলে যখন পেজ ইতিমধ্যে
@@ -240,6 +240,7 @@
       </div>
       <div class="brand-word">
         <span class="brand-name font-display"><span class="brand-title-word brand-title-rangdhanu">RANGDHANU</span> <span class="brand-title-word brand-duet brand-title-duet">DUET</span></span>
+        <span class="brand-duet-crest"><img alt="DUET logo" src="duet-logo.png" decoding="async"/></span>
       </div>
     </div>
     <!-- Center: floating glass pill (xl only) -->
@@ -247,15 +248,7 @@
       <nav class="nav-pill" id="nav-pill" aria-label="Main">
         <span class="nav-glare" id="nav-glare" aria-hidden="true"></span>
         <button class="nav-btn premium-nav-item active" data-page="home" onclick="switchPage('home')"><span>Home</span></button>
-        <div class="rd-more-wrap" id="rd-more-wrap-directory">
-          <button type="button" class="rd-more-btn nav-btn premium-nav-item" data-page="alumni" id="rd-more-btn-directory" onclick="switchPage('alumni'); rdMoreToggle('directory')" aria-haspopup="true" aria-expanded="false"><span>Directory</span><i data-lucide="chevron-down"></i></button>
-          <div class="rd-more-panel" id="rd-more-panel-directory" role="menu">
-            <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('ALL');},50); rdMoreClose('directory')">Everyone</button>
-            <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('Alumni');},50); rdMoreClose('directory')">Alumni</button>
-            <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('Running Member');},50); rdMoreClose('directory')">Running Member</button>
-            <button onclick="switchPage('alumni'); setTimeout(function(){openSubPage('family-faculty','alumni');},50); rdMoreClose('directory')">Teachers &amp; Officers</button>
-          </div>
-        </div>
+        <button class="nav-btn premium-nav-item" data-page="alumni" onclick="switchPage('alumni')"><span>Directory</span></button>
         <button class="nav-btn premium-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')"><span>PDACC</span></button>
         <button class="nav-btn premium-nav-item" data-page="events" onclick="switchPage('events')"><span>Events</span></button>
         <button class="nav-btn premium-nav-item" data-page="committee" onclick="switchPage('committee')"><span>Committee</span></button>
@@ -335,7 +328,7 @@
     <div class="scroll-mt-28" id="top"></div>
     <!-- Cover -->
     <section class="pt-0 pb-3 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-      <div class="relative w-full aspect-[16/10] sm:aspect-[21/9] md:h-[500px] rounded-[28px] overflow-hidden border border-slate-200 shadow-[0_24px_70px_-28px_rgba(15,23,42,.35)] bg-slate-900 group">
+      <div class="relative w-full aspect-[16/10] sm:aspect-[21/9] md:h-[460px] rounded-[28px] overflow-hidden border border-slate-200 shadow-[0_24px_70px_-28px_rgba(15,23,42,.35)] bg-slate-900 group">
         <!-- Slides are rendered by renderCoverSlides(); the pictures come from the
              Google Drive folder configured in Drive_Images.gs, so photos can be
              added, reordered or deleted in Drive with no code change at all.
@@ -401,10 +394,13 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid lg:grid-cols-12 gap-10 items-start">
           <div class="lg:col-span-7">
-            <span class="text-blue-700 text-xs font-extrabold section-kicker uppercase">About RANGDHANU</span>
-            <h2 class="text-3xl sm:text-5xl font-extrabold text-slate-950 mt-3 tracking-tight">রংধনু কী, কাদের নিয়ে</h2>
-            <p class="mt-6 text-slate-600 leading-8 text-base sm:text-lg">রংপুর বিভাগের শিক্ষার্থীদের নিয়ে গড়ে ওঠা রংধনু একটি পরিচয়, একটি সম্পর্ক এবং একটি নিজস্ব কমিউনিটি। ডুয়েটে নতুন কেউ এলে তাকে আপন করে নেওয়া, প্রয়োজনের সময়ে একে অন্যের পাশে দাঁড়ানো, পড়াশোনা ও ক্যারিয়ারের বিষয়ে সহযোগিতা করা, আর একসঙ্গে বিভিন্ন কাজ ও আয়োজনের মাধ্যমে সম্পর্ককে আরও শক্ত করা। সব মিলিয়েই রংধনুর পথচলা।</p>
-            <p class="mt-4 text-slate-600 leading-8 text-base sm:text-lg">বছরজুড়ে ভর্তি ও শিক্ষা সহায়তা, খেলাধুলা, নবীনবরণ, বিদায় অনুষ্ঠান, শিক্ষা সফর, ইফতার, পিকনিক ও নানা সামাজিক ও সাংস্কৃতিক আয়োজনের মধ্য দিয়ে সদস্যদের মধ্যে পরিচয়, বন্ধুত্ব ও পারস্পরিক সহযোগিতার সম্পর্ক তৈরি হয়। কেউ দায়িত্ব নেয়, কেউ আয়োজন করে, কেউ পাশে দাঁড়ায়। আর এভাবেই একটি সংগঠনের পাশাপাশি তৈরি হয় একটি শক্ত community।</p>
+            <div class="rd-about-card">
+              <span class="rd-about-kicker text-blue-700 text-xs font-extrabold section-kicker uppercase">About RANGDHANU</span>
+              <h2 class="rd-about-title text-3xl sm:text-5xl font-extrabold text-slate-950 mt-3 tracking-tight">রংধনু কী, কাদের নিয়ে</h2>
+              <p class="rd-about-lead mt-6 text-slate-600 leading-8 text-base sm:text-lg">রংধনু হলো ঢাকা প্রকৌশল ও প্রযুক্তি বিশ্ববিদ্যালয় (ডুয়েট), গাজীপুরে অধ্যয়নরত বৃহত্তর রংপুর বিভাগের শিক্ষার্থীদের নিয়ে গড়ে ওঠা একটি পারস্পরিক সহযোগিতা ও ছাত্রকল্যাণের সংগঠন। নতুন কেউ ডুয়েটে এসে যেন নিজেকে একা মনে না করে, তাকে আপন করে নেওয়া এবং পড়াশোনা ও ভবিষ্যৎ নিয়ে এগিয়ে যেতে পাশে দাঁড়ানোই রংধনুর অন্যতম উদ্দেশ্য।</p>
+              <p class="mt-4 text-slate-600 leading-8 text-base sm:text-lg">বছরজুড়ে নবীনবরণ, বিদায় অনুষ্ঠান, খেলাধুলা, শিক্ষা সফর, ইফতার ও পিকনিকসহ নানা সামাজিক ও সাংস্কৃতিক আয়োজনে সদস্যরা একত্র হয়। এসব আয়োজনের মধ্য দিয়েই তৈরি হয় পরিচয়, বন্ধুত্ব, স্মৃতি এবং একে অপরের পাশে থাকার শক্ত বন্ধন।</p>
+              <p class="mt-4 text-slate-600 leading-8 text-base sm:text-lg">এই সম্পর্ককে শুধু বর্তমান সদস্যদের মধ্যে সীমাবদ্ধ না রেখে RANGDHANU DUET Alumni Association এর মাধ্যমে সাবেক সদস্যদেরও যুক্ত রাখা হয়, যাতে রংধনুর এই বন্ধন প্রজন্ম থেকে প্রজন্মে এগিয়ে যায়।</p>
+            </div>
           </div>
           <div class="lg:col-span-5 grid sm:grid-cols-2 lg:grid-cols-1 gap-4">
             <div class="rd-tile bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center mb-4"><i class="w-5 h-5" data-lucide="users"></i></div><h3 class="font-extrabold text-slate-900 text-lg">আমাদের কমিউনিটি</h3><p class="text-sm text-slate-600 mt-2 leading-6">বৃহত্তর রংপুরের বর্তমান শিক্ষার্থী, সদ্য গ্র্যাজুয়েট এবং দীর্ঘদিন আগে ডুয়েট থেকে বেরিয়ে যাওয়া Alumni, সবাই মিলে রংধনুর community। এখানে এক ব্যাচের সঙ্গে আরেক ব্যাচের পরিচয় হয়, জুনিয়ররা সিনিয়রদের কাছ থেকে শেখে, আর সময়ের সঙ্গে সেই সম্পর্ক আরও বিস্তৃত হয়।</p></div>
@@ -418,7 +414,7 @@
     <section class="py-16 md:py-24 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid lg:grid-cols-2 gap-6">
-          <article class="rounded-3xl bg-slate-950 text-white p-7 sm:p-10 relative overflow-hidden shadow-xl"><div class="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-blue-600/20 blur-2xl"></div><span class="text-blue-300 text-xs font-extrabold section-kicker uppercase">Our Vision</span><h3 class="text-2xl sm:text-3xl font-extrabold mt-3">আমাদের ভিশন</h3><p class="mt-5 text-slate-300 leading-8">রংপুর বিভাগের কোনো শিক্ষার্থী যেন ডুয়েটে এসে নিজেকে একা মনে না করে, এটাই রংধনুর প্রথম স্বপ্ন। আর শিক্ষাজীবন শেষ হলেও যেন সেই পরিচয়, সম্পর্ক ও ভ্রাতৃত্ব হারিয়ে না যায়। Alumni হিসেবে সেই বন্ধনও যেন এগিয়ে চলে।</p></article>
+          <article id="home-vision" class="rounded-3xl bg-slate-950 text-white p-7 sm:p-10 relative overflow-hidden shadow-xl"><div class="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-blue-600/20 blur-2xl"></div><span class="text-blue-300 text-xs font-extrabold section-kicker uppercase">Our Vision</span><h3 class="text-2xl sm:text-3xl font-extrabold mt-3">আমাদের ভিশন</h3><p class="mt-5 text-slate-300 leading-8">রংপুর বিভাগের কোনো শিক্ষার্থী যেন ডুয়েটে এসে নিজেকে একা মনে না করে, এটাই রংধনুর প্রথম স্বপ্ন। আর শিক্ষাজীবন শেষ হলেও যেন সেই পরিচয়, সম্পর্ক ও ভ্রাতৃত্ব হারিয়ে না যায়। Alumni হিসেবে সেই বন্ধনও যেন এগিয়ে চলে।</p></article>
           <article class="rd-tile rounded-3xl bg-slate-50 border border-slate-200 p-7 sm:p-10 shadow-sm"><span class="text-indigo-700 text-xs font-extrabold section-kicker uppercase">Our Mission</span><h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 mt-3">আমাদের মিশন</h3><ul class="mt-5 space-y-3 text-slate-600 leading-7 text-sm sm:text-base"><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span><span class="block font-bold text-slate-900">শিক্ষা ও ভর্তি সহায়তা</span><span class="block mt-0.5">ভর্তি প্রস্তুতি, পড়াশোনা ও উচ্চশিক্ষার ক্ষেত্রে প্রয়োজনীয় সহযোগিতা ও দিকনির্দেশনা পৌঁছে দেওয়া।</span></span></li><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span><span class="block font-bold text-slate-900">সম্পর্ক ও পারস্পরিক সহযোগিতা</span><span class="block mt-0.5">নতুন-পুরোনো সদস্যদের মধ্যে পরিচয়, যোগাযোগ ও একে অন্যের পাশে দাঁড়ানোর সংস্কৃতি তৈরি করা।</span></span></li><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span><span class="block font-bold text-slate-900">নেতৃত্ব ও দায়িত্ববোধ</span><span class="block mt-0.5">বিভিন্ন আয়োজন ও সাংগঠনিক দায়িত্বের মাধ্যমে সদস্যদের নেতৃত্ব, teamwork, দায়িত্ববোধ ও কাজ শেখার সুযোগ তৈরি করা।</span></span></li><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span><span class="block font-bold text-slate-900">সামাজিক ও সাংস্কৃতিক বন্ধন</span><span class="block mt-0.5">খেলাধুলা, সাংস্কৃতিক ও সামাজিক আয়োজনের মাধ্যমে সদস্যদের মধ্যে বন্ধুত্ব ও পারস্পরিক সম্পর্ক আরও শক্ত করা।</span></span></li><li class="flex gap-3"><i class="w-5 h-5 text-indigo-600 shrink-0 mt-1" data-lucide="check-circle-2"></i><span><span class="block font-bold text-slate-900">Alumni Connection</span><span class="block mt-0.5">ডুয়েট থেকে পাস করে যাওয়া সদস্যদের সঙ্গে যোগাযোগ ধরে রাখা এবং একটি শক্তিশালী Alumni community গড়ে তোলা।</span></span></li></ul></article>
         </div>
       </div>
@@ -483,7 +479,7 @@
     </section>
 
     <!-- Initiatives -->
-    <section class="py-16 md:py-24 bg-white">
+    <section id="home-initiatives" class="py-16 md:py-24 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-5 mb-10"><div><span class="text-indigo-700 text-xs font-extrabold section-kicker uppercase">Our Initiatives</span><h2 class="text-3xl sm:text-5xl font-extrabold text-slate-950 mt-3">রংধনুর উদ্যোগ</h2></div><p class="text-slate-600 max-w-xl leading-7">রংধনুর মূল কার্যক্রমের পাশাপাশি, শিক্ষার্থীদের দীর্ঘমেয়াদি প্রয়োজনকে সামনে রেখে গড়ে উঠেছে দুটি গুরুত্বপূর্ণ উদ্যোগ: ভর্তি প্রস্তুতির জন্য PDACC এবং শিক্ষাজীবনের পরও সম্পর্ক ধরে রাখার জন্য RANGDHANU DUET Alumni Association।</p></div>
         <div class="grid lg:grid-cols-2 gap-6">
@@ -496,6 +492,28 @@
     <!-- Closing CTA -->
     <section class="py-16 md:py-20 bg-white border-t border-slate-100">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"><div class="rounded-3xl bg-gradient-to-r from-blue-700 to-indigo-700 p-8 sm:p-12 text-center text-white shadow-2xl"><span class="text-blue-100 text-xs font-bold section-kicker uppercase">Stay Connected</span><h2 class="text-3xl sm:text-4xl font-extrabold mt-3">রংধনুর সঙ্গে যুক্ত থাকুন</h2><p class="text-blue-100 max-w-2xl mx-auto mt-4 leading-7">আপনি রংপুর বিভাগের শিক্ষার্থী, রংধনুর বর্তমান সদস্য কিংবা DUET-এর সাবেক শিক্ষার্থী, রংধনুর সঙ্গে আপনার সম্পর্ক থাকলে community-এর সঙ্গে যুক্ত থাকুন। আপনার পরিচয় ও যোগাযোগের তথ্য আমাদের নেটওয়ার্ককে আরও সমৃদ্ধ করে।</p><div class="flex flex-wrap justify-center gap-3 mt-7"><button class="px-6 py-3.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 shadow-sm" onclick="switchPage('register')">Membership Application</button><button class="px-6 py-3.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-sm hover:bg-white/15" onclick="switchPage('events')">রংধনুর কার্যক্রম ঘুরে দেখুন</button></div></div></div>
+    </section>
+
+    <!-- Social connect (Facebook + LinkedIn) -->
+    <section id="home-connect-fb" class="pb-16 md:pb-24 bg-white">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="rd-social-grid">
+          <a href="https://www.facebook.com/rangdhanu.duet.gazipur" target="_blank" rel="noopener" class="rd-social-card rd-social-fb">
+            <span class="rd-social-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.88v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07"/></svg></span>
+            <span class="rd-social-kicker section-kicker uppercase">Official Facebook Page</span>
+            <span class="rd-social-title">রংধনুর সঙ্গে থাকুন Facebook-এ</span>
+            <span class="rd-social-desc">নোটিশ, ছবি, ইভেন্ট আর রংধনু পরিবারের সব খবর সবার আগে পেতে অফিশিয়াল Facebook পেজে যুক্ত থাকুন।</span>
+            <span class="rd-social-cta">Facebook Page দেখুন <i data-lucide="arrow-up-right" class="w-4 h-4"></i></span>
+          </a>
+          <a href="https://www.linkedin.com/company/rangdhanuduet/" target="_blank" rel="noopener" class="rd-social-card rd-social-li">
+            <span class="rd-social-icon"><svg viewBox="0 0 448 512" width="27" height="27" fill="currentColor" aria-hidden="true"><path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"/></svg></span>
+            <span class="rd-social-kicker section-kicker uppercase">LinkedIn Company Page</span>
+            <span class="rd-social-title">রংধনু পরিবার, LinkedIn-এ</span>
+            <span class="rd-social-desc">অ্যালামনাইদের ক্যারিয়ার যাত্রা, ইন্ডাস্ট্রি সংযোগ আর নতুন সম্ভাবনা, সবকিছু এক নেটওয়ার্কে। LinkedIn-এ রংধনুর সঙ্গে যুক্ত হয়ে প্রফেশনাল জগতে এক ধাপ এগিয়ে থাকুন।</span>
+            <span class="rd-social-cta">LinkedIn-এ যুক্ত হোন <i data-lucide="arrow-up-right" class="w-4 h-4"></i></span>
+          </a>
+        </div>
+      </div>
     </section>
   </div>
 
@@ -746,14 +764,15 @@
   <div class="rd-pd-mpanel"><button type="button" class="rd-pd-link active" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
 <button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
 <button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
-<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
 <button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-committee','prokoushali')"><i data-lucide="users-round"></i> Executive committee</button>
 <button type="button" class="rd-pd-link" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
 <div class="rd-pd-kicker">শীঘ্রই আসছে</div>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="calendar-days"></i> ক্লাস রুটিন <span class="rd-pd-soon">Soon</span></button>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="book-marked"></i> স্টাডি ম্যাটেরিয়াল <span class="rd-pd-soon">Soon</span></button>
 <button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="award"></i> পরীক্ষার ফলাফল <span class="rd-pd-soon">Soon</span></button></div>
+<div class="rd-pd-navfoot">
+<a class="rd-pd-link rd-pd-navlink rd-pd-navseat" href="tel:" hidden><i data-lucide="ticket"></i> Seat Booking <i data-lucide="phone-outgoing" class="rd-pd-navext"></i></a>
+</div></div>
 </div>
 <aside class="rd-pd-side">
   <div class="rd-pd-side-brand">
@@ -763,14 +782,15 @@
   <nav><button type="button" class="rd-pd-link active" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
 <button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
 <button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
-<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
 <button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-committee','prokoushali')"><i data-lucide="users-round"></i> Executive committee</button>
 <button type="button" class="rd-pd-link" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
 <div class="rd-pd-kicker">শীঘ্রই আসছে</div>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="calendar-days"></i> ক্লাস রুটিন <span class="rd-pd-soon">Soon</span></button>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="book-marked"></i> স্টাডি ম্যাটেরিয়াল <span class="rd-pd-soon">Soon</span></button>
 <button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="award"></i> পরীক্ষার ফলাফল <span class="rd-pd-soon">Soon</span></button></nav>
+<div class="rd-pd-navfoot">
+<a class="rd-pd-link rd-pd-navlink rd-pd-navseat" href="tel:" hidden><i data-lucide="ticket"></i> Seat Booking <i data-lucide="phone-outgoing" class="rd-pd-navext"></i></a>
+</div></nav>
 </aside>
 <div class="rd-pd-content">
         <!-- The notice line. Hidden altogether while the admin has no line
@@ -782,44 +802,13 @@
           </div>
         </div>
 
-        <!-- Latest update. The cards slide sideways; the eighth is the last
-             one on the rail and the rest live on the View all page. -->
-        <div id="pdacc-updates-box" class="mb-12 scroll-mt-28">
-          <div class="flex flex-wrap items-end gap-3 mb-6">
-            <div class="min-w-0">
-              <span class="inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold uppercase tracking-widest"><i class="w-3.5 h-3.5" data-lucide="newspaper"></i> Latest update</span>
-              <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 font-display tracking-tight">News from the coaching centre</h2>
-            </div>
-            <button type="button" id="pdacc-updates-all" onclick="openPdaccUpdates()" class="hidden ml-auto items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 text-[11px] font-extrabold cursor-pointer">View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></button>
-          </div>
-          <div class="rd-rail-wrap">
-            <button type="button" id="pdacc-upd-prev" onclick="pdaccUpdSlide(-1)" class="rd-rail-btn rd-rail-prev" aria-label="Previous updates" aria-controls="pdacc-updates"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-            <div class="rd-rail" id="pdacc-updates" tabindex="0" role="group" aria-label="PDACC updates"></div>
-            <button type="button" id="pdacc-upd-next" onclick="pdaccUpdSlide(1)" class="rd-rail-btn rd-rail-next" aria-label="Next updates" aria-controls="pdacc-updates"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
-          </div>
-        </div>
-
         <!-- The About button on the bar scrolls to this block; there is no
              second copy of the description anywhere. -->
         <div id="pdacc-about" class="max-w-4xl mx-auto text-center mb-12 scroll-mt-28">
           <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-extrabold uppercase"><img src="pdacc-logo.png" alt="" decoding="async" onerror="rdPdLogoFallback(this)" class="w-4 h-4 object-contain rounded-[5px]"> A RANGDHANU Initiative</span>
           <p class="mt-3 text-[12px] sm:text-sm font-bold text-slate-500">রংধনুর উদ্যোগে পরিচালিত</p>
-          <h2 class="text-4xl sm:text-5xl font-extrabold text-slate-950 mt-5 tracking-tight">Prokoushali <span class="text-indigo-600">DUET Admission Coaching Centre</span></h2>
-          <p class="text-slate-600 text-base sm:text-lg mt-5 leading-8 max-w-3xl mx-auto">পলিটেকনিক শিক্ষার্থীদের ডুয়েট ভর্তি পরীক্ষার প্রস্তুতিকে আরও গোছানো ও লক্ষ্যভিত্তিক করার উদ্দেশ্যে রংধনুর উদ্যোগে পরিচালিত একটি বিশেষায়িত কোচিং সেন্টার। ডুয়েটের বর্তমান শিক্ষার্থীদের অভিজ্ঞতা, নিয়মিত অনুশীলন, প্রশ্ন সমাধান ও মডেল টেস্টের মাধ্যমে শিক্ষার্থীদের ভর্তি পরীক্ষার জন্য প্রস্তুত করা হয়।</p>
-        </div>
-        <div id="pdacc-leadership" class="mt-12 hidden">
-          <div class="max-w-4xl mx-auto text-center">
-            <span class="rd-pd-crest is-big mx-auto mb-4 shadow-sm"><img src="pdacc-logo.png" alt="PDACC crest" loading="lazy" decoding="async" onerror="rdPdLogoFallback(this)"></span>
-            <span class="block text-indigo-700 text-xs font-extrabold section-kicker uppercase">Leadership</span>
-            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 mt-3">Message from the Director</h3>
-            <p class="text-slate-600 mt-3 leading-7 text-sm sm:text-base">Words from the Director of our latest PDACC Executive Committee.</p>
-          </div>
-          <div class="max-w-3xl mx-auto mt-8" id="pdacc-director-card"></div>
-          <div class="text-center mt-8">
-            <button type="button" onclick="pdaccViewLastCommittee()" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-extrabold text-sm shadow-lg cursor-pointer">
-              <i data-lucide="users" class="w-4 h-4"></i> <span id="pdacc-committee-btn-label">View last session committee</span>
-            </button>
-          </div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-950 mt-5 tracking-tight leading-tight">Prokoushali <span class="text-indigo-600">DUET Admission Coaching Centre</span></h2>
+          <p class="text-slate-700 text-lg sm:text-xl mt-6 leading-8 max-w-3xl mx-auto">পলিটেকনিক শিক্ষার্থীদের ডুয়েট ভর্তি পরীক্ষার প্রস্তুতিকে আরও গোছানো ও লক্ষ্যভিত্তিক করার উদ্দেশ্যে রংধনুর উদ্যোগে পরিচালিত একটি বিশেষায়িত কোচিং সেন্টার। ডুয়েটের বর্তমান শিক্ষার্থীদের অভিজ্ঞতা, নিয়মিত অনুশীলন, প্রশ্ন সমাধান ও মডেল টেস্টের মাধ্যমে শিক্ষার্থীদের ভর্তি পরীক্ষার জন্য প্রস্তুত করা হয়।</p>
         </div>
         <!-- The guide is the thing a candidate came for, so it is offered
              before the messages and the contact strip. -->
@@ -833,6 +822,16 @@
             <i data-lucide="arrow-right" class="w-5 h-5 shrink-0"></i>
           </button>
         </div>
+        <div id="pdacc-leadership" class="mt-12 hidden">
+          <div class="rd-pd-lhero text-center mb-2"><div class="rd-pd-lhero-in">
+            <span class="rd-pd-crest is-big mx-auto mb-4 shadow-sm"><img src="pdacc-logo.png" alt="PDACC crest" loading="lazy" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+            <span class="rd-pd-lhero-badge">Leadership</span>
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 mt-3">Message from the Director</h3>
+            <p class="text-slate-600 mt-3 leading-7 text-sm sm:text-base">Words from the Director of our latest PDACC Executive Committee.</p>
+          </div></div>
+          <div class="max-w-3xl mx-auto mt-8" id="pdacc-director-card"></div>
+        </div>
+
 
         <div class="rounded-[30px] bg-slate-950 text-white p-7 sm:p-10 md:p-12 shadow-2xl relative overflow-hidden mb-8">
           <div class="absolute -right-24 -top-24 w-80 h-80 rounded-full bg-indigo-600/20 blur-3xl"></div><div class="absolute -left-24 -bottom-24 w-72 h-72 rounded-full bg-blue-500/10 blur-3xl"></div>
@@ -931,6 +930,15 @@
              strip. Each button appears only once there is somebody behind it,
              so a visitor is never handed a dead button. -->
         <div id="pdacc-contacts" class="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <div class="mt-12">
+          <div class="rd-pd-fbcard">
+            <span class="rd-pd-fbcard-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.88v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07"/></svg></span>
+            <span class="rd-pd-fbcard-kick">OFFICIAL FACEBOOK PAGE</span>
+            <h3 class="rd-pd-fbcard-h">PDACC-এর সঙ্গে থাকুন <span>Facebook</span>-এ</h3>
+            <p class="rd-pd-fbcard-p">ভর্তি নোটিশ, ক্লাস আপডেট, ছবি আর প্রকৌশলী DUET এডমিশন কোচিং সেন্টারের সব খবর সবার আগে পেতে আমাদের অফিশিয়াল Facebook পেজে যুক্ত থাকুন।</p>
+            <a class="rd-pd-fbcard-btn" href="https://www.facebook.com/pdaccduet" target="_blank" rel="noopener">Facebook Page দেখুন <i data-lucide="arrow-up-right"></i></a>
+          </div>
+        </div>
 </div></div>
       </div>
     </section>
@@ -950,14 +958,15 @@
   <div class="rd-pd-mpanel"><button type="button" class="rd-pd-link" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
 <button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
 <button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
-<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
 <button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-committee','prokoushali')"><i data-lucide="users-round"></i> Executive committee</button>
 <button type="button" class="rd-pd-link active" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
 <div class="rd-pd-kicker">শীঘ্রই আসছে</div>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="calendar-days"></i> ক্লাস রুটিন <span class="rd-pd-soon">Soon</span></button>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="book-marked"></i> স্টাডি ম্যাটেরিয়াল <span class="rd-pd-soon">Soon</span></button>
 <button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="award"></i> পরীক্ষার ফলাফল <span class="rd-pd-soon">Soon</span></button></div>
+<div class="rd-pd-navfoot">
+<a class="rd-pd-link rd-pd-navlink rd-pd-navseat" href="tel:" hidden><i data-lucide="ticket"></i> Seat Booking <i data-lucide="phone-outgoing" class="rd-pd-navext"></i></a>
+</div></div>
 </div>
 <aside class="rd-pd-side">
   <div class="rd-pd-side-brand">
@@ -967,14 +976,15 @@
   <nav><button type="button" class="rd-pd-link" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
 <button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
 <button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
-<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
 <button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-committee','prokoushali')"><i data-lucide="users-round"></i> Executive committee</button>
 <button type="button" class="rd-pd-link active" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
 <div class="rd-pd-kicker">শীঘ্রই আসছে</div>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="calendar-days"></i> ক্লাস রুটিন <span class="rd-pd-soon">Soon</span></button>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="book-marked"></i> স্টাডি ম্যাটেরিয়াল <span class="rd-pd-soon">Soon</span></button>
 <button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="award"></i> পরীক্ষার ফলাফল <span class="rd-pd-soon">Soon</span></button></nav>
+<div class="rd-pd-navfoot">
+<a class="rd-pd-link rd-pd-navlink rd-pd-navseat" href="tel:" hidden><i data-lucide="ticket"></i> Seat Booking <i data-lucide="phone-outgoing" class="rd-pd-navext"></i></a>
+</div></nav>
 </aside>
 <div class="rd-pd-content">
         <div class="text-center max-w-2xl mx-auto mb-9">
@@ -991,6 +1001,64 @@
   </div>
 
   <!-- ================= SUB-PAGE: DUET ADMISSION GUIDE ================= -->
+  <div class="page-view rd-pd-teal" id="page-pdacc-committee">
+    <!-- PDACC-scoped committee: latest session only; no committee/session tabs,
+         no route to the site-wide committee page. Filled by renderPdaccCommittee(). -->
+    <section class="pt-5 md:pt-6 pb-14 md:pb-20 bg-[#f8fafc] border-t border-slate-200 min-h-[75vh]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="rd-pd-lhero text-center mb-10 mt-2"><div class="rd-pd-lhero-in">
+<span class="rd-pd-crest is-big mx-auto mb-4 shadow-sm"><img src="pdacc-logo.png" alt="PDACC crest" loading="lazy" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+<span class="rd-pd-lhero-badge">Executive committee</span>
+<h2 class="text-2xl sm:text-3xl font-extrabold text-slate-950 mt-3">PDACC Executive committee</h2>
+<p class="text-slate-600 mt-3 leading-7 text-sm sm:text-base" id="pdacc-committee-sub">সর্বশেষ সেশনের নির্বাহী কমিটি।</p>
+</div></div>
+    <div class="rd-pd-portal">
+<div class="rd-pd-mswitch">
+  <div class="rd-pd-mbar" onclick="rdPdNavToggle(this)">
+    <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+    <span class="min-w-0"><span class="rd-pd-mcur">PDACC section<b>Executive committee</b></span></span>
+    <i data-lucide="chevron-down" class="rd-pd-mchev w-5 h-5"></i>
+  </div>
+  <div class="rd-pd-mpanel"><button type="button" class="rd-pd-link" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
+<button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link active" onclick="openSubPage('pdacc-committee','prokoushali')"><i data-lucide="users-round"></i> Executive committee</button>
+<button type="button" class="rd-pd-link" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
+<div class="rd-pd-kicker">শীঘ্রই আসছে</div>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
+<div class="rd-pd-navfoot">
+<a class="rd-pd-link rd-pd-navlink rd-pd-navseat" href="tel:" hidden><i data-lucide="ticket"></i> Seat Booking <i data-lucide="phone-outgoing" class="rd-pd-navext"></i></a>
+</div></div>
+</div>
+<aside class="rd-pd-side">
+  <div class="rd-pd-side-brand">
+    <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+    <div><strong>PROKAUSHALI</strong><span>DUET Admission Coaching Centre</span></div>
+  </div>
+  <nav><button type="button" class="rd-pd-link" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
+<button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link active" onclick="openSubPage('pdacc-committee','prokoushali')"><i data-lucide="users-round"></i> Executive committee</button>
+<button type="button" class="rd-pd-link" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
+<div class="rd-pd-kicker">শীঘ্রই আসছে</div>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
+<div class="rd-pd-navfoot">
+<a class="rd-pd-link rd-pd-navlink rd-pd-navseat" href="tel:" hidden><i data-lucide="ticket"></i> Seat Booking <i data-lucide="phone-outgoing" class="rd-pd-navext"></i></a>
+</div></nav>
+</aside>
+<div class="rd-pd-content">
+    <div class="rd-pd max-w-5xl mx-auto">
+      <div id="pdacc-committee-mount" class="rd-ec"></div>
+    </div>
+</div>
+    </div>
+    </div>
+    </section>
+  </div>
   <div class="page-view rd-pd-teal" id="page-pdacc-admission">
     <!-- No Back button here on purpose: the PDACC strip below is the way
          back, and every button on it except this page's own returns to
@@ -1005,14 +1073,15 @@
   <div class="rd-pd-mpanel"><button type="button" class="rd-pd-link" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
 <button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
 <button type="button" class="rd-pd-link active" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
-<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
 <button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-committee','prokoushali')"><i data-lucide="users-round"></i> Executive committee</button>
 <button type="button" class="rd-pd-link" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
 <div class="rd-pd-kicker">শীঘ্রই আসছে</div>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="calendar-days"></i> ক্লাস রুটিন <span class="rd-pd-soon">Soon</span></button>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="book-marked"></i> স্টাডি ম্যাটেরিয়াল <span class="rd-pd-soon">Soon</span></button>
 <button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="award"></i> পরীক্ষার ফলাফল <span class="rd-pd-soon">Soon</span></button></div>
+<div class="rd-pd-navfoot">
+<a class="rd-pd-link rd-pd-navlink rd-pd-navseat" href="tel:" hidden><i data-lucide="ticket"></i> Seat Booking <i data-lucide="phone-outgoing" class="rd-pd-navext"></i></a>
+</div></div>
 </div>
 <aside class="rd-pd-side">
   <div class="rd-pd-side-brand">
@@ -1022,28 +1091,21 @@
   <nav><button type="button" class="rd-pd-link" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
 <button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
 <button type="button" class="rd-pd-link active" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
-<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
 <button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-committee','prokoushali')"><i data-lucide="users-round"></i> Executive committee</button>
 <button type="button" class="rd-pd-link" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
 <div class="rd-pd-kicker">শীঘ্রই আসছে</div>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="calendar-days"></i> ক্লাস রুটিন <span class="rd-pd-soon">Soon</span></button>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="book-marked"></i> স্টাডি ম্যাটেরিয়াল <span class="rd-pd-soon">Soon</span></button>
 <button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
-<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="award"></i> পরীক্ষার ফলাফল <span class="rd-pd-soon">Soon</span></button></nav>
+<div class="rd-pd-navfoot">
+<a class="rd-pd-link rd-pd-navlink rd-pd-navseat" href="tel:" hidden><i data-lucide="ticket"></i> Seat Booking <i data-lucide="phone-outgoing" class="rd-pd-navext"></i></a>
+</div></nav>
 </aside>
 <div class="rd-pd-content">
     <div class="rd-ad">
       <div class="rd-ad-wrap">
         <!-- ================================================ masthead -->
         <header class="rd-ad-top">
-          <div class="rd-ad-brand">
-            <img src="pdacc-logo.png" alt="প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টারের লোগো"/>
-            <div>
-              <b>প্রকৌশলী ডুয়েট এডমিশন কোচিং সেন্টার</b>
-              <span>Prokoushali DUET Admission Coaching Centre (PDACC)</span>
-              <i>রংধনুর অঙ্গ সংগঠন, RANGDHANU DUET</i>
-            </div>
-          </div>
           <h1>DUET ভর্তি পরীক্ষা কীভাবে হয়</h1>
           <p>প্রশ্ন কত, নম্বর কত, কোন কাগজে কী থাকে, কীভাবে প্রার্থী বাছাই হয় আর কোন বিভাগে কত আসন, সবটা এক জায়গায়। প্রতিটি সংখ্যা DUET-এর নিজের প্রস্পেক্টাস থেকে নেওয়া।</p>
           <div class="rd-ad-chips">
@@ -1760,6 +1822,13 @@
           </div>
           <p class="rd-ad-src">সূত্র: Syllabus for Admission Test 2025-2026, Second Paper (Technical Subjects)। আসনসংখ্যা প্রস্পেক্টাসের ৪(গ) নম্বর অনুচ্ছেদ থেকে, কোটার সংরক্ষিত আসন এর বাইরে।</p>
         </section>
+        <div class="rd-pd-fbcard">
+          <span class="rd-pd-fbcard-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.88v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07"/></svg></span>
+          <span class="rd-pd-fbcard-kick">OFFICIAL FACEBOOK PAGE</span>
+          <h3 class="rd-pd-fbcard-h">PDACC-এর সঙ্গে থাকুন <span>Facebook</span>-এ</h3>
+          <p class="rd-pd-fbcard-p">ভর্তি নোটিশ, ক্লাস আপডেট, ছবি আর প্রকৌশলী DUET এডমিশন কোচিং সেন্টারের সব খবর সবার আগে পেতে আমাদের অফিশিয়াল Facebook পেজে যুক্ত থাকুন।</p>
+          <a class="rd-pd-fbcard-btn" href="https://www.facebook.com/pdaccduet" target="_blank" rel="noopener">Facebook Page দেখুন <i data-lucide="arrow-up-right"></i></a>
+        </div>
       </div>
     </div>
 </div></div>
@@ -2012,7 +2081,7 @@
 
   <!-- ================= PAGE 3: ALUMNI DIRECTORY ================= -->
   <div class="page-view" id="page-alumni">
-    <section class="py-14 bg-slate-50 border-t border-slate-200 relative z-10 min-h-[70vh]">
+    <section class="py-14 rd-dir-hero-bg border-t border-slate-200 relative z-10 min-h-[70vh]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="family-intro max-w-3xl mx-auto mb-10">
           <p class="family-intro-kicker">COMMUNITY DIRECTORY</p>
@@ -2023,42 +2092,38 @@
 
         <div class="family-toolbar max-w-6xl mx-auto mb-10">
           <div class="family-filter-fields">
-            <div class="relative">
+            <div class="rd-dir-search">
               <i class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" data-lucide="search"></i>
               <input class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" id="alumni-search-input" onkeyup="filterAlumni()" placeholder="Search by name, company, designation, district or series..." type="text"/>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 transition" id="alumni-filter-dept" onchange="filterAlumni()">
-                <option value="ALL">All Departments</option>
-                <option value="CE">CE</option><option value="EEE">EEE</option><option value="ME">ME</option><option value="CSE">CSE</option>
-                <option value="TE">TE</option><option value="Arch">Arch</option><option value="IPE">IPE</option><option value="MME">MME</option>
-                <option value="ChE">ChE</option><option value="FE">FE</option>
-              </select>
-              <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 transition" id="alumni-filter-series" onchange="filterAlumni()">
-                <option value="ALL">All Series</option>
-              </select>
-              <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 transition" id="alumni-filter-blood" onchange="filterAlumni()">
-                <option value="ALL">All Blood Groups</option>
-                <option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option>
-                <option value="O+">O+</option><option value="O-">O-</option><option value="AB+">AB+</option><option value="AB-">AB-</option>
-              </select>
+            <select class="rd-dir-fsel bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 transition" id="alumni-filter-dept" onchange="filterAlumni()">
+              <option value="ALL">All Departments</option>
+              <option value="CE">CE</option><option value="EEE">EEE</option><option value="ME">ME</option><option value="CSE">CSE</option>
+              <option value="TE">TE</option><option value="Arch">Arch</option><option value="IPE">IPE</option><option value="MME">MME</option>
+              <option value="ChE">ChE</option><option value="FE">FE</option>
+            </select>
+            <select class="rd-dir-fsel bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 transition" id="alumni-filter-series" onchange="filterAlumni()">
+              <option value="ALL">All Series</option>
+            </select>
+            <select class="rd-dir-fsel bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 transition" id="alumni-filter-blood" onchange="filterAlumni()">
+              <option value="ALL">All Blood Groups</option>
+              <option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option>
+              <option value="O+">O+</option><option value="O-">O-</option><option value="AB+">AB+</option><option value="AB-">AB-</option>
+            </select>
+          </div>
+          <div class="rd-dir-subnav" role="navigation" aria-label="Directory sections">
+            <div class="rd-dir-seg" id="alumni-view-tabs" role="group" aria-label="Directory filter">
+              <button type="button" class="rd-dir-tab alumni-view-tab-btn is-active" data-view="ALL" aria-pressed="true" onclick="setAlumniViewFilter('ALL')"><i data-lucide="users-round" class="w-4 h-4"></i><span>Everyone</span></button>
+              <button type="button" class="rd-dir-tab alumni-view-tab-btn" data-view="Alumni" aria-pressed="false" onclick="setAlumniViewFilter('Alumni')"><i data-lucide="graduation-cap" class="w-4 h-4"></i><span>Alumni</span></button>
+              <button type="button" class="rd-dir-tab alumni-view-tab-btn" data-view="Running Member" aria-pressed="false" onclick="setAlumniViewFilter('Running Member')"><i data-lucide="backpack" class="w-4 h-4"></i><span>Running Member</span></button>
             </div>
-          </div>
-          <div class="family-view-tabs flex flex-wrap gap-2 pt-4 mt-4 border-t border-slate-100 xl:hidden" id="alumni-view-tabs" role="group" aria-label="Directory filter">
-            <button type="button" class="alumni-view-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-blue-600 text-white border-blue-600 transition" data-view="ALL" onclick="setAlumniViewFilter('ALL')">Everyone</button>
-            <button type="button" class="alumni-view-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-600 border-slate-200 hover:border-blue-300 transition" data-view="Alumni" onclick="setAlumniViewFilter('Alumni')"><span class="inline-flex items-center gap-1.5"><i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> Alumni</span></button>
-            <button type="button" class="alumni-view-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-600 border-slate-200 hover:border-blue-300 transition" data-view="Running Member" onclick="setAlumniViewFilter('Running Member')"><span class="inline-flex items-center gap-1.5"><i data-lucide="backpack" class="w-3.5 h-3.5"></i> Running Member</span></button>
-          </div>
-          <div class="flex flex-wrap gap-2 pt-4 mt-4 border-t border-slate-100 xl:hidden" id="alumni-committee-links">
-            <button type="button" id="alumni-btn-fac" onclick="openSubPage('family-faculty','alumni')" class="alumni-view-tab-btn family-teacher-btn inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border bg-white text-slate-700 border-slate-200 hover:border-blue-300 transition cursor-pointer">
-              <i data-lucide="users-round" class="w-3.5 h-3.5"></i> Teachers and Officers
-            </button>
+            <div class="rd-dir-seg rd-dir-seg-link" id="alumni-committee-links">
+              <button type="button" id="alumni-btn-fac" class="rd-dir-tab rd-dir-tab-link" onclick="openSubPage('family-faculty','alumni')"><i data-lucide="graduation-cap" class="w-4 h-4"></i><span>Teachers &amp; Officers</span><i data-lucide="arrow-up-right" class="w-3.5 h-3.5 rd-dir-go"></i></button>
+            </div>
           </div>
           <div class="family-toolbar-foot">
             <span id="alumni-count-text">Loading directory...</span>
             <div class="family-toolbar-actions">
-              <span class="family-profile-note"><i class="w-3.5 h-3.5" data-lucide="user-round-cog"></i> Update information from My Profile after signing in.</span>
-              <button class="family-profile-link" onclick="switchPage('my-profile')">Open My Profile <i class="w-3.5 h-3.5" data-lucide="arrow-up-right"></i></button>
               <button class="text-blue-600 font-bold hover:underline flex items-center gap-1 cursor-pointer" onclick="resetAlumniFilters()"><i class="w-3.5 h-3.5" data-lucide="rotate-ccw"></i> Reset filters</button>
             </div>
           </div>
@@ -2431,7 +2496,7 @@
               <p class="mt-1.5 text-sm text-slate-500 leading-relaxed">Approve or reject applications, events and committee entries.</p>
             </div>
             <div class="shrink-0 flex flex-wrap gap-2">
-            <button type="button" onclick="loadAdminDashboard()" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-sm hover:shadow-md transition cursor-pointer">
+            <button type="button" onclick="adminLoadHubCounts(true)" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-sm hover:shadow-md transition cursor-pointer">
               <i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh
             </button>
             <button type="button" id="admin-signout-btn" onclick="adminSignOut()" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-bold transition cursor-pointer">
@@ -2442,10 +2507,22 @@
           <div id="admin-auth-status" class="mt-5"></div>
           <div id="admin-action-summary" class="mt-4"></div>
           <div class="grid sm:grid-cols-3 gap-2 mt-6" id="admin-tabs"></div>
-          <div class="flex flex-wrap items-center gap-2 mt-4" id="admin-filters"></div>
         </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="page-view" id="page-admin-module">
+    <div class="subpage-bar">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
+        <button type="button" onclick="goBackFromSubPage('admin-module')" class="subpage-back"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+        <span id="admin-module-title" class="text-sm font-bold text-slate-500 truncate min-w-0">Admin</span>
+      </div>
+    </div>
+    <section class="py-10 sm:py-14 bg-slate-50 min-h-[70vh]">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap items-center gap-2 mt-4" id="admin-filters"></div>
         <div id="admin-events-list" class="space-y-4"></div>
-        </div>
       </div>
     </section>
   </div>
@@ -2630,19 +2707,19 @@
   <!-- ================= PAGE: BLOOD BANK ================= -->
   <div class="page-view" id="page-bloodbank">
     <!-- Hero Header -->
-    <div class="relative overflow-hidden" style="background:linear-gradient(135deg,#7f1d1d 0%,#b91c1c 50%,#dc2626 100%)">
-      <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(circle at 20% 50%,#fff 1px,transparent 1px),radial-gradient(circle at 80% 20%,#fff 1px,transparent 1px);background-size:40px 40px"></div>
+    <div class="relative overflow-hidden" style="background:linear-gradient(135deg,#fff5f6 0%,#ffe9ec 100%)">
+      <div class="absolute inset-0" style="opacity:.6;background-image:radial-gradient(circle at 20% 50%,rgba(225,29,72,.14) 1.5px,transparent 1.5px),radial-gradient(circle at 80% 20%,rgba(225,29,72,.12) 1.5px,transparent 1.5px);background-size:40px 40px"></div>
       <div class="relative max-w-4xl mx-auto px-4 py-14 text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/15 backdrop-blur mb-5">
-          <i data-lucide="droplets" class="w-8 h-8 text-white"></i>
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-100 text-rose-600 mb-5 shadow-sm">
+          <i data-lucide="droplets" class="w-8 h-8"></i>
         </div>
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-3 font-display">Blood Bank</h1>
-        <p class="text-rose-100 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">Find a willing blood donor among Rangdhanu members. Every drop counts — save a life today.</p>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3 font-display">Blood Bank</h1>
+        <p class="text-slate-600 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">Find a willing blood donor among Rangdhanu members. Every drop counts, save a life today.</p>
         <div class="mt-6 flex flex-wrap justify-center gap-3">
-          <button onclick="rdBloodHowItWorks()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-sm font-bold border border-white/20 transition backdrop-blur">
+          <button onclick="rdBloodHowItWorks()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-rose-600 text-sm font-bold border border-rose-200 hover:bg-rose-50 transition shadow-sm">
             <i data-lucide="info" class="w-4 h-4"></i> How It Works
           </button>
-          <button onclick="openMyProfile('bloodbank')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-rose-700 text-sm font-bold hover:bg-rose-50 transition">
+          <button onclick="openMyProfile('bloodbank')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 text-white text-sm font-bold hover:bg-rose-700 transition shadow-sm">
             <i data-lucide="user-round-cog" class="w-4 h-4"></i> Register as Donor
           </button>
         </div>
@@ -2682,6 +2759,10 @@
     <!-- Filters -->
     <div class="bg-white border-b border-slate-100 sticky top-0 z-20 shadow-sm">
       <div class="max-w-5xl mx-auto px-4 py-4">
+        <div class="rd-dir-seg bb-view-seg mb-3" role="tablist">
+          <button class="rd-dir-tab bb-view-tab is-active" data-view="AVAILABLE" role="tab" aria-pressed="true" onclick="rdBloodView('AVAILABLE')">Available</button>
+          <button class="rd-dir-tab bb-view-tab" data-view="ALL" role="tab" aria-pressed="false" onclick="rdBloodView('ALL')">All Members</button>
+        </div>
         <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <!-- Blood group filter -->
           <div class="flex flex-wrap gap-2 flex-1">
@@ -2709,10 +2790,6 @@
               <option value="BARISAL">Barisal Div.</option>
               <option value="MYMENSINGH">Mymensingh Div.</option>
             </select>
-            <label class="flex items-center gap-1.5 text-sm font-semibold text-slate-600 cursor-pointer select-none whitespace-nowrap">
-              <input type="checkbox" id="bb-avail-only" onchange="rdBloodRender()" class="accent-rose-600 w-4 h-4">
-              Available only
-            </label>
           </div>
         </div>
         <p id="blood-bank-status" class="text-xs text-slate-500 mt-2">Loading donors...</p>
@@ -2787,13 +2864,6 @@
     </section>
   </div>
 
-  <!-- The Seat Booking pill rides over the PDACC page. Its number comes
-       from the committee list every time, never from the markup. -->
-  <a class="rd-pd-seat" id="pdacc-seat-pill" href="#pdacc-contacts" hidden>
-    <span class="rd-pd-ring" aria-hidden="true"></span>
-    <i data-lucide="bed-double" class="w-5 h-5 shrink-0"></i>
-    <span><i>PDACC</i><b>Seat Booking</b></span>
-  </a>
 
   <!-- ================= SUB-PAGE: ADMIN CREATE UPCOMING EVENT ================= -->
   <div class="page-view" id="page-admin-event-new">
@@ -2906,7 +2976,7 @@ Do not modify social links or structure without permission.
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
 <!-- JAVASCRIPT LOGIC -->
-<script src="script.js?v=20260925-1200" defer></script>
+<script src="script.js?v=20260926-0100" defer></script>
 
   <!-- PREMIUM GLOBAL LOADER (owner-authorised overlay; all styles in custom.css .rd-gl*) -->
   <div id="demo-loader" class="rd-gl" aria-hidden="true">

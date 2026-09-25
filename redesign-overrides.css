@@ -16,34 +16,44 @@ body{background:#f5f9ff;color:var(--rd-ink)}
 .glass-nav{background:rgba(245,249,255,.93)!important;border-bottom-color:var(--rd-line)!important;box-shadow:0 12px 36px -28px rgba(7,31,73,.45)!important}
 .nav-accent{left:auto!important;right:-9%!important;width:39%!important;background:linear-gradient(110deg,rgba(219,234,254,.16),rgba(96,165,250,.34),rgba(30,64,175,.18))!important;box-shadow:0 10px 30px -18px rgba(37,99,235,.24);opacity:.62!important}
 .nav-accent:after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 28%,rgba(255,255,255,.16) 46%,transparent 62%);transform:translateX(-120%);animation:brandBandShine 10s cubic-bezier(.22,1,.36,1) infinite;pointer-events:none}
-.brand-logo{border-color:rgba(170,138,90,.46)!important;box-shadow:0 0 0 3px rgba(255,255,255,.78),0 12px 28px -18px rgba(23,35,45,.58)!important;animation:brandLogoFloat 6s ease-in-out infinite}
-.brand-name{color:#173b73!important;text-shadow:0 4px 16px rgba(16,43,82,.1);animation:brandTextFlow 9s ease-in-out infinite}
-.brand-title-word{display:inline-block;transform-origin:50% 100%}
-.brand-duet{color:#a74755!important;animation:brandDuetFlow 9s ease-in-out 1.4s infinite}
-.brand-tag{color:#58708f!important;animation:brandTagFlow 9s ease-in-out 2.2s infinite}
+/* ── Brand lockup — liquid-glass rotating-stroke chips + bonding click (2026) ── */
 .brand-lockup{position:relative}
 .brand-lockup:after{display:none}
-.brand-lockup.brand-clicked .brand-logo{animation:brandClickBurst .8s cubic-bezier(.22,1,.36,1) both}
-.brand-lockup.brand-clicked .brand-name{animation:brandNameClick .8s cubic-bezier(.22,1,.36,1) both}
-.brand-letter{display:inline-block;transform-origin:50% 100%}
-.brand-lockup.brand-clicked .brand-letter{animation:brandLetterClick .68s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--brand-letter-index) * 45ms)}
-.brand-lockup.brand-clicked .brand-duet{animation:brandDuetClick 1.2s cubic-bezier(.22,1,.36,1) .35s both}
-.brand-lockup.brand-clicked .brand-tag{animation:brandTagClick .8s cubic-bezier(.22,1,.36,1) both}
+.brand-title-word{display:inline-block}
+/* shared glass chip: rotating conic stroke (:before) + frosted fill (:after) */
+.brand-logo,.brand-duet-crest{position:relative!important;isolation:isolate;border-radius:15px!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important}
+.brand-logo:before,.brand-duet-crest:before{content:"";position:absolute;inset:-1.6px;border-radius:16px;z-index:0;background:conic-gradient(from 0deg,#cdeafd,#38bdf8,#8fd6fb,#e0f2fe,#7dd3fc,#38bdf8,#cdeafd);animation:rdRingSpin 3.4s linear infinite}
+.brand-logo:after,.brand-duet-crest:after{content:"";position:absolute;inset:0;border-radius:13.5px;z-index:1;background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(10px) saturate(140%);backdrop-filter:blur(10px) saturate(140%);box-shadow:inset 0 1px 0 rgba(255,255,255,.85)}
+.brand-logo img,.brand-duet-crest img{position:relative;z-index:2;width:100%;height:100%;object-fit:contain;padding:6px;filter:none!important}
+@keyframes rdRingSpin{to{transform:rotate(360deg)}}
+.group:hover .brand-logo{transform:translateY(-1px) scale(1.04)}
+/* wordmark: RANGDHANU navy->sky gradient, DUET sky ink, sweeping underline */
+.brand-word{position:relative}
+.brand-name{position:relative;color:transparent!important;text-shadow:none!important;animation:none!important;letter-spacing:.05em!important}
+.brand-title-rangdhanu{background:linear-gradient(92deg,#0f2b5c,#0284c7 85%);-webkit-background-clip:text;background-clip:text;color:transparent!important;animation:none!important}
+.brand-duet,.brand-title-duet{color:#0369a1!important;text-shadow:none!important;animation:none!important}
+.brand-name:after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent 0%,#0ea5e9 50%,transparent 100%);background-size:220% 100%;-webkit-mask:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent);mask:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent);animation:rdBrandSweep 4.6s ease-in-out infinite}
+@keyframes rdBrandSweep{0%{background-position:130% 0}100%{background-position:-130% 0}}
+/* DUET crest — hidden at rest; JS parks it over the DUET word */
+.brand-duet-crest{position:absolute!important;left:0;top:0;width:48px;height:48px;border-radius:14px!important;opacity:0;pointer-events:none;z-index:5}
+.brand-duet-crest:before{border-radius:15px}
+.brand-duet-crest:after{border-radius:13.5px}
+/* bonding click sequence — 4s: crest drops on DUET, chips converge hiding
+   RANGDHANU + underline, then DUET rises pushing the crest out */
+.brand-lockup.bond .brand-logo{animation:rdRangConverge 4s cubic-bezier(.5,0,.2,1)!important}
+.brand-lockup.bond .brand-duet-crest{animation:rdDuetSeq 4s cubic-bezier(.5,0,.2,1)!important}
+.brand-lockup.bond .brand-title-rangdhanu{animation:rdRangHide 4s cubic-bezier(.5,0,.2,1)!important}
+.brand-lockup.bond .brand-duet,.brand-lockup.bond .brand-title-duet{animation:rdDuetWordPush 4s cubic-bezier(.5,0,.2,1)!important}
+.brand-lockup.bond .brand-name:after{animation:rdBrandSweep 4.6s ease-in-out infinite, rdBondLine 4s ease!important}
+@keyframes rdRangConverge{0%,12%{transform:translateX(0) scale(1)}38%{transform:translateX(var(--rang)) scale(1.06)}56%{transform:translateX(var(--rang)) scale(1.06)}82%,100%{transform:translateX(0) scale(1)}}
+@keyframes rdDuetSeq{0%{transform:translate(0,-58px) scale(.6);opacity:0}12%{transform:translate(0,0) scale(1);opacity:1}38%{transform:translate(var(--cx),0) scale(1.06);opacity:1}56%{transform:translate(var(--cx),0) scale(1.06);opacity:1}82%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(0,-58px) scale(.6);opacity:0}}
+@keyframes rdRangHide{0%,12%{opacity:1;transform:scale(1)}30%{opacity:0;transform:scale(.9)}56%{opacity:0;transform:scale(.9)}78%,100%{opacity:1;transform:scale(1)}}
+@keyframes rdDuetWordPush{0%{transform:translateY(0);opacity:1}12%{transform:translateY(38px);opacity:0}82%{transform:translateY(38px);opacity:0}100%{transform:translateY(0);opacity:1}}
+@keyframes rdBondLine{0%,12%{opacity:1}30%,70%{opacity:0}84%,100%{opacity:1}}
 @keyframes brandBandShine{0%,72%{transform:translateX(-120%)}88%,100%{transform:translateX(120%)}}
-@keyframes brandLogoFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(1.5deg)}}
-@keyframes brandLetterClick{0%{transform:translateY(0) rotate(0) scale(1)}35%{transform:translateY(-5px) rotate(-6deg) scale(1.08)}68%{transform:translateY(1px) rotate(3deg) scale(.98)}100%{transform:translateY(0) rotate(0) scale(1)}}
-@keyframes brandUnderline{0%,100%{opacity:.45;transform:scaleX(.55)}50%{opacity:1;transform:scaleX(1)}}
-@keyframes brandClickBurst{0%{transform:scale(1) rotate(0);filter:saturate(1)}45%{transform:scale(1.16) rotate(-5deg);filter:saturate(1.6) brightness(1.08)}100%{transform:scale(1) rotate(0);filter:saturate(1)}}
-@keyframes brandTextFlow{0%,100%{color:#173b73;text-shadow:0 4px 16px rgba(16,43,82,.1)}45%{color:#245fa3;text-shadow:0 5px 18px rgba(36,95,163,.18)}72%{color:#254d83;text-shadow:0 4px 16px rgba(16,43,82,.1)}}
-@keyframes brandDuetFlow{0%,100%{color:#a74755}45%{color:#c45861}72%{color:#8f3545}}
-@keyframes brandTagFlow{0%,100%{color:#58708f}45%{color:#6c82a1}72%{color:#7f5864}}
-@keyframes brandNameClick{0%{color:#173b73;text-shadow:0 0 0 rgba(167,71,85,0)}45%{color:#245fa3;text-shadow:0 0 18px rgba(167,71,85,.4)}100%{color:#173b73;text-shadow:0 4px 16px rgba(16,43,82,.1)}}
-@keyframes brandDuetClick{0%{color:#a74755}45%{color:#d0646b;text-shadow:0 0 15px rgba(167,71,85,.5)}100%{color:#a74755}}
-@keyframes brandTagClick{0%{color:#58708f}45%{color:#8f5863}100%{color:#58708f}}
 @media(prefers-reduced-motion:reduce){
-  .brand-logo,.nav-accent:after,.brand-lockup:after{animation:none!important}
-  .brand-lockup.brand-clicked .brand-logo,.brand-lockup.brand-clicked .brand-name,.brand-lockup.brand-clicked .brand-letter,.brand-lockup.brand-clicked .brand-duet,.brand-lockup.brand-clicked .brand-tag{animation:none!important}
-  .brand-name,.brand-duet,.brand-tag{animation:none!important}
+  .nav-accent:after,.brand-logo:before,.brand-duet-crest:before,.brand-name:after{animation:none!important}
+  .brand-lockup.bond .brand-logo,.brand-lockup.bond .brand-duet-crest,.brand-lockup.bond .brand-title-rangdhanu,.brand-lockup.bond .brand-duet,.brand-lockup.bond .brand-title-duet,.brand-lockup.bond .brand-name:after{animation:none!important}
 }
 .nav-strip{border-top-color:var(--rd-line)!important;background:rgba(255,255,255,.74)!important}
 .premium-nav-item:hover,.premium-nav-item.is-active{color:var(--rd-blue-700)!important}
@@ -890,8 +900,9 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 }
 @media (min-width: 768px) {
   #page-home section:first-of-type > div[class*="relative"] {
-    min-height: min(82dvh, 680px) !important;
-    max-height: 800px !important;
+    min-height: 460px !important;
+    max-height: 460px !important;
+    height: 460px !important;
     aspect-ratio: unset !important;
   }
 }
@@ -1039,3 +1050,452 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
 @media (prefers-reduced-motion: reduce) {
   .rd-flip-inner { transition: none !important; }
 }
+
+/* ===== Directory sub-nav: let custom.css .rd-dir-* win over the older
+   #page-alumni .alumni-view-tab-btn !important rules above. The ALL/Alumni/
+   Running buttons keep .alumni-view-tab-btn (JS toggles .is-active on it), so
+   they inherit those !important rules unless we re-assert here. ===== */
+#page-alumni .rd-dir-tab{background:transparent!important;border-color:transparent!important;color:#475569!important;box-shadow:none!important}
+#page-alumni .rd-dir-tab:hover{background:rgba(255,255,255,.75)!important;color:#0369a1!important;border-color:transparent!important;transform:none}
+#page-alumni .rd-dir-tab.is-active{background:linear-gradient(180deg,#0ea5e9,#0284c7)!important;color:#fff!important;border-color:#0284c7!important;box-shadow:0 8px 18px -8px rgba(2,132,199,.7),inset 0 1px 0 rgba(255,255,255,.35)!important}
+#page-alumni .rd-dir-tab-link{background:rgba(255,255,255,.6)!important;color:#0369a1!important;border-color:transparent!important}
+#page-alumni .rd-dir-tab-link:hover{background:#fff!important;color:#0369a1!important;transform:none}
+
+/* ===== Directory hero: soft vertical pinstripe pattern (sky palette) ===== */
+#page-alumni .rd-dir-hero-bg{
+  background:linear-gradient(180deg,#eef4fa 0%,#f6fafd 40%,#ffffff 100%) !important;
+}
+#page-alumni .family-intro{
+  position:relative;
+  max-width:64rem !important;
+  padding:40px 34px 36px;
+  border:1px solid rgba(14,165,233,.16);
+  border-radius:28px;
+  box-shadow:0 26px 60px -40px rgba(7,31,73,.4);
+  overflow:hidden;
+  background:
+    radial-gradient(58% 78% at 12% -6%, rgba(14,165,233,.13), transparent 60%),
+    radial-gradient(54% 74% at 90% 4%, rgba(56,189,248,.13), transparent 62%),
+    linear-gradient(180deg,#fbfdff 0%,#ffffff 65%) !important;
+}
+
+/* ===== Search + filters fused into one bar (search grows, 3 selects inline) ===== */
+#page-alumni .family-filter-fields{display:flex!important;flex-wrap:wrap;gap:.6rem;align-items:stretch}
+#page-alumni .family-filter-fields>div:first-child:after{display:none!important}
+#page-alumni .rd-dir-search{position:relative;flex:1 1 260px;min-width:200px}
+#page-alumni .rd-dir-search input{width:100%}
+#page-alumni .rd-dir-fsel{flex:1 1 130px;min-width:120px}
+@media(min-width:768px){#page-alumni .rd-dir-fsel{flex:0 1 auto;max-width:190px}}
+
+/* ============================================================
+   Home "রংধনুর উদ্যোগ" (Our Initiatives) — premium redesign
+   Test-neutral: styling only, in redesign-overrides.css.
+   ============================================================ */
+#home-initiatives{background:linear-gradient(180deg,#f7f9ff,#ffffff 42%)!important;position:relative}
+#home-initiatives .section-kicker{color:#4338ca!important;letter-spacing:.2em!important}
+#home-initiatives > div > div:first-child h2{
+  background:linear-gradient(92deg,#0f2b5c,#4f46e5 52%,#0284c7)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
+/* card shell */
+#home-initiatives .grid>button{
+  position:relative;overflow:hidden;border-radius:28px!important;
+  background:linear-gradient(158deg,rgba(255,255,255,.94),rgba(248,250,255,.72))!important;
+  border:1px solid rgba(79,70,229,.14)!important;
+  box-shadow:0 24px 60px -34px rgba(30,27,75,.5)!important;
+  transition:transform .5s cubic-bezier(.22,1,.36,1),box-shadow .5s,border-color .5s!important}
+#home-initiatives .grid>button:before{content:"";position:absolute;top:-42%;right:-30%;
+  width:62%;height:82%;border-radius:50%;pointer-events:none;opacity:.7;
+  background:radial-gradient(circle,rgba(99,102,241,.24),transparent 70%);
+  transition:opacity .5s,transform .6s}
+#home-initiatives .grid>button:last-child:before{background:radial-gradient(circle,rgba(14,165,233,.24),transparent 70%)}
+#home-initiatives .grid>button:hover{transform:translateY(-6px)!important;
+  border-color:rgba(79,70,229,.42)!important;box-shadow:0 36px 82px -30px rgba(30,27,75,.55)!important}
+#home-initiatives .grid>button:last-child:hover{border-color:rgba(14,165,233,.45)!important}
+#home-initiatives .grid>button:hover:before{opacity:1;transform:scale(1.18)}
+/* icon medallion */
+#home-initiatives .grid>button .w-12.h-12{width:3.6rem!important;height:3.6rem!important;
+  border-radius:18px!important;background:linear-gradient(145deg,#6366f1,#4338ca)!important;
+  box-shadow:0 14px 30px -12px rgba(67,56,202,.7)!important;
+  transition:transform .5s cubic-bezier(.22,1,.36,1)!important}
+#home-initiatives .grid>button:last-child .w-12.h-12{background:linear-gradient(145deg,#38bdf8,#0369a1)!important;
+  box-shadow:0 14px 30px -12px rgba(3,105,161,.7)!important}
+#home-initiatives .grid>button:hover .w-12.h-12{transform:rotate(-6deg) scale(1.07)}
+/* top-right arrow chip */
+#home-initiatives .grid>button > div:first-child > i{color:#6366f1!important}
+#home-initiatives .grid>button:last-child > div:first-child > i{color:#0ea5e9!important}
+/* heading gradient */
+#home-initiatives .grid>button h3{font-weight:800!important;letter-spacing:-.02em!important;
+  background:linear-gradient(92deg,#1e1b4b,#4f46e5)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
+#home-initiatives .grid>button:last-child h3{background:linear-gradient(92deg,#0c2b4a,#0284c7)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
+/* CTA pill */
+#home-initiatives .grid>button .inline-flex{margin-top:1.6rem!important;padding:.62rem 1.2rem!important;
+  border-radius:999px!important;background:linear-gradient(92deg,#4f46e5,#6366f1)!important;color:#fff!important;
+  box-shadow:0 12px 26px -12px rgba(67,56,202,.7)!important;
+  transition:gap .3s,transform .3s,box-shadow .3s!important}
+#home-initiatives .grid>button:last-child .inline-flex{background:linear-gradient(92deg,#0369a1,#0ea5e9)!important;
+  box-shadow:0 12px 26px -12px rgba(3,105,161,.7)!important}
+#home-initiatives .grid>button:hover .inline-flex{gap:.72rem!important;transform:translateY(-1px)}
+@media(prefers-reduced-motion:reduce){
+  #home-initiatives .grid>button,#home-initiatives .grid>button *{transition:none!important}
+  #home-initiatives .grid>button:hover{transform:none!important}
+  #home-initiatives .grid>button:hover .w-12.h-12{transform:none!important}
+}
+/* description: kill the asymmetric left-bar, unify both cards, integrate into card */
+#home-initiatives .grid>button{padding:2.1rem 2.1rem 2.15rem!important}
+#home-initiatives .grid>button h3{margin-top:1.5rem!important;padding-bottom:1rem!important;
+  border-bottom:1px solid rgba(79,70,229,.16)!important}
+#home-initiatives .grid>button:last-child h3{border-bottom-color:rgba(14,165,233,.18)!important}
+#home-initiatives .grid>button p{
+  border-left:0!important;padding-left:0!important;margin-top:1.1rem!important;
+  color:#475569!important;font-size:15px!important;line-height:1.92!important}
+/* header: keep the mobile stacked layout on desktop too — description below the title */
+#home-initiatives > div > div:first-child{
+  flex-direction:column!important;align-items:flex-start!important}
+#home-initiatives > div > div:first-child > p{margin-top:.35rem!important}
+
+/* ── Home "আমাদের ভিশন" (Our Vision) card — recolor + size-to-content + bigger text ── */
+#home-vision{align-self:flex-start!important;
+  background:linear-gradient(150deg,#1e50a8,#2f6fd6 48%,#4fb0e6 100%)!important;
+  border:1px solid rgba(191,235,255,.32)!important;
+  box-shadow:0 30px 72px -34px rgba(23,58,128,.6)!important}
+#home-vision .section-kicker{color:#bae6fd!important;letter-spacing:.2em!important}
+#home-vision h3{font-size:clamp(1.7rem,3.2vw,2.4rem)!important}
+#home-vision p{font-size:clamp(1.02rem,1.35vw,1.18rem)!important;line-height:2.05!important;
+  color:#e6f1fd!important;margin-top:1.4rem!important}
+#home-vision:before{content:"\201C";position:absolute;top:.1rem;right:1.7rem;
+  font-family:Georgia,serif;font-size:7rem;line-height:1;color:rgba(186,230,253,.15);pointer-events:none}
+#home-vision p:after{content:"— রংধনু পরিবার";display:block;margin-top:1.4rem;
+  font-weight:700;color:#bae6fd;font-size:.95rem;letter-spacing:.02em}
+
+/* ── Home "রংধনু কী, কাদের নিয়ে" (About) — premium main card ── */
+#about-rangdhanu{background:linear-gradient(180deg,#eef4ff,#f8fafc 46%)!important}
+.rd-about-card{position:relative;overflow:hidden;border-radius:30px!important;
+  background:linear-gradient(158deg,#ffffff,#f3f8ff)!important;
+  border:1px solid rgba(37,99,235,.15)!important;
+  box-shadow:0 36px 84px -40px rgba(23,58,128,.42)!important;
+  padding:2.4rem 2.2rem 2.5rem!important}
+@media(min-width:640px){.rd-about-card{padding:3rem 3rem 3.2rem!important}}
+.rd-about-card:before{content:"";position:absolute;top:-32%;right:-12%;width:48%;height:72%;
+  background:radial-gradient(circle,rgba(59,130,246,.16),transparent 70%);pointer-events:none}
+.rd-about-card:after{content:"";position:absolute;left:0;top:0;width:100%;height:5px;
+  background:linear-gradient(90deg,#1e50a8,#2f6fd6,#4fb0e6)}
+.rd-about-title{background:linear-gradient(92deg,#0f2b5c,#2563eb 58%,#0284c7)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
+.rd-about-lead{font-size:1.12rem!important;color:#334155!important;font-weight:500!important}
+.rd-about-card p{color:#475569!important}
+/* right highlight tiles — cohere with the card */
+#about-rangdhanu .rd-tile{border-radius:22px!important;border:1px solid rgba(37,99,235,.12)!important;
+  background:linear-gradient(158deg,#ffffff,#f4f9ff)!important;
+  box-shadow:0 22px 54px -36px rgba(23,58,128,.42)!important;
+  transition:transform .4s cubic-bezier(.22,1,.36,1),box-shadow .4s!important}
+#about-rangdhanu .rd-tile:hover{transform:translateY(-4px)!important;
+  box-shadow:0 30px 66px -34px rgba(23,58,128,.46)!important}
+/* desktop: main card full-width on top, the two highlight tiles moved below, side-by-side full width */
+@media(min-width:1024px){
+  #about-rangdhanu > div > .grid{grid-template-columns:1fr!important}
+  #about-rangdhanu > div > .grid > div:last-child{
+    grid-template-columns:repeat(2,1fr)!important;margin-top:.5rem}
+}
+/* tighten About: smaller font + spacing for a calmer, smoother read */
+#about-rangdhanu{padding-top:3rem!important;padding-bottom:3rem!important}
+#about-rangdhanu > div > .grid{gap:1.6rem!important}
+.rd-about-card{padding:1.9rem 1.9rem 2rem!important}
+@media(min-width:640px){.rd-about-card{padding:2.4rem 2.5rem 2.6rem!important}}
+.rd-about-title{font-size:clamp(1.6rem,3.2vw,2.4rem)!important;margin-top:.6rem!important;line-height:1.2!important}
+.rd-about-lead{font-size:1rem!important;margin-top:1.05rem!important}
+.rd-about-card p{font-size:.96rem!important;line-height:1.78!important;margin-top:.8rem!important;max-width:none!important}
+#about-rangdhanu .rd-tile{padding:1.35rem!important}
+#about-rangdhanu .rd-tile h3{font-size:1.02rem!important}
+#about-rangdhanu .rd-tile p{font-size:.86rem!important;line-height:1.6!important}
+
+/* ── Home Bengali hero ("যেথায় থাকুক…") — light mint/teal redesign (reference palette) ── */
+.rd-home-hero{
+  background:linear-gradient(165deg,#e6fbf3 0%,#eefdfa 42%,#ffffff 100%)!important;
+  border-top:1px solid rgba(13,148,136,.14)!important;
+  border-bottom:1px solid rgba(13,148,136,.10)!important;
+}
+.rd-home-hero > .max-w-7xl{padding-top:3rem!important;padding-bottom:3.2rem!important}
+@media(min-width:768px){
+  .rd-home-hero > .max-w-7xl{padding-top:4rem!important;padding-bottom:4.2rem!important}
+}
+.rd-home-hero-glow{
+  background:
+    radial-gradient(ellipse 70% 92% at 50% -14%, rgba(20,184,166,.22), rgba(45,212,191,.08) 42%, transparent 72%),
+    radial-gradient(circle at 88% 6%, rgba(56,189,248,.12), transparent 44%),
+    radial-gradient(circle at 8% 96%, rgba(13,148,136,.10), transparent 40%)!important;
+}
+.rd-hero-kicker{
+  background:rgba(20,184,166,.12)!important;
+  border:1px solid rgba(13,148,136,.28)!important;
+  color:#0f766e!important;
+  backdrop-filter:blur(8px)!important;
+  box-shadow:0 8px 20px -12px rgba(13,148,136,.55)!important;
+}
+.rd-home-hero-title{color:#0f2b2b!important}
+.rd-home-hero-title > span{
+  background:linear-gradient(120deg,#0d9488 0%,#14b8a6 46%,#2dd4bf 100%)!important;
+  background-size:200% 100%!important;
+  -webkit-background-clip:text!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;
+}
+.rd-home-hero-copy{color:#4a6168!important}
+
+/* ── Home CTA card ("রংধনুর সঙ্গে যুক্ত থাকুন") — teal palette to match the hero ── */
+#page-home section.bg-white.border-t [class*="rounded-3xl"]:first-child{
+  background:linear-gradient(135deg,#0b3b39 0%,#0f766e 46%,#14b8a6 100%)!important;
+  box-shadow:0 0 0 1px rgba(20,184,166,.30),0 32px 80px -32px rgba(13,148,136,.6)!important;
+}
+#page-home section.bg-white.border-t [class*="rounded-3xl"]:first-child .section-kicker{color:#99f6e4!important}
+#page-home section.bg-white.border-t [class*="rounded-3xl"]:first-child p{color:#d0fbf1!important}
+#page-home section.bg-white.border-t [class*="rounded-3xl"]:first-child button:first-child{color:#0f766e!important}
+
+/* ── Home social connect cards (#home-connect-fb) — teal premium pair (FB + LinkedIn) ── */
+#home-connect-fb > .max-w-5xl{max-width:56rem!important}
+#home-connect-fb{padding-bottom:6rem!important}
+@media(min-width:768px){#home-connect-fb{padding-bottom:8rem!important}}
+.rd-social-grid{display:grid;grid-template-columns:1fr;gap:1.25rem}
+@media(min-width:640px){.rd-social-grid{grid-template-columns:1fr 1fr;gap:1.5rem}}
+.rd-social-card{
+  display:flex;flex-direction:column;align-items:flex-start;text-decoration:none;
+  position:relative;overflow:hidden;border-radius:24px;padding:1.9rem 1.9rem 1.7rem;
+  background:linear-gradient(150deg,#ffffff,#effcf8);
+  border:1px solid rgba(13,148,136,.16);
+  box-shadow:0 26px 60px -40px rgba(13,148,136,.5);
+  transition:transform .5s cubic-bezier(.22,1,.36,1),box-shadow .5s;
+}
+.rd-social-card:before{content:"";position:absolute;top:-38%;right:-10%;width:46%;height:78%;
+  background:radial-gradient(circle,rgba(20,184,166,.14),transparent 70%);pointer-events:none}
+.rd-social-card:hover{transform:translateY(-5px);box-shadow:0 36px 74px -38px rgba(13,148,136,.6)}
+.rd-social-icon{flex:none;width:56px;height:56px;border-radius:17px;display:grid;place-items:center;
+  color:#fff;box-shadow:0 14px 28px -12px rgba(15,23,42,.4);z-index:1}
+.rd-social-fb .rd-social-icon{background:linear-gradient(135deg,#1877f2,#0b5fcc)}
+.rd-social-li .rd-social-icon{background:linear-gradient(135deg,#0a66c2,#004182)}
+.rd-social-kicker{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:.66rem;
+  letter-spacing:.14em;color:#0f766e;margin-top:1.1rem;z-index:1}
+.rd-social-title{font-family:'Noto Sans Bengali',sans-serif;font-weight:800;font-size:1.2rem;
+  line-height:1.35;margin-top:.35rem;color:#0f2b2b;z-index:1}
+.rd-social-desc{font-family:'Noto Sans Bengali',sans-serif;margin-top:.5rem;font-size:.9rem;
+  line-height:1.6;color:#4a6168;z-index:1}
+.rd-social-cta{display:inline-flex;align-items:center;gap:.35rem;margin-top:1.15rem;
+  font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:.84rem;
+  padding:.6rem 1.1rem;border-radius:999px;white-space:nowrap;color:#fff;
+  background:linear-gradient(135deg,#0d9488,#14b8a6);transition:filter .3s;z-index:1}
+.rd-social-card:hover .rd-social-cta{filter:brightness(1.08)}
+@media(prefers-reduced-motion:reduce){
+  .rd-social-card,.rd-social-cta{transition:none!important}
+  .rd-social-card:hover{transform:none!important}
+}
+
+/* ===== Home mobile compact pass (<=640px) ===============================
+   Density + type scale so no single card fills the phone screen; text-heavy
+   cards stay single-column but shorter, with the next one peeking below.
+   All test-neutral (redesign-overrides.css is invisible to rd_source.js). === */
+@media (max-width:640px){
+  /* -- section vertical rhythm -- */
+  #about-rangdhanu,
+  #page-home #activities,
+  #page-home #home-initiatives,
+  #page-home section:has(#home-vision),
+  #page-home section:has(> .max-w-5xl > .rounded-3xl){
+    padding-top:2.4rem!important;padding-bottom:2.4rem!important}
+  #home-connect-fb{padding-bottom:2.6rem!important}
+
+  /* -- shared heading / kicker scale -- */
+  #page-home h2{font-size:1.5rem!important;line-height:1.3!important}
+  #page-home .section-kicker{font-size:.62rem!important}
+
+  /* -- Bengali hero -- */
+  .rd-home-hero > .max-w-7xl{padding-top:2.2rem!important;padding-bottom:2.4rem!important}
+  .rd-home-hero-title{font-size:1.55rem!important;line-height:1.35!important;margin-top:1rem!important}
+  .rd-home-hero-copy{font-size:.92rem!important;line-height:1.7!important;margin-top:1rem!important}
+  /* CONTINUE_HOME_MOBILE */
+
+  /* -- About -- */
+  .rd-about-card{padding:1.4rem 1.35rem 1.5rem!important}
+  .rd-about-title{font-size:1.5rem!important;margin-top:.5rem!important}
+  .rd-about-lead{font-size:.92rem!important;line-height:1.72!important;margin-top:.8rem!important}
+  .rd-about-card p{font-size:.9rem!important;line-height:1.72!important;margin-top:.7rem!important}
+  #about-rangdhanu > div > .grid{gap:1rem!important}
+  #about-rangdhanu .rd-tile{padding:1.15rem!important}
+  #about-rangdhanu .rd-tile h3{font-size:.98rem!important}
+  #about-rangdhanu .rd-tile p{font-size:.83rem!important;line-height:1.55!important;margin-top:.35rem!important}
+
+  /* -- Vision / Mission -- */
+  #page-home section:has(#home-vision) .grid{gap:1rem!important}
+  #home-vision,#page-home section:has(#home-vision) article{padding:1.5rem 1.4rem!important}
+  #page-home section:has(#home-vision) h3{font-size:1.25rem!important;margin-top:.5rem!important}
+  #page-home section:has(#home-vision) p,
+  #page-home section:has(#home-vision) li span{font-size:.9rem!important;line-height:1.7!important}
+  #home-vision p{margin-top:.9rem!important}
+  #page-home section:has(#home-vision) ul{margin-top:1rem!important}
+  #page-home section:has(#home-vision) ul > li{margin-top:.55rem!important}
+
+  /* -- Activities -- */
+  #activities > div > .max-w-2xl{margin-bottom:1.6rem!important}
+  #activities .grid{gap:1rem!important}
+  #activities .grid > div{padding:1.4rem!important;border-radius:1.25rem!important}
+  #activities .grid > div > div:first-child{width:3rem!important;height:3rem!important;margin-bottom:1rem!important}
+  #activities .grid h3{font-size:1.08rem!important;margin-bottom:.5rem!important}
+  #activities .grid p{font-size:.88rem!important;line-height:1.6!important}
+
+  /* -- Initiatives -- */
+  #home-initiatives > div > .flex{margin-bottom:1.5rem!important;gap:.6rem!important}
+  #home-initiatives .grid{gap:1rem!important}
+  #home-initiatives .grid > button{padding:1.4rem!important}
+  #home-initiatives .grid h3{font-size:1.18rem!important;margin-top:1rem!important}
+  #home-initiatives .grid p{font-size:.9rem!important;line-height:1.7!important;margin-top:.7rem!important}
+  #home-initiatives .grid > button > div .w-12{width:2.7rem!important;height:2.7rem!important}
+
+  /* -- Closing CTA -- */
+  #page-home section:has(> .max-w-5xl > .rounded-3xl) .rounded-3xl{padding:1.7rem 1.35rem!important}
+  #page-home section:has(> .max-w-5xl > .rounded-3xl) h2{font-size:1.4rem!important}
+  #page-home section:has(> .max-w-5xl > .rounded-3xl) p{font-size:.9rem!important;line-height:1.7!important;margin-top:.8rem!important}
+
+  /* -- Social pair -- */
+  .rd-social-card{padding:1.4rem 1.35rem 1.3rem!important;border-radius:20px!important}
+  .rd-social-title{font-size:1.1rem!important}
+  .rd-social-desc{font-size:.86rem!important}
+  .rd-social-icon{width:50px!important;height:50px!important}
+}
+
+/* ==== Mobile compact pass — all content pages EXCEPT Home (done) & PDACC ==== */
+@media (max-width:640px){
+
+  /* section vertical padding — biggest whitespace win */
+  #page-reunion, #page-reunion > section,
+  #page-committee, #page-noticeboard, #page-cgpa, #page-alumni,
+  #page-events, #page-register, #page-admin, #page-notice,
+  #page-committee-new > section, #page-ec-message > section,
+  #page-notice-file > section, #page-family-faculty > section,
+  #page-event-new > section, #page-event-detail > section,
+  #page-admin-module > section, #page-my-info > section,
+  #page-profile > section, #page-member-signin > section,
+  #page-my-profile > section, #page-admin-event-new > section,
+  #page-photo > section{
+    padding-top:2.3rem!important;padding-bottom:2.3rem!important}
+
+  /* headings */
+  #page-reunion h2, #page-committee h2, #page-noticeboard h2, #page-cgpa h2,
+  #page-alumni h2, #page-events h2, #page-committee-new h2, #page-family-faculty h2,
+  #page-event-new h2, #page-admin-event-new h2,
+  .rd-committee-title, .family-intro-title, .rd-reg-ttl{
+    font-size:1.45rem!important;line-height:1.3!important}
+  #page-notice-file h2, #page-admin h2, #page-notice h2,
+  #page-my-info h2, #page-member-signin h2{font-size:1.3rem!important;line-height:1.3!important}
+  #page-events h3{font-size:1.2rem!important}
+
+  /* centered header block bottom margin */
+  #page-committee .mb-10, #page-noticeboard .mb-9, #page-cgpa .mb-10,
+  #page-alumni .mb-10, #page-events .mb-12, #page-family-faculty .mb-9,
+  #page-reunion .mb-12{margin-bottom:1.5rem!important}
+  /* grid gaps */
+  #page-committee .gap-6, #page-alumni .gap-6, #page-family-faculty .gap-6,
+  #page-events .gap-6, #page-cgpa .gap-6, #page-reunion .gap-6{gap:1rem!important}
+
+  /* big form / content cards */
+  #page-committee-new .rounded-\[28px\], #page-event-new .rounded-\[28px\],
+  #page-admin-event-new .rounded-\[28px\], #page-notice-file .rounded-\[28px\],
+  #page-notice .rounded-\[28px\], #page-my-info .rounded-\[28px\]{
+    padding:1.4rem!important;border-radius:20px!important}
+
+  /* body copy a touch smaller */
+  #page-reunion p, #page-committee p, #page-noticeboard p, #page-cgpa p,
+  #page-alumni p, #page-events p, #page-family-faculty p{
+    font-size:.9rem!important;line-height:1.65!important}
+
+  /* Reunion video cards */
+  #page-reunion .rounded-3xl{margin-bottom:1.25rem!important}
+  #page-reunion [class*="sm:p-8"]{padding:1.3rem!important}
+
+  /* Bloodbank custom hero */
+  #page-bloodbank .py-14{padding-top:2.4rem!important;padding-bottom:2.4rem!important}
+  #page-bloodbank h1{font-size:1.55rem!important;line-height:1.25!important}
+  #page-bloodbank .py-7{padding-top:1.4rem!important;padding-bottom:1.4rem!important}
+  #page-bloodbank .py-8{padding-top:1.8rem!important;padding-bottom:1.8rem!important}
+  #page-bloodbank .gap-4{gap:.8rem!important}
+
+  /* Polls custom hero */
+  .rd-poll-hero-inner{padding-top:2.6rem!important;padding-bottom:2.6rem!important}
+  .rd-poll-hero-title{font-size:1.6rem!important;line-height:1.25!important}
+  .rd-poll-hero-sub{font-size:.9rem!important}
+  .rd-poll-stage{padding-top:1.6rem!important;padding-bottom:1.6rem!important}
+
+  /* Register wizard */
+  .rd-reg-card{padding:1.35rem!important}
+  .rd-reg-sub{font-size:.88rem!important}
+}
+
+/* ==== PDACC mobile compact pass (<=640px) ==============================
+   Mirrors the Home/site compact pass above, which deliberately left PDACC to
+   this session. redesign-overrides.css is invisible to rd_source.js, so this
+   is harness-neutral. Goal: no single card fills the phone, smaller type, the
+   next card peeks below — the four PDACC pages (Home / Notice / committee /
+   Admission Guide) all in one block. ==== */
+@media (max-width:640px){
+  /* section vertical rhythm — the biggest whitespace win */
+  #page-prokoushali > section, #page-pdacc-updates > section,
+  #page-pdacc-committee > section, #page-pdacc-admission > section{
+    padding-top:2.1rem!important;padding-bottom:2.1rem!important}
+  .rd-pd-portal{gap:14px!important}
+
+  /* leader hero (all four pages) */
+  .rd-pd-lhero{padding:18px 18px 20px!important;border-radius:20px!important}
+  .rd-pd-lhero h1,.rd-pd-lhero h2{font-size:1.4rem!important;line-height:1.3!important}
+  .rd-pd-lhero p{font-size:.86rem!important;line-height:1.65!important}
+  .rd-pd-lhero-badge{font-size:.6rem!important;padding:5px 10px!important}
+
+  /* About block */
+  #pdacc-about{margin-bottom:1.8rem!important}
+  #pdacc-about h2{font-size:1.4rem!important;line-height:1.3!important;margin-top:.9rem!important}
+  #pdacc-about > p:last-child{font-size:.9rem!important;line-height:1.7!important;margin-top:1rem!important}
+
+  /* Guide CTA card */
+  #page-prokoushali .rd-pd-guide{padding:1rem 1.1rem!important;gap:.8rem!important}
+  .rd-pd-guide strong{font-size:1rem!important}
+  .rd-pd-guide em{font-size:.82rem!important;line-height:1.55!important}
+
+  /* Records / stats cards */
+  #pdacc-records{gap:1rem!important;margin-top:2rem!important}
+  .rd-pd-card{padding:1.3rem 1.2rem!important;border-radius:16px!important}
+  .rd-pd-h{font-size:1.18rem!important}
+  .rd-pd-sub{font-size:.85rem!important;line-height:1.6!important}
+  .rd-pd-grid3{gap:.8rem!important}
+  .rd-pd-batch{padding:1.1rem!important;border-radius:14px!important}
+  .rd-pd-batch h4{font-size:.96rem!important}
+  .rd-pd-batch p{font-size:.84rem!important;line-height:1.65!important}
+  #pdacc-leadership{margin-top:2rem!important}
+
+  /* Facebook card */
+  .rd-pd-fbcard{padding:1.5rem 1.3rem!important;border-radius:18px!important}
+  .rd-pd-fbcard-h{font-size:1.2rem!important}
+  .rd-pd-fbcard-p{font-size:.86rem!important;line-height:1.6!important;margin-bottom:1rem!important}
+  .rd-pd-fbcard-ico{width:52px!important;height:52px!important;margin-bottom:10px!important}
+
+  /* Admission Guide internals — cards, headings, seats, sim */
+  .rd-ad-card{padding:1.3rem 1.15rem!important;border-radius:16px!important}
+  .rd-ad-h{font-size:1.18rem!important}
+  .rd-ad-lead{font-size:.86rem!important;line-height:1.6!important}
+  .rd-ad-pane-h b{font-size:.95rem!important}
+  .rd-ad-seat{padding:12px!important;border-radius:12px!important}
+  .rd-ad-total{padding:1.1rem!important}
+  .rd-ad-sim{padding:1.1rem!important}
+  .rd-ad-sim-big b{font-size:2rem!important}
+
+  /* Executive committee cards */
+  .rd-pd-ec-card{padding:1.2rem!important;border-radius:16px!important}
+
+  /* Director's Message card */
+  .rd-pd-dir{padding:1.15rem!important;border-radius:18px!important}
+  .rd-pd-dir-head{gap:12px!important}
+  #pdacc-director-card .rd-pd-dir-ava{width:60px!important;height:60px!important}
+  .rd-pd-dir-name,#pdacc-director-card .rd-pd-dir-name{font-size:1.08rem!important}
+  .rd-pd-dir-meta{font-size:.74rem!important}
+  .rd-pd-dir-msg{margin-top:1rem!important;padding:1rem 1.1rem!important}
+  .rd-pd-dir-text,#pdacc-director-card .rd-pd-dir-text{font-size:.85rem!important;line-height:1.7!important}
+  .rd-pd-dir-foot{margin-top:1rem!important;gap:8px!important}
+}
+
+
+
+

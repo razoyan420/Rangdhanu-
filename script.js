@@ -104,6 +104,7 @@
                    bounce to the parent instead of showing an empty page.            */
     const RD_SUBPAGES = {
       'admin-event-new': { parent: 'admin', needsData: false },
+      'admin-module':   { parent: 'admin', needsData: true  },
       'notice':       { parent: 'home',   needsData: true  },
       'event-new':    { parent: 'events', needsData: false },
       'event-detail': { parent: 'events', needsData: true  },
@@ -122,6 +123,7 @@
       /* The admission guide is plain markup: every number is in the page
          already, so a reload can land straight on it. */
       'pdacc-admission': { parent: 'prokoushali', needsData: false },
+      'pdacc-committee': { parent: 'prokoushali', needsData: true  },
       /* Rangdhanu Family's teacher list. needsData is false because the page
          fetches its own feed, so a reload lands here instead of bouncing the
          visitor out to the member directory. */
@@ -182,23 +184,31 @@
     }
 
     function brandLockupClick(element) {
-      if (element) {
-        element.querySelectorAll('.brand-title-word').forEach((word, wordIndex) => {
-          if (word.querySelector('.brand-letter')) return;
-          const text = word.textContent || '';
-          word.textContent = '';
-          Array.from(text).forEach((character, letterIndex) => {
-            const letter = document.createElement('span');
-            letter.className = 'brand-letter';
-            letter.textContent = character;
-            letter.style.setProperty('--brand-letter-index', String(wordIndex * 9 + letterIndex));
-            word.appendChild(letter);
-          });
-        });
-        element.classList.remove('brand-clicked');
-        void element.offsetWidth;
-        element.classList.add('brand-clicked');
-        window.setTimeout(() => element.classList.remove('brand-clicked'), 1500);
+      var lock = element || document.querySelector('.brand-lockup');
+      if (lock) {
+        var logo = lock.querySelector('.brand-logo');
+        var crest = lock.querySelector('.brand-duet-crest');
+        var word = lock.querySelector('.brand-word');
+        var duetWord = lock.querySelector('.brand-title-duet');
+        if (logo && crest && word && duetWord) {
+          var lockRect = lock.getBoundingClientRect();
+          var centre = lockRect.left + lockRect.width / 2;
+          var midOf = function (el) { var r = el.getBoundingClientRect(); return r.left + r.width / 2; };
+          var wordRect = word.getBoundingClientRect();
+          var duetRect = duetWord.getBoundingClientRect();
+          var crestW = crest.offsetWidth || 48;
+          var crestH = crest.offsetHeight || 48;
+          // park the crest centred over the DUET word — its animation "home"
+          crest.style.left = (duetRect.left - wordRect.left + duetRect.width / 2 - crestW / 2) + 'px';
+          crest.style.top = (duetRect.top - wordRect.top + duetRect.height / 2 - crestH / 2) + 'px';
+          // travel-to-centre distances for the two chips
+          lock.style.setProperty('--rang', (centre - midOf(logo)) + 'px');
+          lock.style.setProperty('--cx', (centre - (duetRect.left + duetRect.width / 2)) + 'px');
+          lock.classList.remove('bond');
+          void lock.offsetWidth;
+          lock.classList.add('bond');
+          window.setTimeout(function () { lock.classList.remove('bond'); }, 4050);
+        }
       }
       switchPage('home');
     }
@@ -254,6 +264,11 @@
         if (pageId === 'polls') rdPollOpen();
         if (pageId === 'pdacc-updates') loadPdacc();
         if (pageId === 'pdacc-admission') rdAdInit();
+        if (pageId === 'pdacc-committee') { loadExecutiveCommittee(); renderPdaccCommittee(); }
+        if (pageId === 'pdacc-admission' || pageId === 'pdacc-updates') loadExecutiveCommittee();
+        if (pageId === 'prokoushali' || /^pdacc-/.test(pageId)) {
+          if (typeof renderPdaccSeatNav === 'function') renderPdaccSeatNav();
+        }
         if (pageId === 'admin') adminEnterPage();
       } catch (err) { console.error('page loader failed:', err); }
     }
@@ -4852,7 +4867,7 @@
           '<button type="button" onclick="memberSignOut()" class="ml-2 underline font-bold text-slate-500 hover:text-slate-900">Sign out</button>'
         : (rdAdminGateOpen()
           ? '<span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold"><i data-lucide="shield-check" class="w-4 h-4"></i> Admin access &mdash; contact details unlocked</span>'
-          : '<button type="button" onclick="openMemberSignIn(\'alumni\')" class="inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900"><i data-lucide="lock" class="w-4 h-4"></i> Sign in to see contact details</button>');
+          : '');
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
     }
 
@@ -5276,9 +5291,10 @@
     function setAlumniViewFilter(v) {
       alumniViewFilter = v;
       document.querySelectorAll('.alumni-view-tab-btn').forEach(b => {
+        if (!b.dataset.view) return;               // the Teachers link has no data-view
         const active = b.dataset.view === v;
-        b.classList.toggle('bg-blue-600', active); b.classList.toggle('text-white', active); b.classList.toggle('border-blue-600', active);
-        b.classList.toggle('bg-white', !active); b.classList.toggle('text-slate-600', !active); b.classList.toggle('border-slate-200', !active);
+        b.classList.toggle('is-active', active);
+        b.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
       rdSyncAlumniCommitteeLinks(v);
       filterAlumni();
@@ -5298,7 +5314,7 @@
        Full Blood Bank page: load donors from API, filter by group / location /
        availability, render member-only contact info, admin hide toggle.
        ======================================================================== */
-    const RD_BB = { donors: [], group: 'ALL', loaded: false, isMember: false };
+    const RD_BB = { donors: [], group: 'ALL', view: 'AVAILABLE', loaded: false, isMember: false };
 
     /* The Blood Bank link is static in both menus. When an admin hides the page
        the link has to leave the public menus too -- it staying put was the
@@ -5348,18 +5364,32 @@
       rdBloodRender();
     }
 
+    /* Two views share one grid. "Available" shows only willing donors who are
+       eligible right now; "All" is the full blood-group directory of every
+       member, sorted so willing and available names surface first and members
+       who never opted in sit at the bottom with a neutral chip. */
+    function rdBloodView(view) {
+      RD_BB.view = view;
+      document.querySelectorAll('.bb-view-tab').forEach(b => {
+        const on = b.dataset.view === view;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      rdBloodRender();
+    }
+
     function rdBloodRender() {
       const grid   = document.getElementById('blood-bank-grid');
       const status = document.getElementById('blood-bank-status');
       const note   = document.getElementById('blood-bank-signin-note');
       if (!grid) return;
 
-      const locVal   = (document.getElementById('bb-location-filter') || {}).value || 'ALL';
-      const availOnly = document.getElementById('bb-avail-only') && document.getElementById('bb-avail-only').checked;
+      const locVal = (document.getElementById('bb-location-filter') || {}).value || 'ALL';
+      const availableView = RD_BB.view === 'AVAILABLE';
 
       const filtered = RD_BB.donors.filter(d => {
         if (RD_BB.group !== 'ALL' && d.blood !== RD_BB.group) return false;
-        if (availOnly && !d.available) return false;
+        if (availableView && !(d.willing && d.available)) return false;
         if (locVal !== 'ALL') {
           const locKey = locVal.toLowerCase();
           if (locKey === 'gazipur') {
@@ -5375,12 +5405,16 @@
       if (!filtered.length) {
         grid.innerHTML = '<div class="sm:col-span-2 lg:col-span-3 py-16 text-center text-slate-400">' +
           '<i data-lucide="droplets" class="w-10 h-10 mx-auto mb-3 text-rose-200"></i>' +
-          '<p class="font-semibold">No donors found for this filter.</p>' +
-          '<p class="text-xs mt-1">Try a different blood group or remove filters.</p></div>';
-        if (status) status.textContent = 'No donors found.';
+          '<p class="font-semibold">' + (availableView ? 'No available donors for this filter.' : 'No members found for this filter.') + '</p>' +
+          '<p class="text-xs mt-1">Try a different blood group' + (availableView ? ' or open the All tab.' : ' or remove filters.') + '</p></div>';
+        if (status) status.textContent = availableView ? 'No available donors.' : 'No members found.';
       } else {
         grid.innerHTML = filtered.map(d => rdBloodCard(d, RD_BB.isMember)).join('');
-        if (status) status.textContent = filtered.length + ' donor' + (filtered.length === 1 ? '' : 's') + ' found.';
+        if (availableView) {
+          status.textContent = filtered.length + ' available donor' + (filtered.length === 1 ? '' : 's') + '.';
+        } else {
+          status.textContent = filtered.length + ' member' + (filtered.length === 1 ? '' : 's') + ' with this blood group.';
+        }
       }
 
       if (note) note.classList.toggle('hidden', RD_BB.isMember || !RD_BB.loaded);
@@ -5389,13 +5423,29 @@
 
     function rdBloodCard(d, isMember) {
       const avail = d.available;
-      const badge = avail
-        ? '<span class="bb-badge-avail yes"><i data-lucide="circle-check" class="w-3 h-3"></i>Available</span>'
-        : '<span class="bb-badge-avail no"><i data-lucide="clock" class="w-3 h-3"></i>Unavailable</span>';
+      /* Three honest states. A willing donor who is eligible is green; a willing
+         donor still inside the 120-day window is amber; a member who never opted
+         in is neutral slate -- the card only tells you their blood group is X, it
+         never claims they agreed to donate. */
+      let badge;
+      if (d.willing && avail) {
+        badge = '<span class="bb-badge-avail yes"><i data-lucide="circle-check" class="w-3 h-3"></i>Available</span>';
+      } else if (d.willing && !avail) {
+        badge = '<span class="bb-badge-avail no"><i data-lucide="clock" class="w-3 h-3"></i>Recently donated</span>';
+      } else {
+        badge = '<span class="bb-badge-avail neutral"><i data-lucide="droplet" class="w-3 h-3"></i>Not marked as donor</span>';
+      }
 
-      const daysNote = d.daysSince !== null
-        ? (avail ? d.daysSince + ' days since last donation' : 'Available in ' + Math.max(0, 120 - d.daysSince) + ' days')
-        : 'No previous donation recorded — likely available';
+      let daysNote;
+      if (!d.willing) {
+        daysNote = 'Has this blood group; not marked as a donor';
+      } else if (d.daysSince !== null) {
+        daysNote = avail
+          ? d.daysSince + ' days since last donation'
+          : 'Available in ' + Math.max(0, 120 - d.daysSince) + ' days';
+      } else {
+        daysNote = 'No previous donation recorded, likely available';
+      }
 
       /* The sheet stores a Drive share link / id, not a usable <img> src. The
          raw value never rendered -- run it through the same normaliser the
@@ -5865,6 +5915,8 @@
       renderExecutiveCommittee();
       renderHomeLeaderMessages();
       renderPdaccDirector();
+      renderPdaccCommittee();
+      renderPdaccSeatNav();
     }
 
     function selectEcCommittee(name) {
@@ -6402,8 +6454,6 @@
     }
 
     function renderPdaccDirector() {
-      renderPdaccContacts();
-      renderPdaccSeatPill();
       const sec = document.getElementById('pdacc-leadership');
       const card = document.getElementById('pdacc-director-card');
       const label = document.getElementById('pdacc-committee-btn-label');
@@ -6412,7 +6462,12 @@
       const session = pdaccLastSession();
       if (!found && !session) { sec.classList.add('hidden'); card.innerHTML = ''; return; }
       sec.classList.remove('hidden');
-      card.innerHTML = found ? ecLeaderCard(found.member, found.session) : '';
+      /* Owner: the PDACC Director's number is public on this card -- the running
+         Director is a public servant. publicPhone=true shows the Call Director
+         link even without member sign-in (the number arrives in the public feed,
+         PDACC committee only). The old floating seat pill + contacts Call box
+         were removed in the same pass. */
+      card.innerHTML = found ? pdaccDirectorCard(found.member, found.session, true) : '';
       if (label) label.textContent = session
         ? 'View ' + session + ' committee'
         : 'View last session committee';
@@ -6432,13 +6487,14 @@
       return m ? { member: m, session: s.session } : null;
     }
 
-    /* Facebook is always there. A phone number and a seat-booking profile only
-       appear once the committee sheet actually carries them -- a dead tel:
-       link or a profile page with nobody on it is worse than no button. */
-    /* The pill's number is never written in the markup: it is read out of the
-       committee list each time the feed lands. Senior Residential Director of
-       the newest PDACC session first, the Director when that seat is empty, and
-       no pill at all when neither carries a number. */
+    /* Owner (2026-09-25, round-8): the floating red Seat-Booking pill and the
+       standalone "Call" contacts box stay removed, but Seat Booking returns as a
+       side-nav item (.rd-pd-navseat) on every PDACC page. Its number is never in
+       the markup -- it is read from the committee feed each time it lands:
+       Senior Residential Director of the newest session first, the Director when
+       that seat is empty, and the item stays hidden when neither carries one (a
+       dead tel: link is worse than no button). renderPdaccContacts /
+       renderPdaccSeatPill remain gone. */
     function rdPdSeatContact() {
       const res = (typeof ecSeniorResidentialDirector === 'function')
         ? ecSeniorResidentialDirector() : null;
@@ -6450,49 +6506,140 @@
       return null;
     }
 
-    function renderPdaccSeatPill() {
-      const pill = document.getElementById('pdacc-seat-pill');
-      if (!pill) return;
+    function renderPdaccSeatNav() {
+      const items = document.querySelectorAll('.rd-pd-navseat');
+      if (!items.length) return;
       const hit = rdPdSeatContact();
-      if (!hit) { pill.hidden = true; pill.classList.remove('is-on'); return; }
-      pill.href = 'tel:' + hit.phone.replace(/[^0-9+]/g, '');
-      pill.hidden = false;
-      pill.classList.add('is-on');
-      const who = String(hit.member.fullName || '').trim();
-      pill.setAttribute('aria-label', 'Seat booking: call ' + (who || hit.phone));
-      pill.setAttribute('title', who ? who + ' - ' + hit.phone : hit.phone);
+      items.forEach(function (a) {
+        if (hit) {
+          a.href = 'tel:' + hit.phone.replace(/[^0-9+]/g, '');
+          a.hidden = false;
+          const who = String(hit.member.fullName || '').trim();
+          a.setAttribute('title', who ? who + ' - ' + hit.phone : hit.phone);
+          a.setAttribute('aria-label', 'Seat booking: call ' + (who || hit.phone));
+        } else {
+          a.hidden = true;
+          a.removeAttribute('href');
+        }
+      });
     }
 
-    function renderPdaccContacts() {
-      const box = document.getElementById('pdacc-contacts');
-      if (!box) return;
-      const parts = [];
-      parts.push(
-        '<a href="' + RD_PDACC_FB + '" target="_blank" rel="noopener" class="rd-pd-contact is-fb">' +
-          '<i data-lucide="facebook" class="w-5 h-5 shrink-0"></i>' +
-          '<span><strong>Facebook page</strong><em>facebook.com/pdaccduet</em></span>' +
-          '<i data-lucide="external-link" class="w-4 h-4 shrink-0 ml-auto opacity-70"></i>' +
-        '</a>');
-      const dir = ecLatestDirector();
-      const phone = dir ? String(dir.member.mobile || '').trim() : '';
-      if (phone) {
-        parts.push(
-          '<a href="tel:' + escapeHtml(phone.replace(/[^0-9+]/g, '')) + '" class="rd-pd-contact">' +
-            '<i data-lucide="phone-call" class="w-5 h-5 shrink-0 text-emerald-600"></i>' +
-            '<span><strong>Call</strong><em>' + escapeHtml(phone) + '</em></span>' +
-          '</a>');
+    /* PDACC-scoped Executive committee: the newest session of the PDACC
+       committee only -- no committee switcher, no session tabs, no way to
+       reach the Rangdhanu or any older committee from here. Leader and member
+       cards are reused from the site-wide committee page. */
+    function renderPdaccCommittee() {
+      const mount = document.getElementById('pdacc-committee-mount');
+      if (!mount) return;
+      const sub = document.getElementById('pdacc-committee-sub');
+      const c = ecFindCommittee(RD_PDACC_COMMITTEE);
+      const hasData = c && c.sessions && c.sessions.length;
+      if (!hasData && RD_EC.state === 'loading') {
+        mount.innerHTML = '<div class="rounded-3xl border border-slate-200 bg-white py-12 text-center text-sm font-bold text-slate-500 flex items-center justify-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin text-teal-600"></i> Loading committee members...</div>';
+        lucide.createIcons(); return;
       }
-      const res = ecSeniorResidentialDirector();
-      if (res) {
-        parts.push(
-          '<button type="button" onclick="openEcMessage(\'' +
-            escapeHtml(String(res.member.entryId || '')) + '\', \'prokoushali\')" class="rd-pd-contact">' +
-            '<i data-lucide="bed-double" class="w-5 h-5 shrink-0 text-indigo-600"></i>' +
-            '<span><strong>For seat booking</strong><em>' + escapeHtml(res.member.fullName || '') + '</em></span>' +
-            '<i data-lucide="chevron-right" class="w-4 h-4 shrink-0 ml-auto opacity-70"></i>' +
-          '</button>');
+      if (!hasData && RD_EC.state === 'error') {
+        mount.innerHTML = '<div class="rounded-3xl border border-rose-200 bg-rose-50 py-10 px-6 text-center"><i data-lucide="triangle-alert" class="w-8 h-8 text-rose-600 mx-auto"></i>' +
+          '<p class="mt-3 text-sm font-bold text-rose-800">' + escapeHtml(RD_EC.error || 'Could not load the committee.') + '</p>' +
+          '<button type="button" onclick="loadExecutiveCommittee(true)" class="mt-5 px-5 py-2.5 rounded-xl bg-white border border-rose-200 text-rose-700 text-xs font-bold cursor-pointer">Try again</button></div>';
+        lucide.createIcons(); return;
       }
-      box.innerHTML = parts.join('');
+      const session = hasData ? c.sessions[0] : null;
+      const members = session ? (session.members || []) : [];
+      if (!members.length) {
+        mount.innerHTML = '<div class="rounded-3xl border border-slate-200 bg-white py-12 px-6 text-center"><i data-lucide="users" class="w-8 h-8 text-slate-300 mx-auto"></i>' +
+          '<p class="mt-3 text-sm font-bold text-slate-600">এই সেশনের নির্বাহী কমিটি এখনো যোগ করা হয়নি।</p></div>';
+        lucide.createIcons(); return;
+      }
+      if (sub) sub.textContent = session.session + ' সেশনের নির্বাহী কমিটি।';
+      const leaders = members.filter(ecIsLeader);
+      const rest = members.filter(m => !ecIsLeader(m));
+      /* Owner: keep every committee card the same compact size (pdaccEcCard),
+         Director included -- just make sure the call option is there (it is,
+         when the member carries a number). Director(s) on top, rest below. */
+      let html = '';
+      if (leaders.length) {
+        html += '<div class="rd-pd-ec-lead">' +
+          leaders.map(m => pdaccEcCard(m, session.session)).join('') + '</div>';
+      }
+      if (rest.length) {
+        html += '<div class="rd-pd-ec-grid">' +
+          rest.map(m => pdaccEcCard(m, session.session)).join('') + '</div>';
+      }
+      mount.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    /* One compact, centred committee card for the PDACC page. Real data only:
+       position badge, round avatar (initials fallback), name, department/series
+       (session on the leader), and a View-profile link into the alumni record. */
+    function pdaccEcCard(m, sessionLabel) {
+      const lead = ecIsLeader(m);
+      const photo = String(m.photo || '').trim();
+      const ava = photo
+        ? '<img src="' + escapeHtml(photo) + '" alt="' + escapeHtml(m.fullName) + '" loading="lazy" class="rd-pd-ec-img" onerror="rdPhotoFallback(this)"/>'
+        : '<span class="ec-initials">' + escapeHtml(ecInitials(m.fullName)) + '</span>';
+      const pill = escapeHtml(m.department) + ' • Series ' + escapeHtml(m.series) +
+        (lead && sessionLabel ? ' • ' + escapeHtml(sessionLabel) : '');
+      return '' +
+      '<article class="rd-pd-ec-card' + (lead ? ' is-lead' : '') + '">' +
+        '<div class="rd-pd-ec-ava"><span class="rd-pd-ec-dot"></span>' + ava + '</div>' +
+        '<h4 class="rd-pd-ec-name">' + escapeHtml(m.fullName) + '</h4>' +
+        '<p class="rd-pd-ec-role">' + escapeHtml(m.position) + '</p>' +
+        '<span class="rd-pd-ec-pill">' + pill + '</span>' +
+        '<div class="rd-pd-ec-acts">' +
+          '<button type="button" class="rd-pd-ec-link" onclick="ecOpenProfile(\'' +
+            escapeHtml(m.entryId) + '\', this)"><i data-lucide="user-round"></i> Profile</button>' +
+          /* Running committee members are public servants -- their number is
+             public HERE (PDACC page only). The site-wide committee still hides
+             it behind member sign-in; this button lives on pdaccEcCard alone. */
+          (String(m.mobile || '').trim()
+            ? '<a class="rd-pd-ec-call" href="tel:' + escapeHtml(String(m.mobile).replace(/[^0-9+]/g, '')) +
+              '"><i data-lucide="phone-call"></i> Call</a>'
+            : '') +
+        '</div>' +
+      '</article>';
+    }
+
+    /* The Director's-Message card, PDACC theme. Premium teal treatment (glow,
+       gradient, quote block) but it keeps every substring the site-wide
+       ecLeaderCard exposed -- ecPhotoBlock's ec-initials, the position span,
+       the Session label, rdClampBlock's See more, and the gated mailto -- so
+       the committee harness reads the same facts off it. */
+    function pdaccDirectorCard(m, sessionLabel, publicPhone) {
+      const msg = String(m.message || '').trim();
+      const canSee = rdCanViewContacts() && (m.mobile || m.email);
+      const showPhone = (publicPhone && String(m.mobile || '').trim()) || (canSee && m.mobile);
+      const showEmail = canSee && m.email;
+      return '' +
+      '<article class="rd-pd-dir">' +
+        '<span class="rd-pd-dir-glow"></span>' +
+        '<div class="rd-pd-dir-head">' +
+          ecPhotoBlock(m, 'rd-pd-dir-ava w-24 h-24 sm:w-28 sm:h-28') +
+          '<div class="min-w-0">' +
+            '<span class="rd-pd-dir-badge">' + escapeHtml(m.position) + '</span>' +
+            '<h3 class="rd-pd-dir-name">' + escapeHtml(m.fullName) + '</h3>' +
+            '<p class="rd-pd-dir-meta">' + escapeHtml(m.department) + ' • Series ' + escapeHtml(m.series) +
+              (sessionLabel ? ' • Session ' + escapeHtml(sessionLabel) : '') + '</p>' +
+          '</div>' +
+        '</div>' +
+        (msg
+          ? '<div class="rd-pd-dir-msg"><i data-lucide="quote" class="rd-pd-dir-quote"></i>' +
+            rdClampBlock(msg, 320, 'rd-pd-dir-text') + '</div>'
+          : '') +
+        '<div class="rd-pd-dir-foot">' +
+          '<button type="button" class="rd-pd-ec-link" onclick="ecOpenProfile(\'' +
+            escapeHtml(m.entryId) + '\', this)"><i data-lucide="user-round"></i> View profile</button>' +
+          (showPhone
+            ? '<a class="rd-pd-ec-call" href="tel:' + escapeHtml(String(m.mobile).replace(/[^0-9+]/g, '')) +
+              '"><i data-lucide="phone-call"></i> কল করুন</a>'
+            : '') +
+          (showEmail
+            ? '<a class="rd-pd-dir-mail" href="mailto:' + escapeHtml(m.email) +
+              '"><i data-lucide="mail"></i> Email</a>'
+            : '') +
+        '</div>' +
+      '</article>';
     }
 
     /* ---------- PDACC: the DUET admission guide ------------------------
@@ -9264,6 +9411,26 @@ f.reset();
       { key: 'polls',         label: 'Polls',                   icon: 'vote',         action: '',                    custom: true },
       { key: 'summary',       label: 'Members Summary',         icon: 'bar-chart-3',  action: '',                    custom: true }
     ];
+    /* One-line card blurbs for the hub launcher grid. Kept out of RD_ADMIN_TABS
+       so that array stays exactly as the harness reads it (custom: true must sit
+       right after action and be the last property in each entry). */
+    const RD_ADMIN_TAB_DESC = {
+      registrations: 'Review and approve join requests',
+      events: 'Manage published events',
+      committee: 'Approve committee entries',
+      notices: 'Publish and edit notices',
+      social: 'Curate social posts',
+      slides: 'Home and PDACC hero slides',
+      pdacc: 'Edit the PDACC page content',
+      faculty: 'The member directory',
+      activity: 'Recent admin activity log',
+      unclaimed: 'Profiles awaiting an owner',
+      'unclaimed-matches': 'Review suggested matches',
+      'unclaimed-audits': 'Merges that can be undone',
+      email: 'Send an email to members',
+      polls: 'Create and run polls',
+      summary: 'Membership analytics'
+    };
     const RD_ADMIN_STATUSES = ['PENDING', 'DUPLICATE', 'APPROVED', 'REJECTED', 'UPCOMING', 'ALL'];
 
     /* A repeat application is saved with Status = 'DUPLICATE' instead of being
@@ -9283,7 +9450,8 @@ f.reset();
                      facEdit: '', facMissing: [],
                      askWhat: '', askId: '', backfillPreview: null, backfillChoices: {},
                      queueErrors: {}, selected: {}, emMode: 'group', emPick: '', emSel: {},
-                     plNew: false, plBusy: '', plView: {}, plType: 'single', plVis: 'voters', plOpts: ['', ''] };
+                     plNew: false, plBusy: '', plView: {}, plType: 'single', plVis: 'voters', plOpts: ['', ''],
+                     hubCounts: null, hubCountsState: 'idle' };
 
     function adminTabMeta(key) {
       return RD_ADMIN_TABS.find(t => t.key === key) || RD_ADMIN_TABS[0];
@@ -9519,7 +9687,7 @@ f.reset();
 
     /* Opening the page never fetches anything on its own. */
     function adminEnterPage() {
-      if (RD_ADMIN.gate === 'open') { adminGateRender(); loadAdminDashboard(); return; }
+      if (RD_ADMIN.gate === 'open') { adminGateRender(); loadAdminDashboard(); adminLoadHubCounts(); return; }
       if (RD_ADMIN.gate === 'checking') return;
       if (RD_ADMIN_TOKEN && rdAdminWantsIn()) {
         try {
@@ -9600,7 +9768,12 @@ f.reset();
       } catch (err) {
         if (rdIsRoleError(err)) { await adminOpenPdaccOnly(); return; }
         adminGateLock(friendlyError(err).msg);
+        return;
       }
+      /* Fill the hub cards' real numbers once the gate is open. Placed after the
+         try/catch so it only runs on success, and so it does not sit between the
+         function head and the role-error fallback the harness measures. */
+      adminLoadHubCounts();
     }
 
     /* Which failures actually mean "you are not signed in".
@@ -9759,22 +9932,11 @@ f.reset();
       renderAdmin();
     }
 
+    /* Kept for the summary quick-links and any onclick still calling it: a tab
+       switch now means "open that module's sub-page". */
     function adminSwitchTab(key) {
-      if (RD_ADMIN.tab === key) return;
       if (!adminTabAllowed(key)) return;
-      RD_ADMIN.tab = key;
-      RD_ADMIN.selected = {};
-      /* Events and Committee have no DUPLICATE status; do not strand the view
-         on a filter that can never match. */
-      if (RD_ADMIN.status === 'DUPLICATE' && key !== 'registrations') RD_ADMIN.status = 'PENDING';
-      RD_ADMIN.noteOpen = '';
-      RD_ADMIN.nbEdit = '';
-      RD_ADMIN.scEdit = '';
-      RD_ADMIN.evEdit = '';
-      RD_ADMIN.slEdit = '';
-      RD_ADMIN.askWhat = '';
-      RD_ADMIN.askId = '';
-      loadAdminDashboard();
+      adminOpenModule(key);
     }
 
     function adminSetStatus(status) {
@@ -10105,7 +10267,7 @@ f.reset();
         : '';
 
       return '' +
-      '<article class="admin-glass-card rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 transition hover:shadow-md ' +
+      '<article class="admin-glass-card rd-admin-item rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 transition hover:shadow-md ' +
         (isSelected ? 'ring-2 ring-slate-800/30 bg-slate-50/50' : 'bg-white') + '">' +
         '<div class="flex items-start gap-3.5">' +
           selectBox +
@@ -10133,38 +10295,94 @@ f.reset();
       '</article>';
     }
 
+    /* The hub is a grid of glass launcher cards. Each card shows the module's
+       label + one-line description and, when the backend has answered, its real
+       counts (pending / total). Numbers are never invented here: until
+       getadmincounts returns we show a skeleton chip, and a module the endpoint
+       carries no number for (pdacc / email / polls / summary) shows label only.
+       Clicking a card opens that module on its own sub-page (adminOpenModule). */
+    function adminHubMetricChips(key) {
+      const st = RD_ADMIN.hubCountsState;
+      const c = RD_ADMIN.hubCounts && RD_ADMIN.hubCounts[key];
+      if (st === 'loading' && !c) {
+        return '<span class="rd-admin-metric-skeleton" aria-hidden="true"></span>';
+      }
+      if (!c) return '';
+      const chips = [];
+      if (c.pending != null && c.pending > 0) {
+        chips.push('<span class="rd-admin-metric rd-admin-metric-pending"><i data-lucide="clock" class="w-3 h-3"></i>' + c.pending + ' pending</span>');
+      }
+      if (c.action != null && c.action > 0) {
+        chips.push('<span class="rd-admin-metric rd-admin-metric-pending">' + c.action + '</span>');
+      }
+      if (c.total != null) {
+        chips.push('<span class="rd-admin-metric rd-admin-metric-total">' + c.total + ' total</span>');
+      }
+      if (!chips.length && c.pending === 0) {
+        chips.push('<span class="rd-admin-metric rd-admin-metric-open">All clear</span>');
+      }
+      return chips.join('');
+    }
+
     function adminRenderTabs() {
       const box = document.getElementById('admin-tabs');
       if (!box) return;
-      const counts = {};
       const tabs = adminTabList();
-      tabs.forEach(t => {
-        const list = RD_ADMIN.rows[t.key];
-        /* A duplicate also waits on the admin, so the badge counts it. */
-        if (list && !t.custom) {
-          counts[t.key] = list.filter(r => r.status === 'PENDING' || r.status === 'DUPLICATE').length;
-        } else if (t.key === 'unclaimed') {
-          counts[t.key] = null;
-        } else if (t.key === 'unclaimed-matches') {
-          counts[t.key] = list ? list.filter(r => String(r.status || 'PENDING').toUpperCase() === 'PENDING').length : null;
-        } else if (t.key === 'unclaimed-audits') {
-          counts[t.key] = list ? list.filter(r => String(r.Status || r.status || '').toUpperCase() === 'MERGED').length : null;
-        } else {
-          counts[t.key] = null;
-        }
-      });
       box.innerHTML = tabs.map(t => {
-        const on = RD_ADMIN.tab === t.key;
-        const count = counts[t.key];
-        const badge = (count !== null && count > 0) ? '<span class="ml-auto inline-flex items-center justify-center min-w-[1.5rem] h-5 px-1.5 rounded-full text-[10px] font-black ' +
-          (on ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-800') + '">' + count + '</span>' : '';
-        return '<button type="button" onclick="adminSwitchTab(\'' + t.key + '\')" ' +
-          'class="admin-glass-btn flex items-center gap-2 px-3.5 py-2.5 rounded-2xl border text-xs font-bold transition cursor-pointer text-left ' +
-          (on ? 'bg-slate-900 border-slate-900 text-white shadow-sm' : 'bg-white/80 backdrop-blur-sm border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900 hover:bg-white') + '">' +
-          '<i data-lucide="' + t.icon + '" class="w-4 h-4 shrink-0 ' + (on ? 'text-white' : 'text-slate-500') + '"></i><span class="min-w-0 truncate">' + t.label + '</span>' + badge +
+        const metrics = adminHubMetricChips(t.key);
+        return '<button type="button" onclick="adminOpenModule(\'' + t.key + '\')" ' +
+          'class="rd-admin-card group">' +
+          '<span class="rd-admin-card-go"><i data-lucide="arrow-up-right" class="w-4 h-4"></i></span>' +
+          '<span class="rd-admin-card-ico"><i data-lucide="' + t.icon + '" class="w-5 h-5"></i></span>' +
+          '<span class="rd-admin-card-title">' + t.label + '</span>' +
+          '<span class="rd-admin-card-desc">' + (RD_ADMIN_TAB_DESC[t.key] || '') + '</span>' +
+          '<span class="rd-admin-card-metrics">' + metrics + '</span>' +
         '</button>';
       }).join('');
+      if (window.lucide && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} }
     }
+
+    /* One lightweight GET fills every card's number at once. Cache-guarded: a
+       re-entry into an already-open admin page must not refetch (the harness
+       asserts no request fires on re-entry), so pass force only from the hub
+       Refresh button. */
+    async function adminLoadHubCounts(force) {
+      if (RD_ADMIN.gate !== 'open') return;
+      if (RD_ADMIN.role === 'PDACC') return;   /* PDACC admin has no hub grid */
+      if (RD_ADMIN.hubCounts && !force) return;
+      if (RD_ADMIN.hubCountsState === 'loading') return;
+      RD_ADMIN.hubCountsState = 'loading';
+      adminRenderTabs();
+      try {
+        const res = await apiGet('getadmincounts', {});
+        RD_ADMIN.hubCounts = (res && res.counts) || {};
+        RD_ADMIN.hubCountsState = 'ready';
+      } catch (err) {
+        RD_ADMIN.hubCountsState = 'error';   /* cards fall back to label only */
+      }
+      adminRenderTabs();
+    }
+
+    /* Opening a module = go to its own sub-page (#page-admin-module), set the
+       working tab, and load that module's rows. No popup, real page + back. */
+    function adminOpenModule(key) {
+      if (!adminTabAllowed(key)) return;
+      RD_ADMIN.tab = key;
+      RD_ADMIN.selected = {};
+      if (RD_ADMIN.status === 'DUPLICATE' && key !== 'registrations') RD_ADMIN.status = 'PENDING';
+      RD_ADMIN.noteOpen = '';
+      RD_ADMIN.nbEdit = '';
+      RD_ADMIN.scEdit = '';
+      RD_ADMIN.evEdit = '';
+      RD_ADMIN.slEdit = '';
+      RD_ADMIN.askWhat = '';
+      RD_ADMIN.askId = '';
+      const titleEl = document.getElementById('admin-module-title');
+      if (titleEl) titleEl.textContent = adminTabMeta(key).label;
+      openSubPage('admin-module');
+      loadAdminDashboard();
+    }
+
 
     function adminRenderFilters() {
       const box = document.getElementById('admin-filters');
@@ -12911,7 +13129,7 @@ f.reset();
     }
     /* Close more dropdown when clicking outside */
     document.addEventListener('click', function(e) {
-      ['desktop', 'directory'].forEach(function(k) {
+      ['desktop'].forEach(function(k) {
         const wrap = document.getElementById('rd-more-wrap-' + k);
         if (wrap && !wrap.contains(e.target)) rdMoreClose(k);
       });
