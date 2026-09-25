@@ -2580,9 +2580,11 @@ body.rd-member-restoring #page-my-profile > * {
     transform: translateY(-2px);
   }
   .ec-committee-tab.bg-blue-600 {
-    background: #102a43;
-    border-color: #102a43;
-    box-shadow: 0 16px 30px -22px rgba(16, 42, 67, .8);
+    background: linear-gradient(135deg, rgba(36, 95, 163, .82), rgba(23, 59, 115, .72)) !important;
+    border-color: rgba(255, 255, 255, .34);
+    -webkit-backdrop-filter: blur(14px) saturate(165%);
+    backdrop-filter: blur(14px) saturate(165%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 16px 32px -20px rgba(23, 59, 115, .72);
   }
   #ec-session-tabs {
     padding: .3rem;
@@ -2598,9 +2600,11 @@ body.rd-member-restoring #page-my-profile > * {
     border-color: transparent;
   }
   .ec-session-tab.bg-slate-900 {
-    background: #0f766e;
-    border-color: #0f766e;
-    box-shadow: 0 8px 18px -14px rgba(15, 118, 110, .9);
+    background: linear-gradient(135deg, rgba(15, 118, 110, .82), rgba(13, 148, 136, .68));
+    border-color: rgba(255, 255, 255, .3);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    backdrop-filter: blur(12px) saturate(160%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), 0 10px 20px -14px rgba(15, 118, 110, .85);
   }
   .ec-leader-card {
     border-color: rgba(15, 118, 110, .2);
@@ -3102,7 +3106,132 @@ html.rd-js .rd-pollc.is-visible { opacity: 1; transform: none; }
 .rd-gl.show-close.is-success .rd-gl-close { background: #059669; box-shadow: 0 8px 20px -6px rgba(5,150,105,.4); }
 .rd-gl.show-close.is-success .rd-gl-close:hover { background: #047857; }
 
+/* Confirm mode: the same overlay asks a yes/no question first, then flips into
+   the loader when the user presses Confirm (owner-authorised; no window.confirm
+   and no separate page — Rule #2 is waived for this overlay only). */
+.rd-gl-badge-confirm { background: #6366f1; box-shadow: 0 10px 25px -5px rgba(99,102,241,.4); }
+.rd-gl.is-danger .rd-gl-badge-confirm { background: #f43f5e; box-shadow: 0 10px 25px -5px rgba(244,63,94,.4); }
+.rd-gl.is-confirm .rd-gl-ring, .rd-gl.is-confirm .rd-gl-wave, .rd-gl.is-confirm .rd-gl-hub { opacity: 0; }
+.rd-gl.is-confirm .rd-gl-badge-confirm { transform: scale(1); }
+.rd-gl.is-confirm .rd-gl-close { display: none; }
+.rd-gl-actions { display: none; margin-top: 1.75rem; gap: .75rem; justify-content: center; }
+.rd-gl.is-confirm .rd-gl-actions { display: flex; }
+.rd-gl-btn {
+  font-family: 'Poppins', sans-serif; font-weight: 600; font-size: .9rem;
+  padding: .7rem 1.6rem; border-radius: 9999px; border: 0; cursor: pointer;
+  transition: transform .15s ease, background .2s ease;
+}
+.rd-gl-btn:active { transform: scale(.96); }
+.rd-gl-btn-yes { background: #6366f1; color: #fff; box-shadow: 0 8px 20px -6px rgba(99,102,241,.4); }
+.rd-gl-btn-yes:hover { background: #4f46e5; }
+.rd-gl.is-danger .rd-gl-btn-yes { background: #f43f5e; box-shadow: 0 8px 20px -6px rgba(244,63,94,.4); }
+.rd-gl.is-danger .rd-gl-btn-yes:hover { background: #e11d48; }
+.rd-gl-btn-no { background: #f1f5f9; color: #475569; }
+.rd-gl-btn-no:hover { background: #e2e8f0; }
+
 @media (prefers-reduced-motion: reduce) {
   .rd-gl-wave, .rd-gl-ring { animation: none; }
   .rd-gl-card { transition: opacity .3s ease; }
+}
+
+/* ===== redesign-2026 SS10: single-row liquid-glass navigation =====
+   The sticky header sits over white content once the page scrolls, so the
+   pill stays translucent-white with sky ink -- the glass read comes from
+   blur + inner highlight + the sliding glare, never from a dark fill. */
+.nav-pill{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:.15rem;
+  padding:.32rem .4rem;
+  border-radius:999px;
+  background:rgba(224,242,254,.5);
+  border:1px solid rgba(14,165,233,.16);
+  -webkit-backdrop-filter:blur(16px) saturate(170%);
+  backdrop-filter:blur(16px) saturate(170%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85), 0 8px 22px -14px rgba(14,165,233,.55);
+}
+.nav-glare{
+  position:absolute;
+  top:.3rem;
+  bottom:.3rem;
+  left:0;
+  width:0;
+  border-radius:999px;
+  z-index:0;
+  pointer-events:none;
+  background:linear-gradient(180deg,#ffffff,#e0f2fe);
+  box-shadow:0 6px 16px -6px rgba(14,165,233,.5), inset 0 1px 0 #fff;
+  transition:left .42s cubic-bezier(.22,1,.36,1), width .42s cubic-bezier(.22,1,.36,1);
+}
+.nav-pill .rd-more-wrap{position:relative;z-index:1;display:inline-flex;}
+.nav-pill .premium-nav-item,
+.nav-pill .rd-more-btn{
+  position:relative;
+  z-index:1;
+  display:inline-flex;
+  align-items:center;
+  gap:.25rem;
+  padding:.5rem .85rem;
+  border:0;
+  background:transparent;
+  border-radius:999px;
+  color:#0369a1 !important;
+  font-weight:700;
+  white-space:nowrap;
+  transform:none;
+  transition:color .25s ease;
+}
+.nav-pill .premium-nav-item:after{display:none;}
+.nav-pill .premium-nav-item:hover,
+.nav-pill .rd-more-btn:hover{
+  color:#0c4a6e !important;
+  background:transparent;
+  transform:none;
+  box-shadow:none;
+}
+.nav-pill .premium-nav-item.active{
+  color:#075985 !important;
+  background:transparent;
+  box-shadow:none;
+}
+.nav-pill .rd-more-btn i{width:.9rem;height:.9rem;}
+
+/* Frosted glass logo chip */
+.brand-logo{
+  background:rgba(255,255,255,.5);
+  border:1px solid rgba(255,255,255,.7);
+  -webkit-backdrop-filter:blur(12px) saturate(160%);
+  backdrop-filter:blur(12px) saturate(160%);
+  box-shadow:0 0 0 1px rgba(14,165,233,.18), 0 8px 22px -10px rgba(14,165,233,.4), inset 0 1px 0 rgba(255,255,255,.85);
+}
+
+/* DUET wordmark: sky ink (the teal / white were only ever for a dark hero) */
+.brand-duet,.brand-title-duet{color:#0369a1 !important;}
+
+/* Mobile (< xl): glass to match the desktop pill */
+#mobile-member-btn,#mobile-menu-btn{
+  background:rgba(224,242,254,.55);
+  border:1px solid rgba(14,165,233,.18);
+  color:#0369a1;
+  -webkit-backdrop-filter:blur(14px) saturate(170%);
+  backdrop-filter:blur(14px) saturate(170%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85), 0 8px 22px -14px rgba(14,165,233,.55);
+}
+#mobile-member-btn:hover,#mobile-menu-btn:hover{background:rgba(186,230,253,.75);color:#0c4a6e;}
+#mobile-menu{
+  background:rgba(255,255,255,.86);
+  border-top:1px solid rgba(14,165,233,.2);
+  -webkit-backdrop-filter:blur(22px) saturate(165%);
+  backdrop-filter:blur(22px) saturate(165%);
+  box-shadow:0 24px 44px -24px rgba(14,165,233,.5);
+}
+#mobile-menu .mobile-nav-item.active{
+  background:linear-gradient(90deg,rgba(224,242,254,.9),rgba(186,230,253,.55));
+  box-shadow:inset 3px 0 0 var(--rd-accent-dark), inset 0 1px 0 rgba(255,255,255,.7);
+  color:#075985;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .nav-glare{transition:none;}
 }

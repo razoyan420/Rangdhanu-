@@ -225,6 +225,7 @@
       rdCurrentPageId = pageId;
       const navId = (RD_SUBPAGES[pageId] || {}).parent || pageId;
       document.querySelectorAll('.nav-btn, .mobile-nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === navId));
+      rdNavGlareSync();
       const menu = document.getElementById('mobile-menu');
       if (menu && !menu.classList.contains('hidden')) { menu.classList.add('hidden'); syncMobileMenuButton(); }
       if (updateUrl) { const urlId = pageUrlId(pageId); history.pushState({page: pageId, scrollY: 0}, '', window.location.pathname + (pageId==='home'?'':`#${urlId}`)); }
@@ -3730,14 +3731,19 @@
     }
 
     async function memberVerify(quiet) {
-      if (!RD_MEMBER.token || RD_MEMBER.busy) return;
-      if (!quiet) showGlobalLoader("Signing In...", "Authenticating with Google.");
+      if (!RD_MEMBER.token) { if (!quiet) dismissGlobalLoader(); return; }
+      /* A user-initiated sign-in must always show the loader. If a background
+         (quiet) verify is already in flight, we still raise wantLoader and show
+         it now -- the in-flight call honours the flag when it resolves, so the
+         member never stares at a dead screen wondering if anything is happening. */
+      if (!quiet) { RD_MEMBER.wantLoader = true; showGlobalLoader("Signing In...", "Authenticating with Google."); }
+      if (RD_MEMBER.busy) return;
       RD_MEMBER.busy = true;
       if (!quiet) rdMemberMsg('member-signin-msg', 'Checking...', 'wait');
       try {
         const r = await apiGet('membersignin', rdMemberParams());
         if (r && r.status === 'NO_MATCH') {
-          dismissGlobalLoader();
+          dismissGlobalLoader(); RD_MEMBER.wantLoader = false;
             RD_MEMBER.me = null;
             RD_MEMBER.email = r.email || '';
           rdMemberPaintLinkBox();
@@ -3756,7 +3762,8 @@
         /* The stored token stays. A dropped connection or a sleeping Apps
            Script deployment is not the member asking to be signed out, and
            wiping it here was what made a refresh look like a logout. */
-        failGlobalLoader('Sign in failed', friendlyError(err).msg);
+        if (!quiet || RD_MEMBER.wantLoader) failGlobalLoader('Sign in failed', friendlyError(err).msg);
+        RD_MEMBER.wantLoader = false;
           if (!quiet) rdMemberMsg('member-signin-msg', friendlyError(err).msg);
         rdMemberPaintSignInLinks();
       } finally {
@@ -3778,7 +3785,8 @@
       memberLoadContacts().then(function () {
         if (alumniData.length) renderAlumniPage();
       });
-      if (quiet) { rdMemberPaintSignInLinks(); return; }
+      if (quiet && !RD_MEMBER.wantLoader) { RD_MEMBER.wantLoader = false; rdMemberPaintSignInLinks(); return; }
+      RD_MEMBER.wantLoader = false;
       hideGlobalLoader(true, null, 'Signed in successfully.');
         rdMemberMsg('member-signin-msg', 'You are signed in.', 'ok');
       rdMemberPaintLinkBox();
@@ -13612,18 +13620,14 @@ f.reset();
         status: statusEl ? statusEl.value : 'open',
         resultVisibility: RD_ADMIN.plVis
       };
-      showGlobalLoader("Creating Poll...", "Saving poll to database.");
       RD_ADMIN.plBusy = 'new'; renderAdmin();
       try {
         await apiPost('pollcreate', { data: payload });
         RD_ADMIN.plNew = false; RD_ADMIN.plOpts = ['', ''];
-        hideGlobalLoader(true, async () => {
-            RD_ADMIN.plBusy = '';
-            await loadAdminDashboard(true);
-            showToast('Poll created.', 'success');
-        }, 'Poll created successfully.');
+        RD_ADMIN.plBusy = '';
+        await loadAdminDashboard(true);
+        showToast('Poll created.', 'success');
       } catch (err) {
-        failGlobalLoader('Could not create poll', friendlyError(err).msg);
         RD_ADMIN.plBusy = ''; reportError(err); renderAdmin();
       }
     }
@@ -13643,19 +13647,24 @@ f.reset();
     async function adminPollDelete(id) {
       const poll = (RD_ADMIN.rows.polls || []).find(function (p) { return p.id === id; });
       const votes = poll && poll.results ? (poll.results.total || 0) : 0;
-      if (!rdConfirmInline('adpoll-del-' + id)) {
-        showToast('Press Delete again within a few seconds to confirm removing this poll' + (votes ? ' and its ' + votes + ' vote(s)' : '') + '.', 'info', 'Confirm delete');
-        return;
-      }
-      RD_ADMIN.plBusy = id; renderAdmin();
-      try {
-        await apiPost('polldelete', { data: { pollId: id } });
-        showToast('Poll deleted.', 'success');
-        RD_ADMIN.plBusy = '';
-        await loadAdminDashboard(true);
-      } catch (err) {
-        RD_ADMIN.plBusy = ''; reportError(err); renderAdmin();
-      }
+      confirmGlobalLoader(
+        'Delete this poll?',
+        'This permanently removes the poll' + (votes ? ' and its ' + votes + ' vote(s)' : '') + '. This cannot be undone.',
+        async function () {
+          RD_ADMIN.plBusy = id; renderAdmin();
+          try {
+            await apiPost('polldelete', { data: { pollId: id } });
+            hideGlobalLoader(true, async () => {
+              RD_ADMIN.plBusy = '';
+              await loadAdminDashboard(true);
+            }, 'Poll deleted successfully.');
+          } catch (err) {
+            failGlobalLoader('Could not delete', friendlyError(err).msg);
+            RD_ADMIN.plBusy = ''; reportError(err); renderAdmin();
+          }
+        },
+        { confirmText: 'Delete', danger: true, workingTitle: 'Deleting...', workingSub: 'Removing this poll.' }
+      );
     }
 
     /* Two-press confirm without a popup (rule 2): the first press arms a short
@@ -13723,7 +13732,7 @@ function showGlobalLoader(title, sub) {
         subEl.style.transitionDelay = '0.05s';
     }, 50);
 
-    overlay.classList.remove('is-success', 'is-error', 'show-close');
+    overlay.classList.remove('is-success', 'is-error', 'show-close', 'is-confirm', 'is-danger');
     overlay.classList.add('is-open');
     overlay.setAttribute('aria-hidden', 'false');
     rdGlEl('loader-pct').textContent = '0';
@@ -13745,7 +13754,7 @@ function dismissGlobalLoader() {
     clearInterval(rdLoaderInterval);
     const cb = rdLoaderCloseCb; rdLoaderCloseCb = null;
     if (overlay) {
-        overlay.classList.remove('is-open', 'is-success', 'is-error', 'show-close');
+        overlay.classList.remove('is-open', 'is-success', 'is-error', 'show-close', 'is-confirm', 'is-danger');
         overlay.setAttribute('aria-hidden', 'true');
     }
     if (typeof cb === 'function') cb();
@@ -13805,3 +13814,76 @@ function failGlobalLoader(title, msg, onClose = null) {
     changeLoaderTextSmoothly(title || 'Something went wrong', msg || 'Please try again.');
     rdLoaderCloseCb = onClose;
 }
+
+// Confirm mode: the same overlay asks a yes/no question (no window.confirm, no
+// separate page). Pressing "Confirm" flips it straight into the loading state
+// and runs onConfirm() — which then calls hideGlobalLoader / failGlobalLoader.
+// opts: { confirmText, danger, workingTitle, workingSub }. When the overlay is
+// absent (test VM / no DOM) onConfirm runs synchronously so nothing sticks.
+function confirmGlobalLoader(title, msg, onConfirm, opts = {}) {
+    const overlay = rdGlEl('demo-loader');
+    if (!overlay) { if (typeof onConfirm === 'function') onConfirm(); return; }
+    clearInterval(rdLoaderInterval);
+    rdLoaderCloseCb = null;
+
+    overlay.classList.remove('is-success', 'is-error', 'show-close', 'is-danger');
+    overlay.classList.add('is-open', 'is-confirm');
+    if (opts.danger) overlay.classList.add('is-danger');
+    overlay.setAttribute('aria-hidden', 'false');
+
+    const titleEl = rdGlEl('loader-title'), subEl = rdGlEl('loader-sub');
+    if (titleEl && subEl) {
+        titleEl.style.transition = 'none'; subEl.style.transition = 'none';
+        titleEl.style.opacity = '1'; titleEl.style.transform = 'translateY(0)';
+        subEl.style.opacity = '1'; subEl.style.transform = 'translateY(0)';
+        titleEl.textContent = title || 'Are you sure?';
+        subEl.textContent = msg || 'Please confirm to continue.';
+    }
+
+    const yes = rdGlEl('loader-confirm-btn');
+    if (yes) {
+        yes.textContent = opts.confirmText || 'Confirm';
+        yes.onclick = function () {
+            overlay.classList.remove('is-confirm', 'is-danger');
+            showGlobalLoader(opts.workingTitle || 'Working...', opts.workingSub || 'Please wait a moment.');
+            if (typeof onConfirm === 'function') onConfirm();
+        };
+    }
+}
+
+/* ===== redesign-2026 SS10: glass-nav sliding glare =====
+   Slides the frosted highlight under whichever pill item is active (or, on
+   hover, the item being pointed at). Pure geometry off getBoundingClientRect,
+   so no observer and no layout thrash beyond the rects it must read. */
+function rdNavGlareSync(el) {
+  const pill = document.getElementById('nav-pill');
+  const glare = document.getElementById('nav-glare');
+  if (!pill || !glare) return;
+  const target = el
+    || pill.querySelector('.premium-nav-item.active')
+    || pill.querySelector('.premium-nav-item');
+  if (!target) return;
+  const pr = pill.getBoundingClientRect();
+  const tr = target.getBoundingClientRect();
+  if (!tr.width) return;
+  glare.style.left = (tr.left - pr.left) + 'px';
+  glare.style.width = tr.width + 'px';
+}
+(function rdNavGlareInit() {
+  function bind() {
+    const pill = document.getElementById('nav-pill');
+    if (!pill) return;
+    pill.querySelectorAll('.premium-nav-item').forEach(item => {
+      item.addEventListener('mouseenter', () => rdNavGlareSync(item));
+    });
+    pill.addEventListener('mouseleave', () => rdNavGlareSync());
+    window.addEventListener('resize', () => rdNavGlareSync());
+    rdNavGlareSync();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind);
+  } else {
+    bind();
+  }
+  window.addEventListener('load', () => rdNavGlareSync());
+})();

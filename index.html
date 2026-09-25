@@ -232,21 +232,58 @@
 
 <!-- NAVBAR -->
 <header class="sticky top-0 z-40 glass-nav shadow-sm transition-all duration-300">
-  <div class="relative overflow-hidden">
-  <span class="nav-accent" aria-hidden="true"></span>
-  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-2 xl:gap-3">
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-2 xl:gap-4">
     <!-- Brand -->
     <div class="brand-lockup flex items-center gap-3 sm:gap-3.5 group cursor-pointer shrink-0" onclick="brandLockupClick(this)">
       <div class="brand-logo">
         <img alt="Rangdhanu DUET Logo" src="logo.png" fetchpriority="high" decoding="async"/>
       </div>
       <div class="brand-word">
-        <span class="brand-name font-display"><span class="brand-title-word brand-title-rangdhanu">RANGDHANU</span> <span class="brand-title-word brand-duet brand-title-duet" style="color:#0f766e !important;">DUET</span></span>
-        <span class="brand-tag">Students' Welfare Association of Greater Rangpur</span>
+        <span class="brand-name font-display"><span class="brand-title-word brand-title-rangdhanu">RANGDHANU</span> <span class="brand-title-word brand-duet brand-title-duet">DUET</span></span>
       </div>
     </div>
-    <!-- Right side -->
-    <div class="flex items-center gap-3 shrink-0">
+    <!-- Center: floating glass pill (xl only) -->
+    <div class="hidden xl:block">
+      <nav class="nav-pill" id="nav-pill" aria-label="Main">
+        <span class="nav-glare" id="nav-glare" aria-hidden="true"></span>
+        <button class="nav-btn premium-nav-item active" data-page="home" onclick="switchPage('home')"><span>Home</span></button>
+        <div class="rd-more-wrap" id="rd-more-wrap-directory">
+          <button type="button" class="rd-more-btn nav-btn premium-nav-item" data-page="alumni" id="rd-more-btn-directory" onclick="switchPage('alumni'); rdMoreToggle('directory')" aria-haspopup="true" aria-expanded="false"><span>Directory</span><i data-lucide="chevron-down"></i></button>
+          <div class="rd-more-panel" id="rd-more-panel-directory" role="menu">
+            <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('ALL');},50); rdMoreClose('directory')"><i data-lucide="users" class="w-4 h-4 text-slate-400"></i>Everyone</button>
+            <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('Alumni');},50); rdMoreClose('directory')"><i data-lucide="graduation-cap" class="w-4 h-4 text-slate-400"></i>Alumni</button>
+            <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('Running Member');},50); rdMoreClose('directory')"><i data-lucide="backpack" class="w-4 h-4 text-slate-400"></i>Running Member</button>
+            <button onclick="switchPage('alumni'); setTimeout(function(){openSubPage('family-faculty','alumni');},50); rdMoreClose('directory')"><i data-lucide="users-round" class="w-4 h-4 text-slate-400"></i>Teachers &amp; Officers</button>
+          </div>
+        </div>
+        <button class="nav-btn premium-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')"><span>PDACC</span></button>
+        <button class="nav-btn premium-nav-item" data-page="events" onclick="switchPage('events')"><span>Events</span></button>
+        <button class="nav-btn premium-nav-item" data-page="committee" onclick="switchPage('committee')"><span>Committee</span></button>
+        <div class="rd-more-wrap" id="rd-more-wrap-desktop">
+          <button type="button" class="rd-more-btn nav-btn premium-nav-item" id="rd-more-btn-desktop" onclick="rdMoreToggle('desktop')" aria-haspopup="true" aria-expanded="false"><span>More</span><i data-lucide="chevron-down"></i></button>
+          <div class="rd-more-panel" id="rd-more-panel-desktop" role="menu">
+            <button onclick="switchPage('bloodbank'); rdMoreClose('desktop')"><i data-lucide="droplets" class="w-4 h-4 text-rose-400"></i>Blood Bank</button>
+            <button onclick="switchPage('polls'); rdMoreClose('desktop')"><i data-lucide="vote" class="w-4 h-4 text-indigo-400"></i>Polls</button>
+            <button onclick="switchPage('noticeboard'); rdMoreClose('desktop')"><i data-lucide="bell" class="w-4 h-4 text-slate-400"></i>Notice</button>
+            <button onclick="switchPage('cgpa'); rdMoreClose('desktop')"><i data-lucide="calculator" class="w-4 h-4 text-slate-400"></i>CGPA Calculator</button>
+            <button id="rd-more-logout-desktop" style="display:none" onclick="memberSignOut(); rdMoreClose('desktop')"><i data-lucide="log-out" class="w-4 h-4 text-slate-400"></i>Log out</button>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <!-- Right: member / admin / CTA (xl) + mobile buttons -->
+    <div class="flex items-center gap-2 xl:gap-3 shrink-0">
+      <div class="hidden xl:block">
+        <div class="flex items-center gap-2">
+          <div id="nav-member-menu" class="rd-nav-profile-menu">
+            <button id="nav-member-btn" type="button" class="nav-btn premium-nav-item rd-nav-profile-trigger" data-page="my-profile" onclick="rdMemberNavClick()"><span id="nav-member-text">Restoring...</span></button>
+          </div>
+          <div id="nav-admin-menu" class="hidden items-center gap-1">
+            <button type="button" class="nav-btn premium-nav-item flex items-center gap-1.5" onclick="switchPage('admin')"><i data-lucide="shield-check" class="w-4 h-4"></i><span>Admin Dashboard</span><span id="nav-admin-badge" class="hidden"></span></button>
+          </div>
+          <button id="nav-membership-cta" class="nav-cta" onclick="switchPage('register')">Membership Application</button>
+        </div>
+      </div>
       <button id="mobile-member-btn" type="button" aria-label="Member sign in" class="xl:hidden p-3 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:bg-sky-50 cursor-pointer" onclick="rdMemberNavClick()">
         <i id="mobile-member-icon" class="w-6 h-6" data-lucide="log-in"></i>
       </button>
@@ -255,42 +292,6 @@
       </button>
     </div>
   </div>
-  </div>
-  <!-- Desktop nav strip (second tier) -->
-  <nav class="nav-strip hidden xl:block" aria-label="Main">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center gap-1">
-      <button class="nav-btn premium-nav-item active" data-page="home" onclick="switchPage('home')"><span>Home</span></button>
-      <div class="rd-more-wrap" id="rd-more-wrap-directory">
-        <button type="button" class="rd-more-btn nav-btn premium-nav-item" data-page="alumni" id="rd-more-btn-directory" onclick="switchPage('alumni'); rdMoreToggle('directory')" aria-haspopup="true" aria-expanded="false"><span>Directory</span><i data-lucide="chevron-down"></i></button>
-        <div class="rd-more-panel" id="rd-more-panel-directory" role="menu">
-          <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('ALL');},50); rdMoreClose('directory')"><i data-lucide="users" class="w-4 h-4 text-slate-400"></i>Everyone</button>
-          <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('Alumni');},50); rdMoreClose('directory')"><i data-lucide="graduation-cap" class="w-4 h-4 text-slate-400"></i>Alumni</button>
-          <button onclick="switchPage('alumni'); setTimeout(function(){setAlumniViewFilter('Running Member');},50); rdMoreClose('directory')"><i data-lucide="backpack" class="w-4 h-4 text-slate-400"></i>Running Member</button>
-          <button onclick="switchPage('alumni'); setTimeout(function(){openSubPage('family-faculty','alumni');},50); rdMoreClose('directory')"><i data-lucide="users-round" class="w-4 h-4 text-slate-400"></i>Teachers & Officers</button>
-        </div>
-      </div>
-      <button class="nav-btn premium-nav-item" data-page="prokoushali" onclick="switchPage('prokoushali')"><span>PDACC</span></button>
-      <button class="nav-btn premium-nav-item" data-page="events" onclick="switchPage('events')"><span>Events</span></button>
-      <button class="nav-btn premium-nav-item" data-page="committee" onclick="switchPage('committee')"><span>Committee</span></button>
-      <div class="rd-more-wrap" id="rd-more-wrap-desktop">
-        <button type="button" class="rd-more-btn nav-btn" id="rd-more-btn-desktop" onclick="rdMoreToggle('desktop')" aria-haspopup="true" aria-expanded="false"><span>More</span><i data-lucide="chevron-down"></i></button>
-        <div class="rd-more-panel" id="rd-more-panel-desktop" role="menu">
-          <button onclick="switchPage('bloodbank'); rdMoreClose('desktop')"><i data-lucide="droplets" class="w-4 h-4 text-rose-400"></i>Blood Bank</button>
-          <button onclick="switchPage('polls'); rdMoreClose('desktop')"><i data-lucide="vote" class="w-4 h-4 text-indigo-400"></i>Polls</button>
-          <button onclick="switchPage('noticeboard'); rdMoreClose('desktop')"><i data-lucide="bell" class="w-4 h-4 text-slate-400"></i>Notice</button>
-          <button onclick="switchPage('cgpa'); rdMoreClose('desktop')"><i data-lucide="calculator" class="w-4 h-4 text-slate-400"></i>CGPA Calculator</button>
-          <button id="rd-more-logout-desktop" style="display:none" onclick="memberSignOut(); rdMoreClose('desktop')"><i data-lucide="log-out" class="w-4 h-4 text-slate-400"></i>Log out</button>
-        </div>
-      </div>
-      <div id="nav-member-menu" class="rd-nav-profile-menu ml-auto">
-        <button id="nav-member-btn" type="button" class="nav-btn premium-nav-item rd-nav-profile-trigger" data-page="my-profile" onclick="rdMemberNavClick()"><span id="nav-member-text">Restoring...</span></button>
-      </div>
-      <div id="nav-admin-menu" class="hidden items-center gap-1 ml-2">
-        <button type="button" class="nav-btn premium-nav-item flex items-center gap-1.5" onclick="switchPage('admin')"><i data-lucide="shield-check" class="w-4 h-4"></i><span>Admin Dashboard</span><span id="nav-admin-badge" class="hidden"></span></button>
-      </div>
-      <button id="nav-membership-cta" class="nav-cta ml-3" onclick="switchPage('register')">Membership Application</button>
-    </div>
-  </nav>
   <!-- Mobile menu -->
   <div class="hidden xl:hidden absolute left-0 right-0 top-full w-full bg-white border-t border-slate-200 px-4 sm:px-6 lg:px-8 pt-3 pb-4 space-y-1 font-semibold text-base shadow-2xl" id="mobile-menu">
     <button class="mobile-nav-item" data-page="home" onclick="switchPage('home')">Home</button>
@@ -2712,7 +2713,7 @@ Do not modify social links or structure without permission.
       <h4 class="text-white font-bold mb-4">Quick Services</h4>
       <ul class="space-y-2.5">
         <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('events')">Reunion & Events</button></li>
-        <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('alumni')">Member Directory</button></li>
+        <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('alumni')">Rangdhanu Family</button></li>
         <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('prokoushali')">Prokoushali</button></li>
         <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('committee')">Executive Committee</button></li>
         <li><button class="hover:text-white transition cursor-pointer" onclick="switchPage('cgpa')">CGPA Calculator</button></li>
@@ -2763,8 +2764,13 @@ Do not modify social links or structure without permission.
         <div id="loader-text-wrap" class="rd-gl-hub"><span id="loader-pct" class="rd-gl-pct">0</span></div>
         <div id="loader-success" class="rd-gl-badge rd-gl-badge-success"><i data-lucide="check" stroke-width="4"></i></div>
         <div id="loader-error" class="rd-gl-badge rd-gl-badge-error"><i data-lucide="x" stroke-width="4"></i></div>
+        <div id="loader-confirm" class="rd-gl-badge rd-gl-badge-confirm"><i data-lucide="alert-triangle" stroke-width="3"></i></div>
       </div>
       <button type="button" id="loader-close-btn" class="rd-gl-close" onclick="dismissGlobalLoader()">OK, Close</button>
+      <div id="loader-confirm-actions" class="rd-gl-actions">
+        <button type="button" id="loader-confirm-btn" class="rd-gl-btn rd-gl-btn-yes">Confirm</button>
+        <button type="button" id="loader-cancel-btn" class="rd-gl-btn rd-gl-btn-no" onclick="dismissGlobalLoader()">Cancel</button>
+      </div>
     </div>
   </div>
 </body>
