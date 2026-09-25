@@ -3285,3 +3285,128 @@ html.rd-js .rd-pollc.is-visible { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce){
   .nav-glare{transition:none;}
 }
+
+/* =====================================================================
+   PDACC 2026 redesign -- teal/mint light theme + left side-nav.
+   All rules are scoped under `.rd-pd-teal` (added to the three PDACC
+   page sections) so nothing here touches any other page. Appended at
+   the end on purpose: `.rd-pd-teal .x` (0,2,0) outranks the older
+   indigo `.x` (0,1,0) rules without editing them, so the change is
+   reversible by removing this block + the class. Owner-approved
+   mockup v3 (repo-root pdacc_sidebar_mockup.html).
+   ===================================================================== */
+
+/* ---- teal palette: retint the shared `.rd-pd` custom properties ---- */
+.rd-pd-teal .rd-pd{--pd-ink:#0f172a;--pd-key:#0d9488;--pd-key2:#14b8a6;
+  --pd-soft:#f0fdfa;--pd-line:#cdeee8;}
+.rd-pd-teal .rd-pd-wash::before{
+  background:
+    radial-gradient(60% 50% at 12% 0%,rgba(20,184,166,.14),transparent 70%),
+    radial-gradient(55% 45% at 92% 8%,rgba(13,148,136,.10),transparent 72%),
+    linear-gradient(180deg,#f6fefb 0%,#f0fdfa 55%,#ffffff 100%);}
+/* soft mint page wash on the whole PDACC section */
+.rd-pd-teal{background:#f6fefb!important;
+  background-image:
+    radial-gradient(at 0% 0%,hsla(160,100%,95%,1) 0,transparent 50%),
+    radial-gradient(at 100% 0%,hsla(174,85%,92%,1) 0,transparent 55%)!important;}
+
+/* ---- master-detail row: hero stays full-width above this ---- */
+.rd-pd-portal{display:flex;gap:28px;align-items:flex-start;margin-top:24px;}
+.rd-pd-content{flex:1;min-width:0;}
+
+/* ---- desktop left sidebar ---- */
+.rd-pd-side{width:266px;flex-shrink:0;position:sticky;top:96px;
+  background:rgba(255,255,255,.96);border:1px solid rgba(20,184,166,.15);
+  border-radius:22px;padding:18px;box-shadow:0 10px 40px -14px rgba(13,148,136,.12);}
+@media (min-width:1280px){.rd-pd-side{top:145px;}}
+.rd-pd-side-brand{display:flex;align-items:center;gap:11px;padding-bottom:14px;
+  margin-bottom:12px;border-bottom:1px solid rgba(20,184,166,.1);}
+.rd-pd-side-brand strong{display:block;font-size:14px;font-weight:800;color:#0f172a;line-height:1.15;}
+.rd-pd-side-brand span{display:block;font-size:11px;font-weight:700;color:#64748b;line-height:1.2;}
+/* RD-PDACC-TEAL-A */
+.rd-pd-link{display:flex;align-items:center;gap:11px;width:100%;padding:11px 14px;
+  border-radius:12px;color:#475569;font-size:14px;font-weight:600;cursor:pointer;
+  transition:background .18s ease,color .18s ease;margin-bottom:3px;border:0;
+  background:transparent;text-align:left;font-family:inherit;}
+.rd-pd-link:hover{background:rgba(20,184,166,.06);color:#0f172a;}
+.rd-pd-link.active{background:#f0fdfa;color:#0d9488;}
+.rd-pd-link i,.rd-pd-link [data-lucide]{color:#94a3b8;width:19px;height:19px;flex-shrink:0;}
+.rd-pd-link.active i,.rd-pd-link.active [data-lucide]{color:#0d9488;}
+.rd-pd-link:focus-visible{outline:2px solid #14b8a6;outline-offset:2px;}
+/* future sections: shown now as placeholders (owner: add pages or hide
+   later). A small "soon" tag; clicking shows a "not uploaded yet" popup
+   via showToast. Hide with .hidden later, or wire a real onclick. */
+.rd-pd-link.is-soon{color:#94a3b8;}
+.rd-pd-link.is-soon:hover{background:rgba(148,163,184,.08);color:#64748b;}
+.rd-pd-link.is-soon i,.rd-pd-link.is-soon [data-lucide]{color:#cbd5e1;}
+.rd-pd-soon{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;color:#0d9488;background:#f0fdfa;border:1px solid #99f6e4;
+  padding:2px 7px;border-radius:999px;}
+.rd-pd-navsub{display:flex;flex-direction:column;gap:8px;margin:2px 0 6px 30px;
+  padding:6px 0 6px 14px;border-left:2px solid #ccfbf1;}
+.rd-pd-navsub a{font-size:13px;font-weight:500;color:#64748b;cursor:pointer;transition:color .15s;}
+.rd-pd-navsub a:hover{color:#0d9488;}
+.rd-pd-navsub a.on{color:#0d9488;font-weight:700;}
+.rd-pd-kicker{margin:14px 0 6px;padding:0 14px;font-size:10px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;color:#94a3b8;}
+
+/* ---- mobile in-flow accordion switcher (NOT an overlay) ---- */
+.rd-pd-mswitch{display:none;}
+.rd-pd-mbar{display:flex;align-items:center;gap:12px;width:100%;
+  background:rgba(255,255,255,.97);border:1px solid rgba(20,184,166,.18);
+  border-radius:16px;padding:12px 14px;cursor:pointer;
+  box-shadow:0 8px 24px -12px rgba(13,148,136,.18);}
+.rd-pd-mcur{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:#94a3b8;display:block;}
+.rd-pd-mcur b{display:block;font-size:14px;font-weight:700;color:#0f172a;
+  letter-spacing:0;text-transform:none;margin-top:1px;}
+.rd-pd-mchev{margin-left:auto;color:#14b8a6;transition:transform .25s ease;flex-shrink:0;}
+.rd-pd-mswitch.open .rd-pd-mchev{transform:rotate(180deg);}
+.rd-pd-mpanel{max-height:0;overflow:hidden;opacity:0;
+  transition:max-height .3s ease,opacity .2s ease,margin .3s ease;
+  background:rgba(255,255,255,.98);border-radius:16px;margin-top:0;border:1px solid transparent;}
+.rd-pd-mswitch.open .rd-pd-mpanel{max-height:720px;opacity:1;margin-top:10px;
+  border-color:rgba(20,184,166,.18);box-shadow:0 12px 30px -14px rgba(13,148,136,.2);padding:10px;}
+/* RD-PDACC-TEAL-B */
+/* ---- light text hero (Admission Guide -- no slideshow there) ---- */
+.rd-pd-lhero{position:relative;border-radius:28px;overflow:hidden;
+  background:rgba(255,255,255,.72);border:1px solid rgba(20,184,166,.18);
+  box-shadow:0 20px 60px -30px rgba(13,148,136,.25);padding:34px 38px;}
+.rd-pd-lhero::before{content:"";position:absolute;top:-60px;right:-40px;
+  width:260px;height:260px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,hsla(167,90%,80%,.55),transparent 70%);}
+.rd-pd-lhero-in{position:relative;z-index:1;}
+.rd-pd-lhero-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;
+  border-radius:999px;background:#f0fdfa;border:1px solid #99f6e4;color:#0d9488;
+  font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+.rd-pd-lhero h1,.rd-pd-lhero h2{font-size:clamp(1.6rem,4vw,2.1rem);font-weight:800;
+  line-height:1.1;letter-spacing:-.01em;color:#0f172a;margin:16px 0 12px;}
+.rd-pd-lhero .accent{color:#0d9488;}
+.rd-pd-lhero p{color:#475569;font-size:14px;line-height:1.7;max-width:36rem;}
+.rd-pd-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;
+  border-radius:12px;background:#fff;border:1px solid #d1fae5;color:#0f766e;
+  font-size:12px;font-weight:700;box-shadow:0 2px 8px -4px rgba(13,148,136,.2);}
+.rd-pd-chip i,.rd-pd-chip [data-lucide]{width:14px;height:14px;color:#14b8a6;}
+
+/* ---- teal retint for the older indigo PDACC components ---- */
+.rd-pd-teal .rd-pd-crest{border-color:#cdeee8;}
+.rd-pd-teal .rd-pd-guide{background:linear-gradient(135deg,#f0fdfa,#fff);border-color:#cdeee8;
+  box-shadow:0 20px 40px -34px rgba(13,148,136,.4);}
+.rd-pd-teal .rd-pd-guide:hover{border-color:#5eead4;box-shadow:0 26px 48px -30px rgba(13,148,136,.45);}
+.rd-pd-teal .rd-pd-guide strong{color:#0f766e;}
+.rd-pd-teal .rd-pd-guide-i,.rd-pd-teal .rd-pd-guide>[data-lucide]{color:#fff;}
+.rd-pd-teal .rd-pd-guide-i{background:linear-gradient(135deg,#14b8a6,#0d9488);}
+.rd-pd-teal .rd-pd-guide>[data-lucide]{color:#14b8a6;}
+.rd-pd-teal .rd-pd27{--pd-key:#0d9488;}
+
+/* ---- responsive: sidebar -> accordion under 1024px ---- */
+@media (max-width:1023px){
+  .rd-pd-portal{flex-direction:column;gap:16px;margin-top:16px;}
+  .rd-pd-side{display:none;}
+  .rd-pd-mswitch{display:block;position:sticky;top:72px;z-index:40;}
+  .rd-pd-lhero{padding:24px;}
+}
+@media (min-width:1280px){
+  .rd-pd-mswitch.open{top:145px;}
+}
+/* RD-PDACC-TEAL-END */

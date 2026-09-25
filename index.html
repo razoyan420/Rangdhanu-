@@ -690,24 +690,9 @@
 
   <!-- ================= PAGE 4: PROKOUSHALI ================= -->
   <div class="page-view" id="page-prokoushali">
-    <section class="pt-5 md:pt-6 pb-14 md:pb-20 bg-[#f8fafc] border-t border-slate-200 min-h-[75vh]">
+    <section class="pt-5 md:pt-6 pb-14 md:pb-20 bg-[#f8fafc] border-t border-slate-200 min-h-[75vh] rd-pd-teal">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- The page's own little nav. The crest on the left, and the three
-             buttons that actually go somewhere on the right. The rest of the
-             page is found by scrolling, so it needs no button here. -->
-        <nav id="pdacc-nav" class="rd-pd-nav z-30 mb-5 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur-md shadow-sm px-3 sm:px-5 py-3">
-          <div class="rd-pd-head"><span class="rd-pd-brand flex items-center gap-2.5 min-w-0">
-            <span class="rd-pd-crest"><img id="pdacc-nav-logo" src="pdacc-logo.png" alt="PROKOSHALI crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
-            <span class="min-w-0">
-              <strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PROKAUSHALI</strong>
-              <span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">DUET Admission Coaching Centre</span>
-            </span>
-          </span></div>
-          <div class="rd-pd-tabs">
-          <button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PROKAUSHALI Home</button>
-          <button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-navbtn">Admission Guide</button>
-          <button type="button" onclick="openPdaccUpdates()" class="rd-pd-navbtn">Notice</button></div>
-        </nav>
+
         <!-- The figure PDACC prints about itself: 27 years. The owner's decision
              on 2026-09-04 is that it stays, because the books and the banners
              have carried it for years and the site must not contradict them
@@ -751,6 +736,43 @@
           <button aria-label="Next PDACC slide" class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 hover:bg-white text-slate-800 hover:text-slate-950 shadow-lg flex items-center justify-center z-20" onclick="nextPdaccSlide()"><i class="w-5 h-5" data-lucide="chevron-right"></i></button>
           <div id="pdacc-dots" class="absolute bottom-5 right-5 flex items-center gap-1.5 z-20 bg-slate-950/55 backdrop-blur-md px-3 py-2 rounded-full border border-white/15"></div>
         </div>
+<div class="rd-pd-portal">
+<div class="rd-pd-mswitch">
+  <div class="rd-pd-mbar" onclick="rdPdNavToggle(this)">
+    <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+    <span class="min-w-0"><span class="rd-pd-mcur">PDACC section<b>PROKAUSHALI Home</b></span></span>
+    <i data-lucide="chevron-down" class="rd-pd-mchev w-5 h-5"></i>
+  </div>
+  <div class="rd-pd-mpanel"><button type="button" class="rd-pd-link active" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
+<button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
+<div class="rd-pd-kicker">শীঘ্রই আসছে</div>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="calendar-days"></i> ক্লাস রুটিন <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="book-marked"></i> স্টাডি ম্যাটেরিয়াল <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="award"></i> পরীক্ষার ফলাফল <span class="rd-pd-soon">Soon</span></button></div>
+</div>
+<aside class="rd-pd-side">
+  <div class="rd-pd-side-brand">
+    <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+    <div><strong>PROKAUSHALI</strong><span>DUET Admission Coaching Centre</span></div>
+  </div>
+  <nav><button type="button" class="rd-pd-link active" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
+<button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
+<div class="rd-pd-kicker">শীঘ্রই আসছে</div>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="calendar-days"></i> ক্লাস রুটিন <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="book-marked"></i> স্টাডি ম্যাটেরিয়াল <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="award"></i> পরীক্ষার ফলাফল <span class="rd-pd-soon">Soon</span></button></nav>
+</aside>
+<div class="rd-pd-content">
         <!-- The notice line. Hidden altogether while the admin has no line
              showing, so an empty strip never sits on the page. -->
         <div id="pdacc-ticker-wrap" class="hidden mb-9 rounded-2xl border border-indigo-200 bg-indigo-50 overflow-hidden shadow-sm">
@@ -832,7 +854,7 @@
              in the department rows are rewritten by renderPdaccChance() from the
              PDACC Stats feed, so an admin changes them from the panel; what is
              written here is the last saved season, never a placeholder. -->
-        <div class="rd-pd mt-12 grid gap-6">
+        <div class="rd-pd mt-12 grid gap-6" id="pdacc-records" style="scroll-margin-top:120px">
 
           <section class="rd-pd-card">
             <h3 class="rd-pd-h">চান্সপ্রাপ্তির রেকর্ড</h3>
@@ -909,21 +931,52 @@
              strip. Each button appears only once there is somebody behind it,
              so a visitor is never handed a dead button. -->
         <div id="pdacc-contacts" class="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+</div></div>
       </div>
     </section>
   </div>
   
   <!-- ================= SUB-PAGE: PDACC UPDATES ================= -->
   <div class="page-view" id="page-pdacc-updates">
-    <section class="py-10 sm:py-14 bg-[#f8fafc] min-h-[75vh]">
+    <section class="py-10 sm:py-14 bg-[#f8fafc] min-h-[75vh] rd-pd-teal">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav id="pdacc-nav-updates" class="rd-pd-nav z-30 mb-8 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur-md shadow-sm px-3 sm:px-5 py-3">
-          <div class="rd-pd-head"><span class="rd-pd-brand flex items-center gap-2.5 min-w-0">
-            <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PROKOSHALI crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
-            <span class="min-w-0"><strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PROKAUSHALI</strong><span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">DUET Admission Coaching Centre</span></span>
-          </span></div>
-          <div class="rd-pd-tabs"><button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PROKAUSHALI Home</button><button type="button" onclick="openSubPage('pdacc-admission', 'prokoushali')" class="rd-pd-navbtn">Admission Guide</button><span class="rd-pd-navbtn is-key is-here" aria-current="page">Notice</span></div>
-        </nav>
+        <div class="rd-pd-portal">
+<div class="rd-pd-mswitch">
+  <div class="rd-pd-mbar" onclick="rdPdNavToggle(this)">
+    <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+    <span class="min-w-0"><span class="rd-pd-mcur">PDACC section<b>Notice</b></span></span>
+    <i data-lucide="chevron-down" class="rd-pd-mchev w-5 h-5"></i>
+  </div>
+  <div class="rd-pd-mpanel"><button type="button" class="rd-pd-link" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
+<button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link active" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
+<div class="rd-pd-kicker">শীঘ্রই আসছে</div>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="calendar-days"></i> ক্লাস রুটিন <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="book-marked"></i> স্টাডি ম্যাটেরিয়াল <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="award"></i> পরীক্ষার ফলাফল <span class="rd-pd-soon">Soon</span></button></div>
+</div>
+<aside class="rd-pd-side">
+  <div class="rd-pd-side-brand">
+    <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+    <div><strong>PROKAUSHALI</strong><span>DUET Admission Coaching Centre</span></div>
+  </div>
+  <nav><button type="button" class="rd-pd-link" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
+<button type="button" class="rd-pd-link" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link active" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
+<div class="rd-pd-kicker">শীঘ্রই আসছে</div>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="calendar-days"></i> ক্লাস রুটিন <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="book-marked"></i> স্টাডি ম্যাটেরিয়াল <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="award"></i> পরীক্ষার ফলাফল <span class="rd-pd-soon">Soon</span></button></nav>
+</aside>
+<div class="rd-pd-content">
         <div class="text-center max-w-2xl mx-auto mb-9">
           <div class="flex justify-center mb-4"><span class="rd-pd-crest is-big shadow-sm"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span></div>
           <span class="inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold uppercase tracking-widest"><i class="w-3.5 h-3.5" data-lucide="newspaper"></i> Latest update</span>
@@ -932,30 +985,53 @@
         </div>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6" id="pdacc-updates-list"></div>
         <nav id="pdacc-updates-pager" class="mt-9 flex flex-wrap items-center justify-center gap-2" aria-label="PDACC update pagination"></nav>
+</div></div>
       </div>
     </section>
   </div>
 
   <!-- ================= SUB-PAGE: DUET ADMISSION GUIDE ================= -->
-  <div class="page-view" id="page-pdacc-admission">
+  <div class="page-view rd-pd-teal" id="page-pdacc-admission">
     <!-- No Back button here on purpose: the PDACC strip below is the way
          back, and every button on it except this page's own returns to
          the PDACC page. -->
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
-        <nav id="pdacc-nav-sub" class="rd-pd-nav z-30 mb-6 rounded-[22px] border border-slate-200 bg-white/90 backdrop-blur-md shadow-sm px-3 sm:px-5 py-3">
-          <div class="rd-pd-head"><span class="rd-pd-brand flex items-center gap-2.5 min-w-0">
-            <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PROKOSHALI crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
-            <span class="min-w-0">
-              <strong class="block text-[13px] sm:text-sm font-extrabold text-slate-900 leading-tight">PROKAUSHALI</strong>
-              <span class="block text-[10px] sm:text-[11px] font-bold text-slate-500 leading-tight">DUET Admission Coaching Centre</span>
-            </span>
-          </span>
-          </span></div>
-          <div class="rd-pd-tabs">
-          <button type="button" onclick="switchPage('prokoushali')" class="rd-pd-navbtn">PROKAUSHALI Home</button><span class="rd-pd-navbtn is-key is-here" aria-current="page">Admission Guide</span>
-          <button type="button" onclick="openPdaccUpdates()" class="rd-pd-navbtn">Notice</button></div>
-        </nav>
-    </div>
+    <div class="rd-pd-portal">
+<div class="rd-pd-mswitch">
+  <div class="rd-pd-mbar" onclick="rdPdNavToggle(this)">
+    <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+    <span class="min-w-0"><span class="rd-pd-mcur">PDACC section<b>Admission Guide</b></span></span>
+    <i data-lucide="chevron-down" class="rd-pd-mchev w-5 h-5"></i>
+  </div>
+  <div class="rd-pd-mpanel"><button type="button" class="rd-pd-link" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
+<button type="button" class="rd-pd-link active" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
+<div class="rd-pd-kicker">শীঘ্রই আসছে</div>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="calendar-days"></i> ক্লাস রুটিন <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="book-marked"></i> স্টাডি ম্যাটেরিয়াল <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="award"></i> পরীক্ষার ফলাফল <span class="rd-pd-soon">Soon</span></button></div>
+</div>
+<aside class="rd-pd-side">
+  <div class="rd-pd-side-brand">
+    <span class="rd-pd-crest"><img src="pdacc-logo.png" alt="PDACC crest" decoding="async" onerror="rdPdLogoFallback(this)"></span>
+    <div><strong>PROKAUSHALI</strong><span>DUET Admission Coaching Centre</span></div>
+  </div>
+  <nav><button type="button" class="rd-pd-link" onclick="switchPage('prokoushali')"><i data-lucide="home"></i> PROKAUSHALI Home</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-about')"><i data-lucide="info"></i> About PDACC</button>
+<button type="button" class="rd-pd-link active" onclick="openSubPage('pdacc-admission','prokoushali')"><i data-lucide="book-open"></i> Admission Guide</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-records')"><i data-lucide="bar-chart-3"></i> Records &amp; Stats</button>
+<button type="button" class="rd-pd-link" onclick="rdPdGoto('pdacc-leadership')"><i data-lucide="user-round"></i> Director's Message</button>
+<button type="button" class="rd-pd-link" onclick="openPdaccUpdates()"><i data-lucide="bell-ring"></i> Notice</button>
+<div class="rd-pd-kicker">শীঘ্রই আসছে</div>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="calendar-days"></i> ক্লাস রুটিন <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="book-marked"></i> স্টাডি ম্যাটেরিয়াল <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="users"></i> শিক্ষকমণ্ডলী <span class="rd-pd-soon">Soon</span></button>
+<button type="button" class="rd-pd-link is-soon" onclick="rdPdSoon()"><i data-lucide="award"></i> পরীক্ষার ফলাফল <span class="rd-pd-soon">Soon</span></button></nav>
+</aside>
+<div class="rd-pd-content">
     <div class="rd-ad">
       <div class="rd-ad-wrap">
         <!-- ================================================ masthead -->
@@ -1686,6 +1762,7 @@
         </section>
       </div>
     </div>
+</div></div>
   </div>
 
   <!-- ================= PAGE: EXECUTIVE COMMITTEE ================= -->

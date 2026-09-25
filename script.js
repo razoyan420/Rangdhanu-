@@ -9136,6 +9136,40 @@ f.reset();
     }
 
     /* View all: every update, fifteen to a page, on a page of its own. */
+    // ---- PDACC 2026 side-nav / mobile accordion controller ----
+    // The desktop sidebar and the mobile accordion share the same buttons.
+    // Real sections call the existing nav fns; the mobile panel just needs
+    // to collapse after a pick, and future ("soon") items show a popup.
+    function rdPdNavToggle(node) {
+      const sw = node && node.closest ? node.closest('.rd-pd-mswitch') : null;
+      if (sw) sw.classList.toggle('open');
+    }
+    function rdPdNavClose() {
+      document.querySelectorAll('.rd-pd-mswitch.open')
+        .forEach(function (s) { s.classList.remove('open'); });
+    }
+    // Scroll to a section on the PDACC Home page from any PDACC sidebar,
+    // switching to Home first when the click came from a sub-page.
+    function rdPdGoto(id) {
+      rdPdNavClose();
+      const home = document.getElementById('page-prokoushali');
+      const scroll = function () {
+        const t = document.getElementById(id);
+        if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+      if (home && !home.classList.contains('active')) {
+        switchPage('prokoushali');
+        setTimeout(scroll, 70);
+      } else {
+        scroll();
+      }
+    }
+    // Placeholder sections the owner will add or hide later.
+    function rdPdSoon() {
+      rdPdNavClose();
+      showToast('এই অংশটি এখনও যোগ করা হয়নি — খুব শীঘ্রই আসছে।', 'info', 'শীঘ্রই আসছে');
+    }
+
     function openPdaccUpdates() {
       RD_PD.page = 1;
       openSubPage('pdacc-updates', 'prokoushali');
