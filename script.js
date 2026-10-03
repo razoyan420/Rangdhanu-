@@ -3976,6 +3976,9 @@
       try { localStorage.removeItem(RD_MEMBER_PROFILE_KEY); } catch (err) {}
       try { if (rdGsiReady()) google.accounts.id.disableAutoSelect(); } catch (err) { /* nothing to undo */ }
       RD_MEMBER.pendingLinkId = '';
+      /* Reset blood bank so it re-fetches with unauthenticated state on next visit. */
+      RD_BB.loaded = false;
+      RD_BB.isMember = false;
       rdMemberPaintSignInLinks();
       rdMemberPaintLinkBox();
       rdFlash('Signed out');
@@ -4126,10 +4129,11 @@
       }
       /* Log out lives in the More menu now, shown only when signed in. Toggled
          by style.display -- the same way the membership CTA above is -- so it
-         beats any nav-panel CSS the way a bare `.hidden` class would not. */
+         beats any nav-panel CSS the way a bare `.hidden` class would not.
+         Also hidden during restoring state to prevent flashing before verification. */
       ['rd-more-logout-desktop', 'rd-more-logout-mobile'].forEach(function (id) {
         var el = document.getElementById(id);
-        if (el) el.style.display = on ? '' : 'none';
+        if (el) el.style.display = (on && !restoring) ? '' : 'none';
       });
       const btn = document.getElementById('mobile-member-btn');
       if (btn) btn.setAttribute('aria-label', on ? 'My Profile' : 'Member sign in');
@@ -5623,7 +5627,10 @@
     }
 
     async function loadBloodBank() {
-      if (RD_BB.loaded) { rdBloodRender(); return; }
+      /* Always re-fetch if the member's login state has changed since last load.
+         This ensures contacts show immediately after signing in without a hard refresh. */
+      const currentlyMember = typeof rdCanViewContacts === 'function' ? rdCanViewContacts() : false;
+      if (RD_BB.loaded && RD_BB.isMember === currentlyMember) { rdBloodRender(); return; }
       const status = document.getElementById('blood-bank-status');
       if (status) status.textContent = 'Loading donors...';
       try {
@@ -5639,7 +5646,9 @@
           return;
         }
         RD_BB.donors  = data.donors || [];
-        RD_BB.isMember = !!data.isMember;
+        /* Use local sign-in state as the source of truth, not the API flag.
+           rdCanViewContacts() also returns true for admins, matching their elevated access. */
+        RD_BB.isMember = currentlyMember;
         RD_BB.loaded  = true;
         rdBloodRender();
       } catch (err) {
@@ -5700,7 +5709,7 @@
           '<p class="text-xs mt-1">Try a different blood group' + (availableView ? ' or open the All tab.' : ' or remove filters.') + '</p></div>';
         if (status) status.textContent = availableView ? 'No available donors.' : 'No members found.';
       } else {
-        grid.innerHTML = filtered.map(d => rdBloodCard(d, RD_BB.isMember)).join('');
+        grid.innerHTML = filtered.map(d => rdBloodCard(d, typeof rdCanViewContacts === 'function' ? rdCanViewContacts() : RD_BB.isMember)).join('');
         if (availableView) {
           status.textContent = filtered.length + ' available donor' + (filtered.length === 1 ? '' : 's') + '.';
         } else {
