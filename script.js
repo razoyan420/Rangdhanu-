@@ -3334,6 +3334,14 @@
         alumniData = rdAlumniShape(warm);
         populateAlumniSeriesFilter();
         renderAlumni(alumniData);
+      } else if (!warm && !alumniData.length) {
+        const grid = document.getElementById("alumni-grid");
+        if (grid) {
+          grid.innerHTML = '<div class="col-span-full">' + rdPremiumSpinner('Loading Directory', 'users') + '</div>';
+          if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        const countEl = document.getElementById("alumni-count-text");
+        if (countEl) countEl.innerText = '';
       }
       if (rdAlumniLoadingPromise) return rdAlumniLoadingPromise;
       rdAlumniLoadingPromise = (async function () {
@@ -5634,8 +5642,15 @@
          This ensures contacts show immediately after signing in without a hard refresh. */
       const currentlyMember = typeof rdCanViewContacts === 'function' ? rdCanViewContacts() : false;
       if (RD_BB.loaded && RD_BB.isMember === currentlyMember) { rdBloodRender(); return; }
+      const grid = document.getElementById('blood-bank-grid');
       const status = document.getElementById('blood-bank-status');
-      if (status) status.textContent = 'Loading donors...';
+      if (grid && (!RD_BB.donors || !RD_BB.donors.length)) {
+        grid.innerHTML = '<div class="col-span-full">' + rdPremiumSpinner('Loading Blood Bank', 'droplet') + '</div>';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        if (status) status.textContent = '';
+      } else if (status) {
+        status.textContent = 'Loading donors...';
+      }
       if (!alumniData.length) loadPublicAlumni().then(rdBloodRender).catch(() => {});
       try {
         const params = Object.assign({ _: Date.now() }, rdMemberParams());
@@ -6345,7 +6360,7 @@
       if (!kind) { box.classList.add('hidden'); box.innerHTML = ''; return; }
       box.classList.remove('hidden');
       if (kind === 'loading') {
-        box.innerHTML = '<div class="rounded-3xl border border-slate-200 bg-white py-12 text-center text-sm font-bold text-slate-500 flex items-center justify-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin text-blue-600"></i> Loading committee members...</div>';
+        box.innerHTML = '<div class="rounded-3xl border border-slate-200 bg-white">' + rdPremiumSpinner('Loading Committee', 'landmark') + '</div>';
       } else if (kind === 'error') {
         box.innerHTML = '<div class="rounded-3xl border border-rose-200 bg-rose-50 py-10 px-6 text-center"><i data-lucide="triangle-alert" class="w-8 h-8 text-rose-600 mx-auto"></i>' +
           '<p class="mt-3 text-sm font-bold text-rose-800">' + escapeHtml(text) + '</p>' +
@@ -6944,7 +6959,7 @@
       const c = ecFindCommittee(RD_PDACC_COMMITTEE);
       const hasData = c && c.sessions && c.sessions.length;
       if (!hasData && RD_EC.state === 'loading') {
-        mount.innerHTML = '<div class="rounded-3xl border border-slate-200 bg-white py-12 text-center text-sm font-bold text-slate-500 flex items-center justify-center gap-2"><i data-lucide="loader-circle" class="w-5 h-5 animate-spin text-teal-600"></i> Loading committee members...</div>';
+        mount.innerHTML = '<div class="rounded-3xl border border-slate-200 bg-white">' + rdPremiumSpinner('Loading Committee', 'landmark') + '</div>';
         lucide.createIcons(); return;
       }
       if (!hasData && RD_EC.state === 'error') {
@@ -14327,7 +14342,16 @@ f.reset();
 // ==========================================
 let rdLoaderInterval = null;
 let rdLoaderPct = 0;
-let rdLocalConfetti = null;
+function rdPremiumSpinner(text, icon) {
+      return '<div class="rd-premium-spinner">' +
+             '<div class="rd-ps-ring-wrap">' +
+             '<div class="rd-ps-ring-1"></div><div class="rd-ps-ring-2"></div><div class="rd-ps-ring-3"></div>' +
+             '<i data-lucide="' + (icon || 'loader') + '" class="rd-ps-icon"></i>' +
+             '</div>' +
+             '<div class="rd-ps-text">' + escapeHtml(text) + '</div>' +
+             '</div>';
+    }
+    let rdLocalConfetti = null;
 let rdLoaderCloseCb = null;   // runs when the user clicks "OK, Close"
 
 function rdGlEl(id) { return document.getElementById(id); }

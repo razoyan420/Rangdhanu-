@@ -198,7 +198,7 @@
 <!-- Prebuilt Tailwind stylesheet.  npx tailwindcss -i src.css -o style.css --minify
      নতুন class যোগ করলে এই কমান্ড আবার চালাতে হবে — CDN আগে নিজে করত। -->
 <link rel="stylesheet" href="style.css?v=20260925-0300"/>
-<link rel="stylesheet" href="custom.css?v=20260926-0100"/>
+<link rel="stylesheet" href="custom.css?v=20261003-2030"/>
 <link rel="stylesheet" href="redesign-overrides.css?v=20261003-2015"/>
 <script>
   /* style.css fallback: prebuilt sheet না এলে বা পুরনো হলে CDN ফিরিয়ে আনে।
@@ -229,6 +229,30 @@
 <!-- এই CSS এখন custom.css-এ (style.css এর পরে লোড হয়) -->
   <!-- Google Identity Services: admin sign-in only. -->
   <script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
+<style>
+    /* Blood Bank Hero Heartbeat & Drop Animations */
+    .rd-ecg-svg {
+      animation: rdEcgMove 7s linear infinite;
+    }
+    @keyframes rdEcgMove {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .rd-drop-pulse-wrapper {
+      animation: rdHeartPulse 3.5s ease-in-out infinite;
+      transition: transform 0.3s ease;
+    }
+    .rd-drop-pulse-wrapper:hover {
+      transform: scale(1.05);
+    }
+    @keyframes rdHeartPulse {
+      0%, 100% { transform: translateY(0) scale(1); }
+      15% { transform: translateY(-5px) scale(1.025); }
+      25% { transform: translateY(-2px) scale(1.01); }
+      35% { transform: translateY(-7px) scale(1.035); }
+      65% { transform: translateY(-14px) scale(1); }
+    }
+</style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-800 antialiased selection:bg-blue-600 selection:text-white min-h-screen flex flex-col justify-between">
 
@@ -2765,27 +2789,127 @@
 
   <!-- ================= PAGE: BLOOD BANK ================= -->
   <div class="page-view" id="page-bloodbank">
-    <!-- Hero Header -->
-    <div class="relative overflow-hidden" style="background:linear-gradient(135deg,#fff5f6 0%,#ffe9ec 100%)">
-      <div class="absolute inset-0" style="opacity:.6;background-image:radial-gradient(circle at 20% 50%,rgba(225,29,72,.14) 1.5px,transparent 1.5px),radial-gradient(circle at 80% 20%,rgba(225,29,72,.12) 1.5px,transparent 1.5px);background-size:40px 40px"></div>
-      <div class="relative max-w-4xl mx-auto px-4 py-14 text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-100 text-rose-600 mb-5 shadow-sm">
-          <i data-lucide="droplets" class="w-8 h-8"></i>
-        </div>
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3 font-display">Blood Bank</h1>
-        <p class="text-slate-600 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">Find a willing blood donor among Rangdhanu members. Every drop counts, save a life today.</p>
-        <div class="mt-6 flex flex-wrap justify-center gap-3">
-          <button onclick="rdBloodHowItWorks()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-rose-600 text-sm font-bold border border-rose-200 hover:bg-rose-50 transition shadow-sm">
-            <i data-lucide="info" class="w-4 h-4"></i> How It Works
-          </button>
-          <button onclick="openMyProfile('bloodbank')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 text-white text-sm font-bold hover:bg-rose-700 transition shadow-sm">
-            <i data-lucide="user-round-cog" class="w-4 h-4"></i> Register as Donor
-          </button>
+        <!-- Premium Minimal Animated Hero Header -->
+    <div class="relative overflow-hidden rd-blood-hero" style="background:radial-gradient(circle at 70% 35%, #42040b 0%, #150204 55%, #080002 100%);">
+      <!-- Heartbeat ECG Line Animation -->
+      <div class="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-25 z-0" style="height:100%;">
+        <svg class="rd-ecg-svg" viewBox="0 0 1200 120" preserveAspectRatio="none" style="width:200%;height:140px;">
+          <path d="M0,60 L200,60 L220,60 L230,18 L240,102 L250,4 L260,112 L270,60 L450,60 L470,60 L480,18 L490,102 L500,4 L510,112 L520,60 L700,60 L720,60 L730,18 L740,102 L750,4 L760,112 L770,60 L950,60 L970,60 L980,18 L990,102 L1000,4 L1010,112 L1020,60 L1200,60" 
+                fill="none" stroke="#ff2a4b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- Main Container -->
+      <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 z-10">
+        <div class="flex flex-col-reverse lg:flex-row items-center justify-between gap-8 lg:gap-12">
+          
+          <!-- Left Content -->
+          <div class="w-full lg:max-w-xl text-center lg:text-left">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-bold tracking-wider uppercase mb-4 backdrop-blur-md">
+              <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+              প্রতি ফোঁটা রক্তে একটি জীবন
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight mb-4">
+              DONATE BLOOD,<br />
+              <span class="bg-gradient-to-r from-rose-400 via-rose-300 to-white bg-clip-text text-transparent">SAVE PRECIOUS</span> LIVES.
+            </h1>
+
+            <p class="text-rose-100/80 text-sm sm:text-base leading-relaxed mb-6 max-w-lg mx-auto lg:mx-0">
+              রংধনু পরিবারের রক্তদাতাদের সহজেই খুঁজে নিন অথবা নিজে রক্তদাতা হিসেবে যুক্ত হোন। আপনার এক ব্যাগ রক্তই বাঁচাতে পারে একটি অমূল্য প্রাণ।
+            </p>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mb-8">
+              <button onclick="openMyProfile('bloodbank')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-sm font-bold shadow-lg shadow-rose-900/40 hover:shadow-rose-600/50 transition-all duration-300 active:scale-95">
+                <i data-lucide="user-round-cog" class="w-4 h-4"></i>
+                <span>Register as Donor</span>
+              </button>
+              <button onclick="rdBloodHowItWorks()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/20 text-sm font-semibold backdrop-blur-md transition-all duration-300 active:scale-95">
+                <i data-lucide="info" class="w-4 h-4"></i>
+                <span>How It Works</span>
+              </button>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-3 gap-4 pt-6 border-t border-white/10 max-w-md mx-auto lg:mx-0 text-center lg:text-left">
+              <div>
+                <div class="text-xl sm:text-2xl font-black text-white">২৪/৭</div>
+                <div class="text-[11px] sm:text-xs text-rose-200/70 font-medium">জরুরি সেবা</div>
+              </div>
+              <div>
+                <div class="text-xl sm:text-2xl font-black text-rose-400">১০০%</div>
+                <div class="text-[11px] sm:text-xs text-rose-200/70 font-medium">স্বেচ্ছাসেবী</div>
+              </div>
+              <div>
+                <div class="text-xl sm:text-2xl font-black text-white">ডুয়েট</div>
+                <div class="text-[11px] sm:text-xs text-rose-200/70 font-medium">রংধনু নেটওয়ার্ক</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Centerpiece: Realistic Layered 3D Blood Drop -->
+          <div class="relative w-full max-w-[260px] sm:max-w-[320px] lg:max-w-[360px] flex items-center justify-center py-4">
+            <div class="rd-drop-pulse-wrapper w-full aspect-[320/420] relative cursor-pointer filter drop-shadow-[0_25px_45px_rgba(0,0,0,0.9)] drop-shadow-[0_0_50px_rgba(225,29,72,0.35)]">
+              <svg viewBox="0 0 320 440" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <radialGradient id="rdDropGlow" cx="35%" cy="30%" r="50%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.38"/>
+                    <stop offset="60%" stop-color="#ff1e42" stop-opacity="0"/>
+                  </radialGradient>
+                  <linearGradient id="rdDrop1" x1="15%" y1="5%" x2="85%" y2="95%">
+                    <stop offset="0%" stop-color="#ff3b5c"/>
+                    <stop offset="45%" stop-color="#a8051a"/>
+                    <stop offset="100%" stop-color="#420108"/>
+                  </linearGradient>
+                  <linearGradient id="rdDrop2" x1="15%" y1="10%" x2="85%" y2="95%">
+                    <stop offset="0%" stop-color="#ff5270"/>
+                    <stop offset="50%" stop-color="#bd0922"/>
+                    <stop offset="100%" stop-color="#55030c"/>
+                  </linearGradient>
+                  <linearGradient id="rdDrop3" x1="15%" y1="15%" x2="85%" y2="95%">
+                    <stop offset="0%" stop-color="#ff738c"/>
+                    <stop offset="50%" stop-color="#d9122f"/>
+                    <stop offset="100%" stop-color="#700612"/>
+                  </linearGradient>
+                  <linearGradient id="rdDrop4" x1="20%" y1="20%" x2="80%" y2="90%">
+                    <stop offset="0%" stop-color="#ffa3b4"/>
+                    <stop offset="60%" stop-color="#ff2649"/>
+                    <stop offset="100%" stop-color="#940b1e"/>
+                  </linearGradient>
+                  <filter id="rdCutShadow" x="-30%" y="-20%" width="160%" height="160%">
+                    <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#000000" flood-opacity="0.75"/>
+                  </filter>
+                  <filter id="rdCoreShadow" x="-30%" y="-20%" width="160%" height="160%">
+                    <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.6"/>
+                  </filter>
+                </defs>
+
+                <!-- Layer 1 (Outer Deep Shell) -->
+                <path d="M160,20 C160,20 20,205 20,310 C20,388 82,440 160,440 C238,440 300,388 300,310 C300,205 160,20 160,20 Z" fill="url(#rdDrop1)" />
+                <path d="M160,20 C160,20 20,205 20,310 C20,388 82,440 160,440 C238,440 300,388 300,310 C300,205 160,20 160,20 Z" fill="url(#rdDropGlow)" />
+
+                <!-- Layer 2 (Middle) -->
+                <path d="M160,85 C160,85 55,225 55,310 C55,368 102,410 160,410 C218,410 265,368 265,310 C265,225 160,85 160,85 Z" fill="url(#rdDrop2)" filter="url(#rdCutShadow)" />
+
+                <!-- Layer 3 (Inner) -->
+                <path d="M160,150 C160,150 90,250 90,310 C90,350 121,380 160,380 C199,380 230,350 230,310 C230,250 160,150 160,150 Z" fill="url(#rdDrop3)" filter="url(#rdCutShadow)" />
+
+                <!-- Layer 4 (Core Droplet) -->
+                <path d="M160,205 C160,205 120,270 120,310 C120,334 138,352 160,352 C182,352 200,334 200,310 C200,270 160,205 160,205 Z" fill="url(#rdDrop4)" filter="url(#rdCoreShadow)" />
+
+                <!-- 3D Specular Light Curved Reflections -->
+                <ellipse cx="120" cy="275" rx="16" ry="32" transform="rotate(-28 120 275)" fill="rgba(255,255,255,0.4)" filter="blur(2px)"/>
+                <ellipse cx="140" cy="190" rx="8" ry="18" transform="rotate(-20 140 190)" fill="rgba(255,255,255,0.3)" filter="blur(1px)"/>
+              </svg>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
 
-    <!-- How It Works Panel (hidden by default) -->
+<!-- How It Works Panel (hidden by default) -->
     <div id="blood-bank-how" class="hidden bg-amber-50 border-b border-amber-200">
       <div class="max-w-4xl mx-auto px-4 py-7">
         <h2 class="text-base font-extrabold text-amber-900 mb-4 flex items-center gap-2"><i data-lucide="circle-help" class="w-5 h-5"></i> How Blood Bank Works</h2>
@@ -3047,7 +3171,7 @@ Do not modify social links or structure without permission.
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
 <!-- JAVASCRIPT LOGIC -->
-<script src="script.js?v=20261003-2020" defer></script>
+<script src="script.js?v=20261003-2030" defer></script>
 
   <!-- PREMIUM GLOBAL LOADER (owner-authorised overlay; all styles in custom.css .rd-gl*) -->
   <div id="demo-loader" class="rd-gl" aria-hidden="true">
@@ -3073,6 +3197,7 @@ Do not modify social links or structure without permission.
   </div>
 </body>
 </html>
+
 
 
 
