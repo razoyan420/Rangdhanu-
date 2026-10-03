@@ -5762,14 +5762,56 @@
 
       let contactHtml = '';
       if (isMember) {
-        const mob = d.mobile ? '<a href="tel:' + escapeHtml(d.mobile) + '">' + escapeHtml(d.mobile) + '</a>' : '—';
-        const wa  = d.whatsapp ? '<a href="https://wa.me/88' + d.whatsapp.replace(/^0/, '') + '" target="_blank" rel="noopener" title="WhatsApp"><i data-lucide="message-circle" class="w-3.5 h-3.5 text-emerald-500"></i>' + escapeHtml(d.whatsapp) + '</a>' : '';
+        const telNum = d.mobile || d.whatsapp || '';
+        const waNum = d.whatsapp || d.mobile || '';
+        const waLink = waNum ? 'https://wa.me/88' + waNum.replace(/^0/, '') : '';
+
+        const callBtn = telNum
+          ? '<a href="tel:' + escapeHtml(telNum) + '" class="bb-action-btn bb-call" title="Call ' + escapeHtml(d.name) + '">' +
+            '<i data-lucide="phone-call" class="w-4 h-4"></i>' +
+            '</a>'
+          : '<span class="bb-action-btn bb-action-disabled" title="No number available"><i data-lucide="phone-off" class="w-4 h-4"></i></span>';
+
+        const waBtn = waLink
+          ? '<a href="' + escapeHtml(waLink) + '" target="_blank" rel="noopener" class="bb-action-btn bb-wa" title="WhatsApp ' + escapeHtml(d.name) + '">' +
+            '<i data-lucide="message-circle" class="w-4 h-4"></i>' +
+            '</a>'
+          : '<span class="bb-action-btn bb-action-disabled" title="No WhatsApp"><i data-lucide="message-circle-off" class="w-4 h-4"></i></span>';
+
+        const profileBtn = d.id
+          ? '<button type="button" class="bb-action-btn bb-profile" title="View profile" onclick="openAlumniModal(\'' + escapeHtml(String(d.id)) + '\')">' +
+            '<i data-lucide="user-round" class="w-4 h-4"></i>' +
+            '</button>'
+          : '';
+
+        const numDisplay = telNum
+          ? '<span class="text-xs font-semibold text-slate-700">' + escapeHtml(telNum) + '</span>'
+          : '<span class="text-xs text-slate-400 italic">No number</span>';
+
         contactHtml =
-          '<div class="bb-contact-num"><i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>' + mob + '</div>' +
-          (wa ? '<div class="bb-contact-num">' + wa + '</div>' : '');
+          '<div class="flex items-center justify-between gap-2 mt-1">' +
+            numDisplay +
+            '<div class="flex items-center gap-1.5">' + callBtn + waBtn + profileBtn + '</div>' +
+          '</div>';
       } else {
-        contactHtml = '<div class="bb-contact-locked"><i data-lucide="lock" class="w-3.5 h-3.5"></i>Sign in to view contact</div>';
+        contactHtml =
+          '<div class="bb-contact-locked" onclick="openMemberSignIn(\'bloodbank\')" style="cursor:pointer">' +
+            '<i data-lucide="lock" class="w-3.5 h-3.5"></i>' +
+            'Sign in to view contact' +
+          '</div>';
       }
+
+      /* "Request Blood" checkbox — shown for willing+available donors when signed in.
+         The checked state feeds the bulk WA message composer (rdBloodRequest). */
+      const requestChk = (isMember && d.willing && d.available)
+        ? '<label class="bb-request-chk" title="Add to blood request">' +
+            '<input type="checkbox" class="rd-bb-select" data-id="' + escapeHtml(String(d.id || '')) + '"' +
+            ' data-name="' + escapeHtml(d.name) + '" data-blood="' + escapeHtml(d.blood) + '"' +
+            ' data-wa="' + escapeHtml(d.whatsapp ? '88' + (d.whatsapp).replace(/^0/, '') : '') + '"' +
+            ' onchange="rdBloodRequestSync()">' +
+            '<span>Request</span>' +
+          '</label>'
+        : '';
 
       const locBadge = d.isGazipur
         ? '<span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5 flex items-center gap-0.5"><i data-lucide="map-pin" class="w-2.5 h-2.5"></i>Near DUET</span>'
@@ -5790,7 +5832,10 @@
         '</div>' +
         '<div class="border-t border-slate-100 pt-3 flex flex-col gap-1.5">' +
           contactHtml +
-          '<p class="text-[11px] text-slate-400 mt-0.5"><i data-lucide="droplet" class="w-3 h-3 inline mr-0.5"></i>' + escapeHtml(daysNote) + '</p>' +
+          '<div class="flex items-center justify-between">' +
+            '<p class="text-[11px] text-slate-400"><i data-lucide="droplet" class="w-3 h-3 inline mr-0.5"></i>' + escapeHtml(daysNote) + '</p>' +
+            requestChk +
+          '</div>' +
         '</div>' +
       '</div>';
     }
@@ -5800,6 +5845,51 @@
       if (!panel) return;
       panel.classList.toggle('hidden');
       if (!panel.classList.contains('hidden') && typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    /* ---- Blood Request Feature ----
+       Sync the floating bar whenever a "Request" checkbox changes. */
+    function rdBloodRequestSync() {
+      const checked = Array.from(document.querySelectorAll('.rd-bb-select:checked'));
+      const bar = document.getElementById('rd-bb-request-bar');
+      if (!bar) return;
+      if (checked.length === 0) {
+        bar.classList.add('hidden');
+        return;
+      }
+      bar.classList.remove('hidden');
+      const lbl = document.getElementById('rd-bb-request-count');
+      if (lbl) lbl.textContent = checked.length + ' donor' + (checked.length > 1 ? 's' : '') + ' selected';
+    }
+
+    /* Build a personalised WA message for each selected donor and open each one. */
+    function rdBloodRequestSend() {
+      const checked = Array.from(document.querySelectorAll('.rd-bb-select:checked'));
+      if (!checked.length) return;
+
+      const myName = (RD_MEMBER.me && (RD_MEMBER.me.Name || RD_MEMBER.me.name)) || 'A member';
+      const myOrg  = 'Rangdhanu Alumni Association';
+
+      checked.forEach(function (chk) {
+        const recipName = chk.dataset.name || 'Dear Donor';
+        const blood     = chk.dataset.blood || '';
+        const waNumber  = chk.dataset.wa || '';
+        if (!waNumber) return;
+
+        const msg = encodeURIComponent(
+          'Assalamu Alaikum ' + recipName + ' Bhai/Apu,\n\n' +
+          'আমি ' + myName + ', ' + myOrg + '-এর একজন সদস্য।\n\n' +
+          'আমরা ' + blood + ' রক্তের জন্য জরুরি প্রয়োজনে আপনার সাথে যোগাযোগ করছি। আপনি কি এই মুহূর্তে রক্ত দিতে পারবেন?\n\n' +
+          'যদি সম্ভব হয়, অনুগ্রহ করে শীঘ্রই জানান। আল্লাহ আপনাকে উত্তম পুরস্কার দিন।\n\n' +
+          '— ' + myName + '\n' + myOrg
+        );
+
+        window.open('https://wa.me/' + waNumber + '?text=' + msg, '_blank', 'noopener');
+      });
+
+      /* Deselect all after sending */
+      checked.forEach(function (chk) { chk.checked = false; });
+      rdBloodRequestSync();
     }
 
     async function adminToggleBloodBank(hide) {

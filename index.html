@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="scroll-smooth" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -2865,6 +2865,19 @@
         <p class="text-xs text-slate-500 mb-3">Sign in to view mobile and WhatsApp numbers of donors.</p>
         <button onclick="openMemberSignIn('bloodbank')" class="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition">
           <i data-lucide="log-in" class="w-4 h-4"></i> Sign In
+        </button>
+      </div>
+
+      <!-- Floating Blood Request Bar -->
+      <div id="rd-bb-request-bar" class="hidden fixed bottom-24 xl:bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 bg-rose-600 text-white px-5 py-3.5 rounded-2xl shadow-[0_8px_30px_rgba(220,38,38,0.4)] border border-rose-500">
+        <i data-lucide="droplets" class="w-5 h-5 shrink-0"></i>
+        <span id="rd-bb-request-count" class="text-sm font-bold">0 donors selected</span>
+        <button onclick="rdBloodRequestSend()" class="flex items-center gap-1.5 bg-white text-rose-700 text-sm font-bold px-4 py-2 rounded-xl hover:bg-rose-50 transition active:scale-95">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          Send WA Request
+        </button>
+        <button onclick="document.querySelectorAll('.rd-bb-select').forEach(c=>c.checked=false); rdBloodRequestSync();" class="p-1.5 rounded-lg hover:bg-rose-500 transition" title="Cancel selection">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
     </div>
