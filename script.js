@@ -5577,10 +5577,8 @@
       }
       if (!grid) return;
       if (!RD_FAC.ready && !total) {
-        grid.innerHTML = '<div class="sm:col-span-2 lg:col-span-3 py-14 text-center text-slate-400">' +
-          '<i data-lucide="loader-circle" class="w-8 h-8 mx-auto mb-3 animate-spin"></i>' +
-          '<p class="font-semibold text-sm">Loading the list...</p></div>';
-        lucide.createIcons();
+        grid.innerHTML = '<div class="col-span-full">' + rdPremiumSpinner('Loading...', 'users') + '</div>';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
         return;
       }
       grid.innerHTML = shown
