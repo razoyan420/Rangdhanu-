@@ -5633,6 +5633,7 @@
       if (RD_BB.loaded && RD_BB.isMember === currentlyMember) { rdBloodRender(); return; }
       const status = document.getElementById('blood-bank-status');
       if (status) status.textContent = 'Loading donors...';
+      if (!alumniData.length) loadPublicAlumni().then(rdBloodRender).catch(() => {});
       try {
         const params = Object.assign({ _: Date.now() }, rdMemberParams());
         const qs = Object.keys(params).map(k => k + '=' + encodeURIComponent(params[k])).join('&');
@@ -5764,7 +5765,7 @@
       if (isMember) {
         const telNum = d.mobile || d.whatsapp || '';
         const waNum = d.whatsapp || d.mobile || '';
-        const waLink = waNum ? 'https://wa.me/88' + waNum.replace(/^0/, '') : '';
+        const waLink = waNum ? 'https://wa.me/880' + waNum.replace(/^0/, '') : '';
 
         const callBtn = telNum
           ? '<a href="tel:' + escapeHtml(telNum) + '" class="bb-action-btn bb-call" title="Call ' + escapeHtml(d.name) + '">' +
@@ -5779,8 +5780,8 @@
           : '<span class="bb-action-btn bb-action-disabled" title="No WhatsApp"><i data-lucide="message-circle-off" class="w-4 h-4"></i></span>';
 
         let donorId = d.id || d.memberId;
-        if (!donorId && Array.isArray(window.alumniData)) {
-          const match = window.alumniData.find(a => a.name === d.name && a.dept === d.dept && String(a.series) === String(d.series));
+        if (!donorId && Array.isArray(alumniData)) {
+          const match = alumniData.find(a => a.name === d.name && a.dept === d.dept && String(a.series) === String(d.series));
           if (match) donorId = match.id || match.memberId;
         }
         const profileBtn = donorId
@@ -5812,7 +5813,7 @@
         ? '<label class="bb-request-chk" title="Add to blood request">' +
             '<input type="checkbox" class="rd-bb-select" data-id="' + escapeHtml(String(d.id || '')) + '"' +
             ' data-name="' + escapeHtml(d.name) + '" data-blood="' + escapeHtml(d.blood) + '"' +
-            ' data-wa="' + escapeHtml(d.whatsapp ? '88' + (d.whatsapp).replace(/^0/, '') : '') + '"' +
+            ' data-wa="' + escapeHtml((d.whatsapp || d.mobile) ? '880' + String(d.whatsapp || d.mobile).replace(/^0/, '') : '') + '"' +
             ' onchange="rdBloodRequestSync()">' +
             '<span>Request</span>' +
           '</label>'
