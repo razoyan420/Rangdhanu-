@@ -5256,6 +5256,7 @@
       if (rdCurrentPageId === 'my-profile') openMyProfile('home');
       if (rdCurrentPageId === 'committee-new') ecPrepareSubmissionForm();
       if (rdCurrentPageId === 'polls') rdPollOpen();
+      if (rdCurrentPageId === 'bloodbank') loadBloodBank();
     }
 
     function rdMemberLandedSignedOut() {
@@ -5263,6 +5264,8 @@
       rdMemberNavPaint();
       rdMemberPaintSignInLinks();
       if (rdCurrentPageId === 'my-profile') openMemberSignIn('home');
+      if (rdCurrentPageId === 'polls') rdPollOpen();
+      if (rdCurrentPageId === 'bloodbank') loadBloodBank();
     }
 
     function openMemberSignIn(backTo) {
