@@ -1,4 +1,4 @@
-:root{
+﻿:root{
   --rd-blue-950:#071f49;
   --rd-blue-900:#0b2f6b;
   --rd-blue-800:#124b9b;
@@ -1590,7 +1590,7 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   }
   /* The 9 page shortcuts become icon tiles. */
   #mobile-menu > .mobile-nav-item[data-page]{
-    display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
     padding:15px 6px !important;border:1px solid #e8eef6 !important;border-radius:14px !important;
     background:#f8fafc !important;color:#334155 !important;font-size:12px !important;font-weight:700 !important;
     text-align:center;line-height:1.15;transition:transform .16s ease,border-color .18s ease,background .18s ease;
@@ -1609,7 +1609,7 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   #mobile-menu > #mobile-member-menu{display:contents}
   #mobile-menu #mobile-member-item,
   #mobile-menu > #rd-more-logout-mobile{
-    display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
     width:auto !important;padding:15px 6px !important;border:1px solid #e8eef6 !important;
     border-radius:14px !important;background:#f8fafc !important;color:#334155 !important;
     font-size:12px !important;font-weight:700 !important;text-align:center;line-height:1.15;
@@ -1708,7 +1708,7 @@ button:not(:disabled),a{transition:color .22s ease,background-color .22s ease,bo
   }
   body.rd-on-pdacc #rd-pd-topsheet.hidden{display:none}
   .rd-pdmore-item{
-    display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
     padding:15px 6px;border:1px solid #cff0e9;border-radius:14px;text-decoration:none;
     background:#f6fefb;color:#334155;font-size:12px;font-weight:700;
     text-align:center;line-height:1.15;transition:transform .16s,border-color .18s,background .18s;
@@ -1812,3 +1812,4 @@ html.rd-reveal-on .rd-reveal-head.is-visible{opacity:1;transform:none}
   #activities .grid > div h3{transition:none !important}
   #activities .grid > div.is-visible:hover{transform:none !important}
 }
+

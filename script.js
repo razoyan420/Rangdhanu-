@@ -5778,8 +5778,13 @@
             '</a>'
           : '<span class="bb-action-btn bb-action-disabled" title="No WhatsApp"><i data-lucide="message-circle-off" class="w-4 h-4"></i></span>';
 
-        const profileBtn = d.id
-          ? '<button type="button" class="bb-action-btn bb-profile" title="View profile" onclick="openAlumniModal(\'' + escapeHtml(String(d.id)) + '\')">' +
+        let donorId = d.id || d.memberId;
+        if (!donorId && Array.isArray(window.alumniData)) {
+          const match = window.alumniData.find(a => a.name === d.name && a.dept === d.dept && String(a.series) === String(d.series));
+          if (match) donorId = match.id || match.memberId;
+        }
+        const profileBtn = donorId
+          ? '<button type="button" class="bb-action-btn bb-profile" title="View profile" onclick="openAlumniModal(\'' + escapeHtml(String(donorId)) + '\')">' +
             '<i data-lucide="user-round" class="w-4 h-4"></i>' +
             '</button>'
           : '';
@@ -5851,8 +5856,18 @@
        Sync the floating bar whenever a "Request" checkbox changes. */
     function rdBloodRequestSync() {
       const checked = Array.from(document.querySelectorAll('.rd-bb-select:checked'));
-      const bar = document.getElementById('rd-bb-request-bar');
-      if (!bar) return;
+      let bar = document.getElementById('rd-bb-request-bar');
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'rd-bb-request-bar';
+        bar.className = 'hidden fixed bottom-24 xl:bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 bg-rose-600 text-white px-5 py-3.5 rounded-2xl shadow-[0_8px_30px_rgba(220,38,38,0.4)] border border-rose-500';
+        bar.innerHTML = '<i data-lucide="droplets" class="w-5 h-5 shrink-0"></i>' +
+                        '<span id="rd-bb-request-count" class="text-sm font-bold">0 donors selected</span>' +
+                        '<button onclick="rdBloodRequestSend()" class="flex items-center gap-1.5 bg-white text-rose-700 text-sm font-bold px-4 py-2 rounded-xl hover:bg-rose-50 transition active:scale-95"><i data-lucide="message-circle" class="w-4 h-4"></i> Send WA Request</button>' +
+                        '<button onclick="document.querySelectorAll(\'.rd-bb-select\').forEach(c=>c.checked=false); rdBloodRequestSync();" class="p-1.5 rounded-lg hover:bg-rose-500 transition" title="Cancel selection"><i data-lucide="x" class="w-4 h-4"></i></button>';
+        document.body.appendChild(bar);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }
       if (checked.length === 0) {
         bar.classList.add('hidden');
         return;
